@@ -160,7 +160,7 @@ namespace MinesServer.GameShit
                 c190stacks = 1;
                 lastc190hit = ServerTime.Now;
             }
-           /* if (!online)
+           if (!online)
             {
                 if (ServerTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
                 {
@@ -168,7 +168,7 @@ namespace MinesServer.GameShit
                     health.Death();
                 }
                 return;
-            }*/
+            }
             if (ServerTime.Now - lastPlayersend > TimeSpan.FromSeconds(4))
             {
                 ReSendBots();
@@ -412,8 +412,6 @@ namespace MinesServer.GameShit
             var newpos = new Vector2(x, y);
             if (Vector2.Distance(pos, newpos) < 1.2f)
             {
-                if (skillslist != null) //remove
-                {
                     foreach (var c in skillslist.skills.Values)
                     {
                         if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
@@ -424,7 +422,6 @@ namespace MinesServer.GameShit
                             }
                         }
                     }
-                }
                     pos = newpos;
             }
             else

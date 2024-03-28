@@ -16,6 +16,7 @@ namespace MinesServer.Server
         {
             gameActions.Enqueue((action,p));
         }
+        public static int offset;
         public static DateTimeOffset Now { get; private set; }
         public void StartTimeUpdate()
         {
@@ -23,7 +24,9 @@ namespace MinesServer.Server
             {
                 while (true)
                 {
-                    Now = DateTimeOffset.UtcNow;
+                    var d = DateTimeOffset.UtcNow;
+                    offset = (int)(Now-d).TotalMilliseconds;
+                    Now = d;
                     Thread.Sleep(TimeSpan.FromMicroseconds(0.1));
                 }
             });
@@ -33,8 +36,6 @@ namespace MinesServer.Server
         {
             Task.Run(() =>
             {
-                while(true)
-                {
                     var lasttick = Now.ToUnixTimeMilliseconds();
                     while (true)
                     {
@@ -49,34 +50,20 @@ namespace MinesServer.Server
                             lasttick = Now.ToUnixTimeMilliseconds();
                         }
                     }
-                }
             });
         }
 
         public void Start()
         {
             StartTimeUpdate();
-            AddTickRateUpdate(PlayersUpdate);
-            AddTickRateUpdate(GameActionsUpdate);
-            AddTickRateUpdate(ChunksUpdate);
             AddTickRateUpdate(Update);
         }
-        private void ChunksUpdate()
+        public void Update()
         {
-            for (int x = 0; x < World.ChunksW; x++)
+            if (!MServer.started)
             {
-                for (int y = 0; y < World.ChunksH; y++)
-                {
-                    World.W.chunks[x, y].Update();
-                }
+                return;
             }
-            World.Update();
-            World.W.cells.Commit();
-            World.W.road.Commit();
-            World.W.durability.Commit();
-        }
-        private void GameActionsUpdate()
-        {
             for (int i = 0; i < gameActions.Count; i++)
             {
                 var item = gameActions.Dequeue();
@@ -92,9 +79,6 @@ namespace MinesServer.Server
                     Console.WriteLine($"{item.initiator.name}[{item.initiator.Id}] caused {ex}");
                 }*/
             }
-        }
-        private void PlayersUpdate()
-        {
             for (int i = 0; i < DataBase.activeplayers.Count; i++)
             {
                 using var dbas = new DataBase();
@@ -104,13 +88,17 @@ namespace MinesServer.Server
                     player?.Update();
                 }
             }
-        }
-        public void Update()
-        {
-            if (!MServer.started)
+            for (int x = 0; x < World.ChunksW; x++)
             {
-                return;
+                for (int y = 0; y < World.ChunksH; y++)
+                {
+                    World.W.chunks[x, y].Update();
+                }
             }
+            World.Update();
+            World.W.cells.Commit();
+            World.W.road.Commit();
+            World.W.durability.Commit();
             using var db = new DataBase();
             foreach (var order in db.orders)
             {

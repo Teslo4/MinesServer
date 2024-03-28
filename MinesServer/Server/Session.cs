@@ -11,6 +11,7 @@ using MinesServer.Network.Programmator;
 using MinesServer.Network.TypicalEvents;
 using MinesServer.Network.World;
 using NetCoreServer;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace MinesServer.Server
@@ -27,7 +28,7 @@ namespace MinesServer.Server
         {
             get => DataBase.activeplayers.Count;
         }
-        public float starttime = 0;
+        public DateTimeOffset starttime;
         public string sid { get; set; }
         #endregion
 
@@ -50,6 +51,7 @@ namespace MinesServer.Server
                 {
                     case AUPacket au: AU(au); break;
                     case TYPacket ty: father.time.AddAction(() => TY(ty),player); break;
+                    case PongPacket ping: Ping(ping);break;
                     default:
                         // Invalid packet
                         break;
@@ -100,7 +102,6 @@ namespace MinesServer.Server
                 case GUI_Packet gui_: GUI(packet, gui_); break;
                 case INCLPacket incl: Incl(packet, incl); break;
                 case INUSPacket inus: Inus(packet, inus); break;
-                case PongPacket pi: Ping(packet, pi); break;
                 case DPBXPacket dpbx: Dpbx(packet, dpbx); break;
                 case SettPacket sett: Sett(packet, sett); break;
                 case ADMNPacket admn: ADMN(packet, admn); break;
@@ -188,10 +189,17 @@ namespace MinesServer.Server
             player.win = player.crys.OpenBoxGui();
             player.SendWindow();
         }
-        private void Ping(TYPacket f, PongPacket p)
+        private DateTimeOffset lastcall = ServerTime.Now;
+        private void Ping(PongPacket p)
         {
-            Console.WriteLine($"pong {p.CurrentTime}:{p.PongResponse}");
-            SendU(new PingPacket(p.CurrentTime, 0, "f"));
+            if (starttime == default)
+            {
+                starttime = ServerTime.Now;
+            }
+            var now = ServerTime.Now;
+            var localserver = (int)(now - starttime).TotalMilliseconds;
+            SendU(new PingPacket(52, localserver, $"{(localserver - p.CurrentTime) - (int)(now - lastcall).TotalMilliseconds} "));
+            lastcall = now;
         }
         private void Inus(TYPacket f, INUSPacket inus)
         {
@@ -221,7 +229,7 @@ namespace MinesServer.Server
                     player.dir = packet.Direction;
                     player.Bz();
                 }
-            }, 200000);
+            }, 20000);
         }
         private void GeoHandler(TYPacket parent, XgeoPacket packet)
         {
@@ -231,7 +239,7 @@ namespace MinesServer.Server
                 {
                     player.Geo();
                 }
-            }, 200000);
+            }, 20000);
         }
         private void BuildHandler(TYPacket parent, XbldPacket packet)
         {
@@ -241,7 +249,7 @@ namespace MinesServer.Server
                 {
                     player.dir = packet.Direction;
                     player.Build(packet.BlockType);
-                }, 200000);
+                }, 20000);
             }
         }
         private void AutoDiggHandler(TYPacket parent, TADGPacket packet)
@@ -318,7 +326,7 @@ namespace MinesServer.Server
         }
         public void SendPing()
         {
-            SendU(new PingPacket(1, 1, "sosi"));
+            SendU(new PingPacket(10000, -1, "sosi"));
         }
         public void SendWin(string win)
         {
