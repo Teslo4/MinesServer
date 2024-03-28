@@ -4,6 +4,7 @@ using MinesServer.GameShit.Skills;
 using MinesServer.Server;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MinesServer.GameShit
 {
@@ -33,7 +34,7 @@ namespace MinesServer.GameShit
         }
         public void InstallSkill(string type, int slot, Player p)
         {
-            if ((skills.ContainsKey(slot) && skills[slot] != null) || slot > slots || slot < 0)
+            if ((skills.ContainsKey(slot) && skills[slot] != null) || slot > slots || slot < 0 || !skillz.First(i => i.type.GetCode() == type).MeetReqs(p))
             {
                 return;
             }
@@ -49,12 +50,12 @@ namespace MinesServer.GameShit
             ser = Newtonsoft.Json.JsonConvert.SerializeObject(skills, Newtonsoft.Json.Formatting.None);
             db.SaveChanges();
         }
-        public Dictionary<SkillType, bool> SkillToInstall()
+        public Dictionary<SkillType, bool> SkillToInstall(Player p)
         {
             Dictionary<SkillType, bool> d = new();
             foreach (var sk in skillz)
             {
-                if (skills.FirstOrDefault(skill => skill.Value?.type == sk.type).Value == null)
+                if (skills.FirstOrDefault(skill => skill.Value?.type == sk.type).Value == null && sk.MeetReqs(p))
                 {
                     d.Add(sk.type, true);
                 }
@@ -83,6 +84,7 @@ namespace MinesServer.GameShit
         {
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 100f + x * 10,
                     expfunc = (int x) => 1,
@@ -91,6 +93,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = new() { {SkillType.Digging,1} },
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 5f - x * 0.2f < 0 ? 1f : 5f - x * 0.2f,
                     expfunc = (int x) => 1f,
@@ -99,6 +102,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1,
                     dopfunc = (int x) => x,
@@ -112,6 +116,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1,
                     dopfunc = (int x) => x,
@@ -125,6 +130,7 @@ namespace MinesServer.GameShit
                 },
                  new Skill()
                 {
+                     requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1,
                     dopfunc = (int x) => x,
@@ -138,6 +144,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
@@ -146,6 +153,7 @@ namespace MinesServer.GameShit
                 },
                  new Skill()
                 {
+                     requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     dopfunc = (int x) => x,
@@ -159,6 +167,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
@@ -167,6 +176,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 0f,
                     effectfunc = (int x) => 70f - x * 0.05f > 30f ? 70f - x * 0.05f : 30f,
                     expfunc = (int x) => 1f,
@@ -179,6 +189,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
@@ -187,14 +198,16 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
+                    effectfunc = (int x) => 100 + 20 * x,
                     expfunc = (int x) => 1f,
                     type = SkillType.Packing, // упаковка
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => x * 3f,
                     expfunc = (int x) => 1f,
@@ -203,54 +216,61 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
                     type = SkillType.PackingBlue, // упаковка синь
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
                     type = SkillType.PackingCyan, // упаковка голь
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                  new Skill()
                 {
+                     requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
                     type = SkillType.PackingGreen, // упаковка зель
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                   new Skill()
                 {
+                      requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
                     type = SkillType.PackingRed, // упаковка крась
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                     new Skill()
                 {
+                        requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
                     type = SkillType.PackingViolet, // упаковка фиоль
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 1f,
                     expfunc = (int x) => 1f,
                     type = SkillType.PackingWhite, // упаковка бель
-                    effecttype = SkillEffectType.OnMove
+                    effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 0.08f + (float)(Math.Log10(x) * (Math.Pow(x, 0.5) / 4)),
                     expfunc = (int x) => 1f,
@@ -259,6 +279,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) => 1f,
                     effectfunc = (int x) => 100f + x * 0.2f,
                     expfunc = (int x) => 1f,
@@ -267,6 +288,7 @@ namespace MinesServer.GameShit
                 },
                 new Skill()
                 {
+                    requirements = null,
                     costfunc = (int x) =>1f,
                     effectfunc = (int x) =>  (float)Math.Round(1f+(x-((float)Math.Log10(x)*((float)Math.Pow(x,0.9))/2f)-x*0.098f)) >= 92 ? 92 : (float)Math.Round(1f+(x-((float)Math.Log10(x)*((float)Math.Pow(x,0.9))/2f)-x*0.098f)),
                     expfunc = (int x) => 0,

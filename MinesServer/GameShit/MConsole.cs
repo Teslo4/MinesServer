@@ -11,6 +11,15 @@ namespace MinesServer.GameShit
     {
         public static void InitCommands()
         {
+            commands.Add("tp", (p, args) => {
+                var arr = args.Split(" ");
+                if (arr.Length > 1 && int.TryParse(arr[1], out var x) && int.TryParse(arr[2],out var y))
+                {
+                    p.x = x;
+                    p.y = y;
+                    p.tp(x, y);
+                }
+            });
             commands.Add("fedresp", (p, arg) =>
             {
                 p.RandomResp();

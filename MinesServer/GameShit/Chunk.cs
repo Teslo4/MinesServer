@@ -29,12 +29,11 @@ namespace MinesServer.GameShit
         {
             get => pos.Item2 * 32;
         }
-        private long lasttick = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-        private DateTime lastCrysupd = DateTime.Now;
+        private long lasttick = ServerTime.Now.ToUnixTimeMilliseconds();
         public byte[] cells => Enumerable.Range(0, World.ChunkHeight).SelectMany(y => Enumerable.Range(0, World.ChunkWidth).Select(x => this[x, y])).ToArray();
         public void Update()
         {
-            var currenttick = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            var currenttick = ServerTime.Now.ToUnixTimeMilliseconds();
             if (shouldbeloaded())
             {
                 CheckBots();

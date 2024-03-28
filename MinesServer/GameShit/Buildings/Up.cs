@@ -57,7 +57,7 @@ namespace MinesServer.GameShit.Buildings
             {
                 SelectedSlot = p.skillslist.selectedslot,
                 Skills = p.skillslist.GetSkills(),
-                SkillsToInstall = skillfromslot == null ? p.skillslist.SkillToInstall() : null,
+                SkillsToInstall = skillfromslot == null ? p.skillslist.SkillToInstall(p) : null,
                 SlotAmount = p.skillslist.slots,
                 OnInstall = skillfromslot == null ? oninstall : null,
                 OnSkill = onskill,

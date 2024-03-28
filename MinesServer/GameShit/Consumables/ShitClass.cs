@@ -102,6 +102,10 @@ namespace MinesServer.GameShit.Consumables
 
             }
         }
+        public static void Poli(int x,int y,Player p)
+        {
+
+        }
         public static void Boom(int x, int y, Player player)
         {
            var ch = World.W.GetChunk(x, y);

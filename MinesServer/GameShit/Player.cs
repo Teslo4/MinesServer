@@ -57,10 +57,10 @@ namespace MinesServer.GameShit
         {
             get => connection != null;
         }
-        public Player() => Delay = DateTime.Now;
-        public DateTime lastPlayersend = DateTime.Now;
-        public DateTime lastPacks = DateTime.Now;
-        public DateTime afkstarttime = DateTime.Now;
+        public Player() => Delay = ServerTime.Now;
+        public DateTimeOffset lastPlayersend = ServerTime.Now;
+        public DateTimeOffset lastPacks = ServerTime.Now;
+        public DateTimeOffset afkstarttime = ServerTime.Now;
         public Queue<Action> playerActions = new();
         public int Id { get; set; }
         public string name { get; set; }
@@ -108,7 +108,7 @@ namespace MinesServer.GameShit
         public bool autoDig { get; set; }
         public Vector2 pos = Vector2.Zero;
         public int c190stacks = 1;
-        public DateTime lastc190hit = DateTime.Now;
+        public DateTimeOffset lastc190hit = ServerTime.Now;
         public Basket crys { get; set; }
         public Inventory inventory { get; set; }
         public Health health { get; set; }
@@ -116,13 +116,12 @@ namespace MinesServer.GameShit
         public PlayerSkills skillslist { get; set; }
         public Stack<byte> geo = new Stack<byte>();
         public Queue<Line> console = new Queue<Line>();
-        private bool actionpertick = true;
         [NotMapped]
         public Window? win;
         [NotMapped]
         private float cb;
-        public DateTime Delay = DateTime.Now;
-        public bool CanAct { get => !(Delay > DateTime.Now); }
+        public DateTimeOffset Delay = ServerTime.Now;
+        public bool CanAct { get => !(Delay > ServerTime.Now); }
         public bool OnRoad { get => World.isRoad(World.GetCell(x, y)); }
         public int dir { 
             get;
@@ -156,22 +155,21 @@ namespace MinesServer.GameShit
         #region actions
         public void Update()
         {
-            actionpertick = false;
-            if (DateTime.Now - lastc190hit >= TimeSpan.FromMinutes(1))
+            if (ServerTime.Now - lastc190hit >= TimeSpan.FromMinutes(1))
             {
                 c190stacks = 1;
-                lastc190hit = DateTime.Now;
+                lastc190hit = ServerTime.Now;
             }
-            if (!online)
+           /* if (!online)
             {
-                if (DateTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
+                if (ServerTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
                 {
                     DataBase.activeplayers.Remove(this);
                     health.Death();
                 }
                 return;
-            }
-            if (DateTime.Now - lastPlayersend > TimeSpan.FromSeconds(4))
+            }*/
+            if (ServerTime.Now - lastPlayersend > TimeSpan.FromSeconds(4))
             {
                 ReSendBots();
             }
@@ -195,14 +193,18 @@ namespace MinesServer.GameShit
                 programsData.Step();
                 return;
             }
-            while (playerActions.Count > 0)
-            {
-                playerActions.Dequeue()();
-            }
         }
         public void SetResp(Resp r)
         {
             resp = r;
+        }
+        public void TryAct(Action a,double delay)
+        {
+            if (Delay < ServerTime.Now)
+            {
+                a();
+                Delay = ServerTime.Now + TimeSpan.FromMicroseconds(delay * 1.4);
+            }
         }
         private int ParseCryType(CellType cell)
         {
@@ -381,15 +383,6 @@ namespace MinesServer.GameShit
                 }
             }
         }
-        public void AddAciton(Action a, double delay)
-        {
-            if (CanAct && !actionpertick)
-            {
-                Delay = DateTime.Now + TimeSpan.FromMicroseconds(delay);
-                playerActions.Enqueue(a);
-                actionpertick = true;
-            }
-        }
         public bool Move(int x, int y, int dir = -1)
         {
             if (!World.W.ValidCoord(x, y) || win != null)
@@ -419,17 +412,20 @@ namespace MinesServer.GameShit
             var newpos = new Vector2(x, y);
             if (Vector2.Distance(pos, newpos) < 1.2f)
             {
-                foreach (var c in skillslist.skills.Values)
+                if (skillslist != null) //remove
                 {
-                    if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
+                    foreach (var c in skillslist.skills.Values)
                     {
-                        if (c.type == SkillType.Movement)
+                        if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
                         {
-                            c.AddExp(this);
+                            if (c.type == SkillType.Movement)
+                            {
+                                c.AddExp(this);
+                            }
                         }
                     }
                 }
-                pos = newpos;
+                    pos = newpos;
             }
             else
             {

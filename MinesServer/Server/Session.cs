@@ -190,7 +190,8 @@ namespace MinesServer.Server
         }
         private void Ping(TYPacket f, PongPacket p)
         {
-            SendU(new PingPacket(0, 0, "f"));
+            Console.WriteLine($"pong {p.CurrentTime}:{p.PongResponse}");
+            SendU(new PingPacket(p.CurrentTime, 0, "f"));
         }
         private void Inus(TYPacket f, INUSPacket inus)
         {
@@ -213,7 +214,7 @@ namespace MinesServer.Server
         }
         private void DigHandler(TYPacket parent, XdigPacket packet)
         {
-            player.AddAciton(() =>
+            player.TryAct(() =>
             {
                 if (player != null && player.win == null)
                 {
@@ -224,7 +225,7 @@ namespace MinesServer.Server
         }
         private void GeoHandler(TYPacket parent, XgeoPacket packet)
         {
-            player.AddAciton(() =>
+            player.TryAct(() =>
             {
                 if (player != null && player.win == null)
                 {
@@ -236,7 +237,7 @@ namespace MinesServer.Server
         {
             if (player != null && player.win == null)
             {
-                player.AddAciton(() =>
+                player.TryAct(() =>
                 {
                     player.dir = packet.Direction;
                     player.Build(packet.BlockType);
@@ -252,7 +253,7 @@ namespace MinesServer.Server
         {
             if (player != null)
             {
-                player.AddAciton(() =>
+                player.TryAct(() =>
                 {
                     player.Move((int)parent.X, (int)parent.Y, packet.Direction);
                 }, player.OnRoad ? (player.pause * 5) * 0.65 : player.pause * 5);

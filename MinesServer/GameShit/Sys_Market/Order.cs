@@ -9,7 +9,7 @@ namespace MinesServer.GameShit.SysMarket
         public int itemid { get; set; }
         public int num { get; set; }
         public long cost { get; set; }
-        public DateTime bettime { get; set; }
+        public DateTimeOffset bettime { get; set; }
         public void Bet(Player p, long money)
         {
             if ((buyerid > 0 ? Math.Ceiling(cost + (cost * 0.01f)) : cost) > money || p.money < cost)
@@ -27,12 +27,12 @@ namespace MinesServer.GameShit.SysMarket
             buyerid = p.Id;
             p.money -= money;
             p.SendMoney();
-            bettime = DateTime.Now;
+            bettime = ServerTime.Now;
             db.SaveChanges();
         }
         public void CheckReady()
         {
-            if (TimeSpan.FromMinutes(5) <= (DateTime.Now - bettime) && buyerid > 0)
+            if (TimeSpan.FromMinutes(5) <= (ServerTime.Now - bettime) && buyerid > 0)
             {
                 using var db = new DataBase();
                 db.orders.Remove(this);
