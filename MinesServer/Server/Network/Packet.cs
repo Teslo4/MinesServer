@@ -45,8 +45,8 @@ namespace MinesServer.Network
             AutoDiggPacket.packetName => x => AutoDiggPacket.Decode(x), // BD
             GeoPacket.packetName => x => GeoPacket.Decode(x), // GE
             SettingsPacket.packetName => x => SettingsPacket.Decode(x), // #S
-            WorldInfoPacket.packetName => x => WorldInfoPacket.Decode(x), // cf
-            WorldInfoPacket2.packetName => x => WorldInfoPacket2.Decode(x), // CF
+            WorldInfoPacket.packetName => x => WorldInfoPacket.Decode(x),
+            WorldInfoPacket2.packetName => x => WorldInfoPacket2.Decode(x),// cf
             PongPacket.packetName => x => PongPacket.Decode(x), // PO
             SkillsPacket.packetName => x => SkillsPacket.Decode(x), // @S
             OpenURLPacket.packetName => x => OpenURLPacket.Decode(x), // GR
@@ -102,7 +102,7 @@ namespace MinesServer.Network
             var caret = lengthLength;
             var dataType = Encoding.UTF8.GetString(input[caret..(caret += dataTypeLength)]);
             var eventType = Encoding.UTF8.GetString(input[caret..(caret += eventTypeLength)]);
-            var decoder = GetDecoder(eventType);
+            var decoder = GetDecoder(eventType) ?? throw new InvalidPayloadException($"Invalid event type: {eventType}");
             return new(dataType, (ITopLevelPacket)decoder(input[caret..packetLength]));
         }
 

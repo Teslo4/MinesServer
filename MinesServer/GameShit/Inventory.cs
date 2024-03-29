@@ -165,6 +165,35 @@ namespace MinesServer.GameShit
                     }
                 },
                 {
+                    35,
+                    (p) =>
+                    {
+                        var x = p.GetDirCord().X;
+                        var y = p.GetDirCord().Y;
+                        var cell = World.GetCell((int)x, (int)y);
+                        var cellprop = World.GetProp(cell);
+                        if (cellprop.isEmpty)
+                        {
+
+                            if(World.GetCell((int)x-1, (int)y-1) == 39) {return false;}
+                            else if(World.GetCell((int)x+1, (int)y-1) == 39) {return false;}
+                            else if(World.GetCell((int)x-1, (int)y+1) == 39) {return false;}
+                            else if(World.GetCell((int)x+1, (int)y+1) == 39) {return false;}
+                            else
+                            {
+                                if(World.GetCell((int)x, (int)y+1) == 36|World.GetCell((int)x, (int)y-1) == 36|World.GetCell((int)x-1, (int)y) == 36|World.GetCell((int)x+1, (int)y) == 36)
+                                {
+                                World.SetCell((int)p.GetDirCord().X ,(int)p.GetDirCord().Y, 39);
+                                return true;
+                                }
+                                else if(World.GetCell((int)x, (int)y-1) == 39|World.GetCell((int)x, (int)y-1) == 39|World.GetCell((int)x-1, (int)y) == 39|World.GetCell((int)x+1, (int)y) == 39)
+                                {World.SetCell((int)p.GetDirCord().X ,(int)p.GetDirCord().Y, 39);
+                                return true;
+                            }
+                        } }
+                        return false; }
+                },
+                {
                     40,
                     (p) =>
                     {

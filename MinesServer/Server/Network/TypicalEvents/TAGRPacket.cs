@@ -12,12 +12,8 @@ namespace MinesServer.Network.TypicalEvents
 
         public static TAGRPacket Decode(ReadOnlySpan<byte> decodeFrom)
         {
-            try
-            {
-                if (!decodeFrom.SequenceEqual([(byte)'_'])) throw new InvalidPayloadException("Invalid payload");
-                return new();
-            }
-            catch { return new(); }
+            if (!decodeFrom.SequenceEqual([(byte)'_'])) throw new InvalidPayloadException("Invalid payload");
+            return new();
         }
 
         public int Encode(Span<byte> output)

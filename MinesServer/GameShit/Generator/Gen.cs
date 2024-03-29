@@ -19,8 +19,10 @@
         {
             Console.WriteLine("Generating sectors");
             var sec = new Sectors((width, height));
-            sec.GenerateENoise(15, 1, RcherNZ.AccidentalNoise.InterpolationType.Cubic);
-            sec.AddW(25, 1, RcherNZ.AccidentalNoise.InterpolationType.Linear, .55f);
+            sec.GenerateENoise(55, 1, RcherNZ.AccidentalNoise.InterpolationType.Cubic);
+            sec.AddW(15, 1, RcherNZ.AccidentalNoise.InterpolationType.Linear);
+            sec.AddW(25, 5, RcherNZ.AccidentalNoise.InterpolationType.Linear);
+            sec.AddW(35, 20, RcherNZ.AccidentalNoise.InterpolationType.Quintic);
             sec.End();
             var map = sec.map;
             var rc = 0;

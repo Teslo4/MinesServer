@@ -1,10 +1,12 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Generator;
+using MinesServer.GameShit.SysMarket;
 using MinesServer.Network.Constraints;
 using MinesServer.Network.HubEvents.FX;
 using MinesServer.Network.World;
 using MinesServer.Server;
 using System.ComponentModel.DataAnnotations;
+using System.IO.Pipes;
 using System.Numerics;
 
 namespace MinesServer.GameShit
@@ -94,17 +96,9 @@ namespace MinesServer.GameShit
                         y++;
                         x = 0;
                     }
-                    if (CanBuildPack(-5, 5, -5, 5, x, y, null, true))
-                    {
                         new Market(x - 7, y - 4, 0).Build();
                         new Resp(x - 8, y + 7, 0).Build();
                         new Up(x, y - 4, 0).Build();
-
-                    }
-                    if (y > CellsHeight)
-                    {
-                        y = 0;
-                    }
                 }
             }
             cells.Commit();
@@ -259,6 +253,7 @@ namespace MinesServer.GameShit
             SetCell(x + plusx, y + plusy, cell);
             SetDurability(x + plusx, y + plusy, durability);
         }
+        public static void SetCell(int x, int y, CellType type) => SetCell(x, y, (byte)type);
         public static void SetCell(int x, int y, byte cell, bool packmesh = false)
         {
             if (!W.ValidCoord(x, y))
@@ -414,11 +409,16 @@ namespace MinesServer.GameShit
             }
             return false;
         }
-        public static DateTime lastpackupd = DateTime.Now;
-        public static DateTime lastpackeffect = DateTime.Now;
+        private static DateTimeOffset lastpackupd = ServerTime.Now;
+        private static DateTimeOffset lastpackeffect = ServerTime.Now;
+        private static DateTimeOffset lazyupd = ServerTime.Now;
         public static void Update()
         {
-            if (DateTime.Now - lastpackupd >= TimeSpan.FromHours(1))
+            if (ServerTime.Now - lazyupd >= TimeSpan.FromMinutes(1))
+            {
+                lazyupd = ServerTime.Now;
+            }
+            if (ServerTime.Now - lastpackupd >= TimeSpan.FromHours(1))
             {
                 using var db = new DataBase();
                 for (int chx = 0; chx < ChunksW; chx++)
@@ -441,10 +441,10 @@ namespace MinesServer.GameShit
                     }
                 }
                 db.SaveChanges();
-                lastpackupd = DateTime.Now;
+                lastpackupd = ServerTime.Now;
             }
 
-            if (DateTime.Now - lastpackeffect >= TimeSpan.FromSeconds(0.5))
+            if (ServerTime.Now - lastpackeffect >= TimeSpan.FromSeconds(0.5))
             {
                 using var db = new DataBase();
                 for (int chx = 0; chx < ChunksW; chx++)
@@ -466,14 +466,18 @@ namespace MinesServer.GameShit
                                     db.Attach(gun);
                                     gun.Update();
                                 }
+                                if (pack.Value != null && pack.Value is Crafter)
+                                {
+                                    (pack.Value as Crafter).Update();
+                                }
                             }
                         }
                     }
                 }
                 db.SaveChanges();
-                lastpackeffect = DateTime.Now;
+                lastpackeffect = ServerTime.Now;
             }
-            if (DateTime.Now - lastcryupdate >= TimeSpan.FromHours(1))
+            if (ServerTime.Now - lastcryupdate >= TimeSpan.FromHours(1))
             {
                 for (int i = 0; i < W.cryscostmod.Length; i++)
                 {
@@ -491,10 +495,10 @@ namespace MinesServer.GameShit
                     }
                 }
                 W.summary = new long[6];
-                lastcryupdate = DateTime.Now;
+                lastcryupdate = ServerTime.Now;
             }
         }
-        public static DateTime lastcryupdate = DateTime.MinValue;
+        public static DateTimeOffset lastcryupdate = DateTimeOffset.MinValue;
         public static int GetCrysCost(int i)
         {
             return W.cryscostbase[i] + W.cryscostmod[i];
@@ -509,10 +513,6 @@ namespace MinesServer.GameShit
         public Chunk GetChunk(int x, int y)
         {
             var pos = GetChunkPosByCoords(x, y);
-            if (pos.Item1 == chunksx)
-                pos = (pos.Item1 - 1, pos.Item2);
-            else if (pos.Item2 == chunksy)
-                pos = (pos.Item1, pos.Item2 - 1);
             return chunks[pos.Item1, pos.Item2];
         }
     }

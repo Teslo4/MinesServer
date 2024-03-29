@@ -21,7 +21,7 @@ namespace MinesServer.GameShit
                 {
                     if (c.type == Enums.SkillType.Health)
                     {
-                        MaxHP += (int)c.GetEffect();
+                        MaxHP += (int)c.Effect;
                     }
                 }
             }
@@ -75,6 +75,8 @@ namespace MinesServer.GameShit
             var newpos = r.GetRandompoint();
             player.x = newpos.Item1; player.y = newpos.Item2;
             player.tp(player.x, player.y);
+            player.ReSendPacks();
+            player.ReSendBots();
             player.SendMap();
             SendHp();
         }
@@ -103,7 +105,7 @@ namespace MinesServer.GameShit
                     if (c.type == Enums.SkillType.AntiGun)
                     {
                         c.AddExp(player);
-                        var eff = (int)(d * (c.GetEffect() / 100));
+                        var eff = (int)(d * (c.Effect / 100));
                         if (d - eff >= 0)
                         {
                             d -= eff;

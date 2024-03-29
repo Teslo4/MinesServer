@@ -64,8 +64,8 @@ namespace MinesServer.Server
             {
 
                 initiator.SendPing();
-                initiator.SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 3410, "3410", "http://pi.door/", "ok"));
-                initiator.SendU(new WorldInfoPacket2(World.W.name, World.CellsWidth, World.CellsHeight, 3410, "3410", "http://pi.door/", "ok"));
+                initiator.SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 0, "0", "http://pi.door/", "ok"));
+                initiator.SendU(new WorldInfoPacket2(World.W.name, World.CellsWidth, World.CellsHeight, 0, "0", "http://pi.door/", "ok"));
                 authwin = new Window()
                 {
                     Title = "ВХОД",
@@ -127,7 +127,44 @@ namespace MinesServer.Server
                     IsConsole = true,
                     Placeholder = " "
                 },
-                Buttons = [new("OK", $"newnick:{ActionMacros.Input}", (args) => { using var db = new DataBase(); if (db.players.FirstOrDefault(i => i.name == args.Input) == null) { SetPasswdForNew(args.Input!, initiator); } else { initiator.SendU(new OKPacket("auth", "Ник занят")); CreateNew(initiator); } })]
+                Buttons = [new("OK", $"newnick:{ActionMacros.Input}", (args) =>
+                {
+                    using var db = new DataBase();
+                    var pi = args.Input.Split(" ");
+                    var po = "";
+                    for(int i = 0; i < pi.Count(); i++)
+                    {
+                        if(po.Length == 0)
+                        {
+                            po= pi[i];
+                        }
+                        else
+                        {
+                            po = " " + pi[i];
+                        }
+                    }
+
+                    if (po.Length < 3)
+                    {
+                        initiator.SendU(new OKPacket("auth", "Ник не может быть короче 3 символов"));
+                        CreateNew(initiator);
+                    }
+                    else if (po.Length > 30)
+                    {
+                        initiator.SendU(new OKPacket("auth", "Ник не может быть длиньше 30 символов"));
+                        CreateNew(initiator);
+                    }
+                    else{
+                    if (db.players.FirstOrDefault(i => i.name == po) == null)
+                    {
+                        SetPasswdForNew(args.Input!, initiator);
+                    }
+                    else
+                    {
+                        initiator.SendU(new OKPacket("auth", "Ник занят"));
+                        CreateNew(initiator);
+                    }} 
+                })]
             });
             initiator.SendWin(authwin.ToString());
         }

@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit;
+﻿using Microsoft.EntityFrameworkCore;
+using MinesServer.GameShit;
 using MinesServer.GameShit.Programmator;
 using MinesServer.Network;
 using MinesServer.Network.Auth;
@@ -11,6 +12,7 @@ using MinesServer.Network.TypicalEvents;
 using MinesServer.Network.World;
 using NetCoreServer;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace MinesServer.Server
 {
@@ -40,15 +42,23 @@ namespace MinesServer.Server
         }
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            var p = Packet.Decode(buffer);
+            Packet p = default;
+            try
+            {
+                p = Packet.Decode(buffer);
                 switch (p.data)
                 {
                     case AUPacket au: AU(au); break;
-                    case TYPacket ty: father.time.AddAction(() => TY(ty), player); break;
+                    case TYPacket ty: father.time.AddAction(() => TY(ty),player); break;
                     default:
                         // Invalid packet
                         break;
                 }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"invalid packet from {player?.Id} {ex}");
+            }
         }
         protected override void OnDisconnected()
         {
@@ -63,15 +73,15 @@ namespace MinesServer.Server
             try
             {
                 db.SaveChanges();
+                player.afkstarttime = DateTime.Now;
+                player.connection = null;
+                player = null;
+                Dispose();
             }
             catch
             {
                 Console.WriteLine(player + "Не сохранено");
             }
-            player.afkstarttime = DateTime.Now;
-            player.connection = null;
-            player = null;
-            Dispose();
         }
         #endregion
 
@@ -106,11 +116,12 @@ namespace MinesServer.Server
                 case ClanPacket clan: Clan(packet, clan); break;
                 case PopePacket pp: Pope(packet, pp); break;
                 case PROGPacket prog: PROG(packet, prog); break;
-                case PDELPacket pdel: Pdel(packet, pdel); break;
+                case PDELPacket pdel: Pdel(packet, pdel);break;
                 case pRSTPacket prst: Prst(packet, prst); break;
                 case PRENPacket pren: Pren(packet, pren); break;
-                case ChatPacket chat: Chat(packet, chat); break;
-                case ChinPacket chin: Chin(packet, chin); break;
+                case ChatPacket chat: Chat(packet, chat);break;
+                case INVNPacket invn: Invn(packet, invn); break;
+                case ChinPacket chin: Chin(packet, chin);break;
                 default:
                     // Invalid event type
                     break;
@@ -119,6 +130,10 @@ namespace MinesServer.Server
         private void Chin(TYPacket f,ChinPacket chin)
         {
            
+        }
+        private void Invn(TYPacket f,INVNPacket invn)
+        {
+
         }
         private void Chat(TYPacket f,ChatPacket chat)
         {
@@ -183,7 +198,8 @@ namespace MinesServer.Server
         }
         private void Ping(TYPacket f, PongPacket p)
         {
-            SendU(new PingPacket(0, 0, "20"));
+            Console.WriteLine($"pong {p.CurrentTime}:{p.PongResponse}");
+            SendU(new PingPacket(p.CurrentTime, 0, "f"));
         }
         private void Inus(TYPacket f, INUSPacket inus)
         {
@@ -206,7 +222,7 @@ namespace MinesServer.Server
         }
         private void DigHandler(TYPacket parent, XdigPacket packet)
         {
-            player.AddAciton(() =>
+            player.TryAct(() =>
             {
                 if (player != null && player.win == null)
                 {
@@ -217,7 +233,7 @@ namespace MinesServer.Server
         }
         private void GeoHandler(TYPacket parent, XgeoPacket packet)
         {
-            player.AddAciton(() =>
+            player.TryAct(() =>
             {
                 if (player != null && player.win == null)
                 {
@@ -229,7 +245,7 @@ namespace MinesServer.Server
         {
             if (player != null && player.win == null)
             {
-                player.AddAciton(() =>
+                player.TryAct(() =>
                 {
                     player.dir = packet.Direction;
                     player.Build(packet.BlockType);
@@ -245,10 +261,9 @@ namespace MinesServer.Server
         {
             if (player != null)
             {
-                player.AddAciton(() =>
+                player.TryAct(() =>
                 {
-                    var dir = packet.Direction;
-                    player.Move((int)parent.X, (int)parent.Y, dir > 9 ? dir : -1);
+                    player.Move((int)parent.X, (int)parent.Y, packet.Direction);
                 }, player.OnRoad ? (player.pause * 5) * 0.65 : player.pause * 5);
             }
         }
@@ -282,14 +297,8 @@ namespace MinesServer.Server
             {
                 return;
             }
-            Console.WriteLine(button.ToString());
             if ((auth != null && !auth.complited))
             {
-
-                if (button.ToString() == "exit:0")
-                {
-                    return;
-                }
                 if (button.ToString() == "exit")
                 {
                     auth.exit();
@@ -300,35 +309,25 @@ namespace MinesServer.Server
             }
             father.time.AddAction(() =>
             {
-                if (button.ToString() == "exit" | button.ToString() == "exit:0")
+                if (button.ToString() == "exit"| button.ToString() == "exit:0")
                 {
                     CloseWindow();
                     return;
                 }
-                else if (button.ToString() == "clan" | button.ToString() == "sellall" | button.ToString() == "buycrys" | button.ToString() == "getallmap" | button.ToString() == "sellcrys" | button.ToString() == "auc" | button.ToString() == "getprofit" | button.StartsWith("save") | button.StartsWith("buy") | button.StartsWith("sell") | button.StartsWith("bet") | button.StartsWith("openorder") | button.StartsWith("createorder") | button.StartsWith("choose") | button.StartsWith("skill") | button.StartsWith("delete") | button.StartsWith("install") | button.StartsWith("confirm") | button.StartsWith("upgrade") | button.StartsWith("create") | button.StartsWith("setitem") | button.StartsWith("open") | button.StartsWith("dropbox") | button.StartsWith("craft") | button.StartsWith("claim"))
-                {
-                    player.CallWinAction(button);
-                    player.SendWindow();
-                }
-                else
-                {
-                    return;
-                }
-
-
-                return;
+                player.CallWinAction(button);
+                player.SendWindow();
             },player);
         }
         #endregion
         #region senders
         public void SendWorldInfo()
         {
-            SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 3410, "3410", "http://pi.door/", "ok"));
-            SendU(new WorldInfoPacket2(World.W.name, World.CellsWidth, World.CellsHeight, 3410, "3410", "http://pi.door/", "ok"));
+            SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 0, "0", "http://pi.door/", "ok"));
+            SendU(new WorldInfoPacket2(World.W.name, World.CellsWidth, World.CellsHeight, 0, "0", "http://pi.door/", "ok"));
         }
         public void SendPing()
         {
-            SendU(new PingPacket(0, 0, "20"));
+            SendU(new PingPacket(1, 1, "20"));
         }
         public void SendWin(string win)
         {

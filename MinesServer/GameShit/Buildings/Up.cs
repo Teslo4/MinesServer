@@ -24,7 +24,7 @@ namespace MinesServer.GameShit.Buildings
             db.ups.Add(this);
             db.SaveChanges();
         }
-        public Up() { }
+        private Up() { }
         public override Window? GUIWin(Player p)
         {
             var onskill = (int arg) => { p.skillslist.selectedslot = arg; p.win = GUIWin(p); p.SendWindow(); };
@@ -35,7 +35,7 @@ namespace MinesServer.GameShit.Buildings
                     Skills = p.skillslist.GetSkills(),
                     OnSkill = onskill,
                     SlotAmount = p.skillslist.slots,
-                    Title = "UP",
+                    Title = "Улучшение",
                     SkillIcon = skilltype,
                     Text = "описание и цена установки",
                     Button = new Button("Установить", "confirm", (args) => { p.skillslist.InstallSkill(skilltype.GetCode(), p.skillslist.selectedslot, p); p.win = GUIWin(p); p.SendWindow(); })
@@ -49,19 +49,20 @@ namespace MinesServer.GameShit.Buildings
                 SkillsToInstall = null,
                 SlotAmount = p.skillslist.slots,
                 OnSkill = onskill,
-                Title = "UP",
+                Title = "Улучшение",
                 Text = "Выберите скилл или пустой слот",
+                Button = new Button("buyslotcost", "buyslot", (args) => { if (p.creds > 1000) { p.skillslist.slots++; } p.win = GUIWin(p); p.SendWindow(); }),
                 SkillIcon = SkillType.Unknown
             } : new UpPage()
             {
                 SelectedSlot = p.skillslist.selectedslot,
                 Skills = p.skillslist.GetSkills(),
-                SkillsToInstall = skillfromslot == null ? p.skillslist.SkillToInstall() : null,
+                SkillsToInstall = skillfromslot == null ? p.skillslist.SkillToInstall(p) : null,
                 SlotAmount = p.skillslist.slots,
                 OnInstall = skillfromslot == null ? oninstall : null,
                 OnSkill = onskill,
-                Title = "UP",
-                Text = skillfromslot?.Description(),
+                Title = "Улучшение",
+                Text = skillfromslot?.Description,
                 Button = skillfromslot != null && skillfromslot.isUpReady() ? new Button("ап", "upgrade", (args) => { skillfromslot.Up(p); p.win = GUIWin(p); p.SendWindow(); }) : null,
                 OnDelete = skillfromslot != null ? (slot) => { p.skillslist.DeleteSkill(p); p.win = GUIWin(p); p.SendWindow(); } : null,
                 SkillIcon = skillfromslot?.type

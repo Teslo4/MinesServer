@@ -2,8 +2,11 @@
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.Network.HubEvents;
+using MinesServer.Network.HubEvents.Bots;
 using MinesServer.Network.World;
 using MinesServer.Server;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Security.Cryptography;
 
 namespace MinesServer.GameShit
 {
@@ -28,6 +31,43 @@ namespace MinesServer.GameShit
                         p.inventory[i] = c;
                         AddConsoleLine(p, "ok");
                         p.SendInventory();
+                    }
+                }
+                else
+                {
+                    AddConsoleLine(p, "Команда недоступна");
+                }
+            });
+            commands.Add("tp", (p, arg) =>
+            {
+                if (p.Id == 1)
+                {
+
+                    if (arg.Split(" ").Length > 1 && int.TryParse(arg.Split(" ")[1], out var i))
+                    {
+
+                        var valid = bool (int x, int y) => (x >= 0 && y >= 0) && (x < World.ChunksW && y < World.ChunksH);
+                        for (var xxx = 0; xxx <= World.ChunksW; xxx++)
+                        {
+                            for (var yyy = 0; yyy <= World.ChunksH; yyy++)
+                            {
+                                var x = xxx;
+                                var y = yyy;
+                                if (valid(x, y))
+                                {
+                                    var ch = World.W.chunks[x, y];
+                                    foreach (var id in ch.bots)
+                                    {
+                                        var player = DataBase.GetPlayer(id.Key);
+                                        if (player.Id == i)
+                                        {
+                                            p.tp(player.x, player.y);
+                                            AddConsoleLine(p, "ok");
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 else

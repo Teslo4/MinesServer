@@ -57,16 +57,33 @@ namespace MinesServer.GameShit
         {
             get => connection != null;
         }
-        public Player() => Delay = DateTime.Now;
-        public DateTime lastPlayersend = DateTime.Now;
-        public DateTime lastPacks = DateTime.Now;
-        public DateTime afkstarttime = DateTime.Now;
+        public Player() => Delay = ServerTime.Now;
+        public DateTimeOffset lastPlayersend = ServerTime.Now;
+        public DateTimeOffset lastPacks = ServerTime.Now;
+        public DateTimeOffset afkstarttime = ServerTime.Now;
         public Queue<Action> playerActions = new();
         public int Id { get; set; }
         public string name { get; set; }
         public Clan? clan { get; set; }
         public Rank? clanrank { get; set; }
-        public int pause = 3500;
+        public int pause //= 3500;
+        {
+        get
+            {
+                var retval = 10000;
+                foreach (var c in skillslist.skills.Values)
+                {
+                    if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
+                    {
+                        if (c.type == SkillType.Movement)
+                        {
+                            retval = (int)(c.Effect * 100);
+                        }
+                    }
+                }
+                return retval;
+            }
+        }
         public List<Program> programs { get; set; }
         [NotMapped]
         public int cid { get => clan == null ? 0 : clan.id; }
@@ -91,7 +108,7 @@ namespace MinesServer.GameShit
         public bool autoDig { get; set; }
         public Vector2 pos = Vector2.Zero;
         public int c190stacks = 1;
-        public DateTime lastc190hit = DateTime.Now;
+        public DateTimeOffset lastc190hit = ServerTime.Now;
         public Basket crys { get; set; }
         public Inventory inventory { get; set; }
         public Health health { get; set; }
@@ -99,16 +116,14 @@ namespace MinesServer.GameShit
         public PlayerSkills skillslist { get; set; }
         public Stack<byte> geo = new Stack<byte>();
         public Queue<Line> console = new Queue<Line>();
-        private bool actionpertick = true;
         [NotMapped]
         public Window? win;
         [NotMapped]
         private float cb;
-        public DateTime Delay = DateTime.Now;
-        public bool CanAct { get => !(Delay > DateTime.Now); }
+        public DateTimeOffset Delay = ServerTime.Now;
+        public bool CanAct { get => !(Delay > ServerTime.Now); }
         public bool OnRoad { get => World.isRoad(World.GetCell(x, y)); }
-        public int dir
-        {
+        public int dir { 
             get;
             set;
         }
@@ -138,33 +153,26 @@ namespace MinesServer.GameShit
         }
         #endregion
         #region actions
-        public void UnlimitedUpdate()
-        {
-            if (programsData.ProgRunning)
-            {
-                programsData.Step();
-            }
-        }
         public void Update()
         {
-            actionpertick = false;
-            if (DateTime.Now - lastc190hit >= TimeSpan.FromMinutes(1))
+            if (ServerTime.Now - lastc190hit >= TimeSpan.FromMinutes(1))
             {
                 c190stacks = 1;
-                lastc190hit = DateTime.Now;
+                lastc190hit = ServerTime.Now;
             }
-            if (!online)
+           /* if (!online)
             {
-                if (DateTime.Now - afkstarttime > TimeSpan.FromSeconds(15))
+                if (ServerTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
                 {
                     DataBase.activeplayers.Remove(this);
                     health.Death();
                 }
                 return;
-            }
-            if (DateTime.Now - lastPlayersend > TimeSpan.FromSeconds(4))
+            }*/
+            if (ServerTime.Now - lastPlayersend > TimeSpan.FromSeconds(4))
             {
                 ReSendBots();
+                SendOnline();
             }
             var cell = World.GetCell(x, y);
             var cellprop = World.GetProp(cell);
@@ -183,16 +191,21 @@ namespace MinesServer.GameShit
             }
             if (programsData.ProgRunning)
             {
+                programsData.Step();
                 return;
-            }
-            while (playerActions.Count > 0)
-            {
-                playerActions.Dequeue()();
             }
         }
         public void SetResp(Resp r)
         {
             resp = r;
+        }
+        public void TryAct(Action a,double delay)
+        {
+            if (Delay < ServerTime.Now)
+            {
+                a();
+                Delay = ServerTime.Now + TimeSpan.FromMicroseconds(delay * 1.4);
+            }
         }
         private int ParseCryType(CellType cell)
         {
@@ -209,53 +222,36 @@ namespace MinesServer.GameShit
         }
         public Vector2 GetDirCord(bool pack = false)
         {
-            var x=(float)(pos.X + (dir == 3 ? 1 : dir == 1 ? -1 : 0));
-            var y = (float)(pos.Y + (dir == 0 ? 1 : dir == 2 ? -1 : 0));
-            if (x >= 0)
+            var x = (uint)(pos.X + (dir == 3 ? 1 : dir == 1 ? -1 : 0));
+            var y = (uint)(pos.Y + (dir == 0 ? 1 : dir == 2 ? -1 : 0));
+            if (pack)
             {
-                if (y >= 0)
-                {
-                    if (pack)
-                    {
-                        x = (float)(pos.X + (dir == 3 ? 2 : dir == 1 ? -2 : 0));
-                        y = (float)(pos.Y + (dir == 0 ? 2 : dir == 2 ? -2 : 0));
-                    }
-                }
-                else
-                {
-                    x = (float)pos.X;
-                    y = (float)pos.Y;
-                }
-            }
-            else
-            {
-                x = (float)pos.X;
-                y = (float)pos.Y;
+                x = (uint)(pos.X + (dir == 3 ? 2 : dir == 1 ? -2 : 0));
+                y = (uint)(pos.Y + (dir == 0 ? 2 : dir == 2 ? -2 : 0));
             }
             return new Vector2(x, y);
-            
         }
         public void Geo()
-        {
-            int x = (int)GetDirCord().X, y = (int)GetDirCord().Y;
-            if (!World.W.ValidCoord(x, y) || World.GunRadius(x, y, this))
-            {
-                return;
-            }
-            var cell = World.GetCell(x, y);
-            //if (World.GetProp(cell).isPickable && !World.GetProp(cell).isEmpty)
-            //{
-            //    geo.Push(cell);
-            //    World.Destroy(x, y);
-            //}
-            //else if (World.GetProp(cell).isEmpty && World.GetProp(cell).can_place_over && geo.Count > 0 && !World.PackPart(x, y))
-            //{
-            //    var cplaceable = geo.Pop();
-            //    World.SetCell(x, y, cplaceable);
-            //    World.SetDurability(x, y, World.isCry(cplaceable) ? 0 : Physics.r.Next(1, 101) > 99 ? 0 : World.GetProp(cplaceable).durability);
-            //}
-            //SendGeo();
-        }
+{
+    int x = (int)GetDirCord().X, y = (int)GetDirCord().Y;
+    if (!World.W.ValidCoord(x, y) || World.GunRadius(x, y, this))
+    {
+        return;
+    }
+    var cell = World.GetCell(x, y);
+    //if (World.GetProp(cell).isPickable && !World.GetProp(cell).isEmpty)
+    //{
+    //    geo.Push(cell);
+    //    World.Destroy(x, y);
+    //}
+    //else if (World.GetProp(cell).isEmpty && World.GetProp(cell).can_place_over && geo.Count > 0 && !World.PackPart(x, y))
+    //{
+    //    var cplaceable = geo.Pop();
+    //    World.SetCell(x, y, cplaceable);
+    //    World.SetDurability(x, y, World.isCry(cplaceable) ? 0 : Physics.r.Next(1, 101) > 99 ? 0 : World.GetProp(cplaceable).durability);
+    //}
+    //SendGeo();
+}
         public void BBox(long[]? c)
         {
             var boxc = GetDirCord();
@@ -268,42 +264,42 @@ namespace MinesServer.GameShit
 
         }
         private void Mine(byte cell, int x, int y)
+{
+    float dob = 1f;
+    Random rand = new Random();
+    foreach (var c in skillslist.skills.Values)
+    {
+        if (c != null && c.UseSkill(SkillEffectType.OnDigCrys, this))
         {
-            float dob = 1f;
-            Random rand = new Random();
-            foreach (var c in skillslist.skills.Values)
+            if (c.type == SkillType.MineGeneral)
             {
-                if (c != null && c.UseSkill(SkillEffectType.OnDigCrys, this))
+                c.AddExp(this, 1);
+                if (rand.Next(100) < (int)(((double)c.Effect - (int)c.Effect) * 100))
                 {
-                    if (c.type == SkillType.MineGeneral)
-                    {
-                        c.AddExp(this, 1);
-                        if (rand.Next(100) < (int)(((double)c.GetEffect() - (int)c.GetEffect()) * 100))
-                        {
 
-                            dob += (int)c.GetEffect() + 1;
-                        }
-                        else
-                        {
-                            dob += (int)c.GetEffect();
-                        }
-                    }
+                    dob += (int)c.Effect + 1;
+                }
+                else
+                {
+                    dob += (int)c.Effect;
                 }
             }
-            dob *= (CellType)cell switch
-            {
-                CellType.XGreen => 4,
-                CellType.XBlue => 3,
-                CellType.XRed => 2,
-                CellType.XViolet => 2,
-                CellType.XCyan => 2,
-                _ => 1
-            };
-            var type = ParseCryType((CellType)cell);
-            crys.AddCrys(type, (long)dob);
-            World.AddDob(type, (long)dob);
-            SendDFToBots(2, x, y, this.Id, (int)((long)dob < 255 ? (long)dob : 255), (type == 1 ? 3 : type == 2 ? 1 : type == 3 ? 2 : type));
         }
+    }
+    dob *= (CellType)cell switch
+    {
+        CellType.XGreen => 4,
+        CellType.XBlue => 3,
+        CellType.XRed => 2,
+        CellType.XViolet => 2,
+        CellType.XCyan => 2,
+        _ => 1
+    };
+    var type = ParseCryType((CellType)cell);
+    crys.AddCrys(type, (long)dob);
+    World.AddDob(type, (long)dob);
+    SendDFToBots(2, x, y, this.Id, (int)((long)dob < 255 ? (long)dob : 255), (type == 1 ? 3 : type == 2 ? 1 : type == 3 ? 2 : type));
+}
         public void GetBox(int x, int y)
         {
             var b = Box.GetBox(x, y);
@@ -329,249 +325,262 @@ namespace MinesServer.GameShit
             }
         }
         public void Bz()
+{
+    Random rand = new Random();
+    
+    int x = (int)GetDirCord().X, y = (int)GetDirCord().Y;
+    foreach (var player in World.W.GetPlayersFromPos(x, y))
+    {
+        if (y > 0)
         {
-            Random rand = new Random();
-            
-            int x = (int)GetDirCord().X, y = (int)GetDirCord().Y;
-            foreach (var player in World.W.GetPlayersFromPos(x, y))
+            if (rand.Next(0, 10) > 6)
             {
-                if (y > 0)
+                player.health.Hurt(1);
+            }
+        }
+        return;
+    }
+    
+    if (!World.W.ValidCoord(x, y))
+    {
+        return;
+    }
+    SendDFToBots(0, this.x, this.y, this.Id, dir);
+    var cell = World.GetCell(x, y);
+    if (World.GetProp(cell).damage > 0)
+    {
+        health.Hurt(World.GetProp(cell).damage);
+    }
+    if (!World.GetProp(cell).is_diggable)
+    {
+
+        return;
+    }
+    if (cell == 90)
+    {
+        GetBox(x, y);
+        World.DamageCell(x, y, 1);
+        return;
+    }
+    float hitdmg = 1f;
+    foreach (var c in skillslist.skills.Values)
+    {
+        if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
+        {
+            hitdmg = c.Effect / 100;
+        }
+    }
+    var kopa = rand.Next(100) < (int)(((double)hitdmg - (int)hitdmg) * 100);
+    if (World.isCry(cell))
+    {
+        foreach (var c in skillslist.skills.Values)
+        {
+            if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
+            {
+                if (c.type == SkillType.Digging)
                 {
-                    if (rand.Next(0, 10) > 6)
+                    
+                    if (World.GetProp(cell).durability > hitdmg / 100)
                     {
-                        player.health.Hurt(1);
+                        if (rand.Next(((int)((float)World.GetProp(cell).durability) - ((int)hitdmg / 100)) * 100) < ((int)hitdmg) * 100)
+                        {
+                            c.AddExp(this);
+                            Mine(cell, x, y);
+
+                            World.DamageCell(x, y, 1);
+                            return;
+                        }
                     }
+                    else if (World.GetProp(cell).durability < (hitdmg / 100))
+                    {
+                        c.AddExp(this);
+                        Mine(cell, x, y);
+                        World.DamageCell(x, y, 1);
+                        return;
+                    }
+                }else
+                {
+                    if (rand.Next(((int)((float)World.GetProp(cell).durability) - ((int)hitdmg / 100)) * 100) < ((int)hitdmg) * 100)
+                    {
+                        Mine(cell, x, y);
+
+                        World.DamageCell(x, y, 1);
+                        return;
+                    }
+
                 }
-                return;
             }
-            
-            if (!World.W.ValidCoord(x, y))
-            {
-                return;
-            }
-            SendDFToBots(0, this.x, this.y, this.Id, dir);
-            var cell = World.GetCell(x, y);
-            if (World.GetProp(cell).damage > 0)
-            {
-                health.Hurt(World.GetProp(cell).damage);
-            }
-            if (!World.GetProp(cell).is_diggable)
+        }
+        return;
+    }
+    if(World.GetProp(cell).is_diggable)
+    {
+        foreach (var c in skillslist.skills.Values)
+        {
+            if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
             {
 
-                return;
+                if (c.type == SkillType.Digging)
+                {
+                    c.AddExp(this);
+                }
             }
-            if (cell == 90)
+        }
+    }
+    if (World.DamageCell(x, y, hitdmg)) OnDestroy(cell);
+    else
+    {
+        if (y < 100)
+        {
+
+            if (World.GetCell(x,y) == 101 | World.GetCell(x, y) == 102)
             {
-                GetBox(x, y);
-                World.DamageCell(x, y, 1);
-                return;
+                World.DamageCell(x, y, 2); connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "ПОВЕРХНОСТЬ!!! Блоки разрушаются быстрее")]));
             }
-            float hitdmg = 1f;
+        }
+    }
+    if (World.GetProp(cell).isBoulder)
+    {
+        var plusy = dir == 2 ? -1 : dir == 0 ? 1 : 0;
+        var plusx = dir == 3 ? 1 : dir == 1 ? -1 : 0;
+        if (World.GetProp(World.GetCell(x + plusx, y + plusy)).isEmpty)
+        {
+            World.MoveCell(x, y, plusx, plusy);
             foreach (var c in skillslist.skills.Values)
             {
                 if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
                 {
-                    hitdmg = c.GetEffect() / 100;
-                }
-            }
-            var kopa = rand.Next(100) < (int)(((double)hitdmg - (int)hitdmg) * 100);
-            if (World.isCry(cell))
-            {
-                foreach (var c in skillslist.skills.Values)
-                {
-                    if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
+                    if (c.type == SkillType.Digging)
                     {
-                        if (World.GetProp(cell).durability > hitdmg / 100)
-                        {
-                            if (rand.Next(((int)((float)World.GetProp(cell).durability) - ((int)hitdmg / 100)) * 100) < ((int)hitdmg)*100)
-                            {
-                                Mine(cell, x, y);
-                                c.AddExp(this);
-                                World.DamageCell(x, y, 1);
-                            }
-                        }
-                        else if (World.GetProp(cell).durability < (hitdmg / 100))
-                        {
-                            Mine(cell, x, y);
-                            c.AddExp(this);
-                            World.DamageCell(x, y, 1);
-                        }
+                        c.AddExp(this);
                     }
                 }
-                return;
-            }
-            if(World.GetProp(cell).is_diggable)
-            {
-                foreach (var c in skillslist.skills.Values)
-                {
-                    if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
-                    {
-
-                                c.AddExp(this);
-                    }
-                }
-            }
-            if (World.DamageCell(x, y, hitdmg)) OnDestroy(cell);
-            else
-            {
-                if (y < 100)
-                {
-
-                    if (World.GetCell(x,y) == 101 | World.GetCell(x, y) == 102)
-                    {
-                        World.DamageCell(x, y, 2); //playerActions.connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "ПОВЕРХНОСТЬ!!! Блоки разрушаются быстрее")]));
-                    }
-                }
-            }
-            if (World.GetProp(cell).isBoulder)
-            {
-                var plusy = dir == 2 ? -1 : dir == 0 ? 1 : 0;
-                var plusx = dir == 3 ? 1 : dir == 1 ? -1 : 0;
-                if (World.GetProp(World.GetCell(x + plusx, y + plusy)).isEmpty)
-                {
-                    World.MoveCell(x, y, plusx, plusy);
-                    foreach (var c in skillslist.skills.Values)
-                    {
-                        if (c != null && c.UseSkill(SkillEffectType.OnDig, this))
-                        {
-                            c.AddExp(this);
-                        }
-                    }
-                }
-            }
-
-        }
-        public void AddAciton(Action a, double delay)
-        {
-            if (CanAct && !actionpertick)
-            {
-                Delay = DateTime.Now + TimeSpan.FromMicroseconds(delay);
-                playerActions.Enqueue(a);
-                actionpertick = true;
             }
         }
-        public bool Move(int x, int y, int dir = -1)
-        {
-            
-            if (!World.W.ValidCoord(x, y) || win != null)
-            {
-                tp(this.x, this.y);
-                return false;
-            }
-            var cell = World.GetCell(x, y);
-            this.dir = dir;
-            if (dir == -1)
-            {
-                this.dir = pos.X > x ? 1 : pos.X < x ? 3 : pos.Y > y ? 2 : 0;
-            }
+    }
+
+}
+        public bool Move(int x, int y, int dir = -1, bool tpr = false)
+{
+    if(tpr = true)
+    {
+        SendMyMove();
+        SendMap();
+    }
+    if (!World.W.ValidCoord(x, y) || win != null)
+    {
+        tp(this.x, this.y);
+        return false;
+    }
+    var cell = World.GetCell(x, y);
+    this.dir = dir;
+    if (dir == -1)
+    {
+        this.dir = pos.X > x ? 1 : pos.X < x ? 3 : pos.Y > y ? 2 : 0;
+    }
             if (!World.GetProp(cell).isEmpty)
             {
                 if (dir == -1)
                 {
                     if (autoDig)
                     {
-                        if (x <= 0 | x >= World.CellsWidth)
-                        {
-                            if (y <= 0 | y >= World.CellsHeight)
-                            {
-                                return false;
-                            }
-                            return false;
-                        }
                         Bz();
                     }
+                    tp(this.x, this.y);
                     return true;
                 }
                 tp(this.x, this.y);
                 return false;
             }
-            var newpos = new Vector2(x, y);
-            if (Vector2.Distance(pos, newpos) < 1.4f)
+    var newpos = new Vector2(x, y);
+    if (Vector2.Distance(pos, newpos) < 1.4f)
+    {
+        foreach (var c in skillslist.skills.Values)
+        {
+            if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
             {
-                foreach (var c in skillslist.skills.Values)
+                if (c.type == SkillType.Movement)
                 {
-                    if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
+                    c.AddExp(this);
+                }
+                if (World.GetProp(cell).type == 35 | World.GetProp(cell).type == 36 | World.GetProp(cell).type == 39)
+                {
+                    if (c.type == SkillType.RoadMovement)
                     {
-                        if (c.type == SkillType.Movement)
+                        c.AddExp(this);
+                    }
+                }
+            }
+        }
+        pos = newpos;
+    }
+    else
+    {
+        Console.WriteLine("Пидр пакеты " + name);
+        tp(this.x, this.y);
+        return false;
+    }
+    SendMyMove();
+    SendMap();
+    if (World.ContainsPack(x, y, out var pack) && (pack.cid == cid || pack.cid == 0) && !programsData.ProgRunning)
+    {
+        win = pack.GUIWin(this)!;
+        SendWindow();
+    }
+    return false;
+
+}
+        public void Build(string type)
+{
+    int x = (int)GetDirCord().X, y = (int)GetDirCord().Y;
+    if (!World.W.ValidCoord(x, y) || World.GunRadius(x, y, this) || World.PackPart(x, y))
+    {
+        return;
+    }
+   
+    switch (type)
+    {
+        case "G":
+            foreach (var c in skillslist.skills.Values)
+            {
+                try
+                {
+                    if (c.type == SkillType.BuildGreen && World.GetProp(x, y).isEmpty)
+                    {                                
+                        if (crys.RemoveCrys(0, (long)c.Effect))
                         {
                             c.AddExp(this);
-                        }
-                        if (World.GetProp(cell).type == 35 | World.GetProp(cell).type == 36 | World.GetProp(cell).type == 39)
-                        {
-                            if (c.type == SkillType.RoadMovement)
-                            {
-                                c.AddExp(this);
-                            }
+                            World.SetCell(x, y, 101);
                         }
                     }
                 }
-                pos = newpos;
+                catch { }
             }
-            else
-            {
-                Console.WriteLine("Пидр пакеты " + name);
-                tp(this.x, this.y);
-                return false;
-            }
-            SendMyMove();
-            SendMap();
-            if (World.ContainsPack(x, y, out var pack) && (pack.cid == cid || pack.cid == 0) && !programsData.ProgRunning)
-            {
-                win = pack.GUIWin(this)!;
-                SendWindow();
-            }
-            return false;
+            break;
+        case "V":
 
-        }
-        public void Build(string type)
-        {
-            int x = (int)GetDirCord().X, y = (int)GetDirCord().Y;
-            if (!World.W.ValidCoord(x, y) || World.GunRadius(x, y, this) || World.PackPart(x, y))
+            break;
+        case "R":
+            try
             {
-                return;
-            }
-           
-            switch (type)
-            {
-                case "G":
+                if (World.GetCell(x, y) != 36 && World.GetCell(x, y) != 39 && World.GetCell(x, y) != 35 && World.GetProp(x, y).isEmpty) { 
                     foreach (var c in skillslist.skills.Values)
                     {
-                        try
+                        if (c.type == SkillType.BuildRoad)
                         {
-                            if (c.type == SkillType.BuildGreen && World.GetProp(x, y).isEmpty)
-                            {                                
-                                if (crys.RemoveCrys(0, (long)c.GetEffect()))
-                                {
-                                    c.AddExp(this);
-                                    World.SetCell(x, y, 101);
-                                }
-                            }
-                        }
-                        catch { }
-                    }
-                    break;
-                case "V":
 
-                    break;
-                case "R":
-                    try
-                    {
-                        foreach (var c in skillslist.skills.Values)
-                        {
-                            if (c.type == SkillType.BuildRoad)
+                            if (crys.RemoveCrys(0, (long)c.Effect))
                             {
-                                
-                                if (crys.RemoveCrys(0, (long)c.GetEffect()) && World.GetProp(x, y).isEmpty)
-                                {
-                                    c.AddExp(this);
-                                    World.SetCell(x, y, 35);
-                                }
+                                c.AddExp(this);
+                                World.SetCell(x, y, 35);
                             }
                         }
-                    }catch { }
-                    break;
+                    }
             }
-        }
+            }catch { }
+            break;
+    }
+}
         #endregion
         #region creating
         public void CreatePlayer()
@@ -618,6 +627,7 @@ namespace MinesServer.GameShit
             skillslist.InstallSkill(SkillType.MineGeneral.GetCode(), 0, this);
             skillslist.InstallSkill(SkillType.Digging.GetCode(), 1, this);
             skillslist.InstallSkill(SkillType.Movement.GetCode(), 2, this);
+            skillslist.InstallSkill(SkillType.Health.GetCode(), 3, this);
         }
         public void Init()
         {
@@ -656,19 +666,13 @@ namespace MinesServer.GameShit
                 MConsole.AddConsoleLine(this);
             }
             settings.SendSettings(this);
-            OnLoad();
+            SendClan();
+            SendChat();
+            SendMap(true);
         }
 
         #endregion
         #region senders
-        public void OnLoad()
-        {
-            SendClan();
-            SendMap();
-            //SendChat();
-            foreach (var p in World.W.GetChunk(ChunkX, ChunkY).packs.Values)
-                connection?.SendB(new HBPacket([new HBPacksPacket(x + y * World.CellsHeight, [new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off)])]));
-        }
         public void Beep() => connection?.SendU(new BibikaPacket());
 
         public void SendChat()
@@ -676,7 +680,11 @@ namespace MinesServer.GameShit
             using var db = new DataBase();
             currentchat ??= db.chats.FirstOrDefault(i => i.tag == "FED");
             connection?.SendU(new CurrentChatPacket(currentchat.tag, currentchat.Name));
-            connection?.SendU(new ChatMessagesPacket("FED", currentchat.GetMessages()));
+            var msg = currentchat.GetMessages();
+            if (msg.Length > 0)
+            {
+                connection?.SendU(new ChatMessagesPacket("FED", currentchat.GetMessages()));
+            }
         }
         public void SendWindow()
         {
@@ -689,10 +697,8 @@ namespace MinesServer.GameShit
         }
         public void SendMoney()
         {
-            if (this.money < 0) this.money = 0;
-            else if (this.money > 1000000000000000) this.money = 1000000000000000;
-            if (this.creds < 0) this.creds = 0;
-            else if (this.creds > 1000000000000000) this.creds = 1000000000000000;
+            this.money = this.money < 0 ? 0 : this.money > long.MaxValue ? long.MaxValue : this.money;
+            this.creds = this.creds < 0 ? 0 : this.creds > long.MaxValue ? long.MaxValue : this.creds;
             new MoneyPacket(this.money, this.creds);
             connection?.SendU(new MoneyPacket(this.money, this.creds));
         }
@@ -740,23 +746,8 @@ namespace MinesServer.GameShit
         }
         public void SendSpeed()
         {
-            var speed = 150;
-            var todoor = 0;
-            foreach (var c in skillslist.skills.Values)
-            {
-                if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
-                {
-                    if (c.type == SkillType.Movement)
-                    {
-                        speed -= (int)c.GetEffect() / 2;
-                    }
-                    if (c.type == SkillType.RoadMovement)
-                    {
-                        todoor = (int)c.GetEffect() / 10;
-                    }
-                }
-            }
-            connection?.SendU(new SpeedPacket(speed, speed - todoor, 100000));
+            Console.WriteLine(pause / 100);
+            connection?.SendU(new SpeedPacket((int)(pause / 100 * 1.2), (int)((pause / 100 * 1.2) * 0.6), 100000));
         }
         public void SendInventory()
         {
@@ -817,6 +808,7 @@ namespace MinesServer.GameShit
                         var ch = World.W.chunks[x, y];
                         foreach (var p in ch.packs.Values)
                         {
+                            connection?.SendB(new HBPacket([new HBPacksPacket((p.x / 32) + (p.y / 32) * World.ChunksH, [])]));
                             connection?.SendB(new HBPacket([new HBPacksPacket((p.x / 32) + (p.y / 32) * World.ChunksH, [new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off)])]));
                         }
                     }
@@ -1006,17 +998,6 @@ namespace MinesServer.GameShit
                 return;
             }
             win.ProcessButton(text);
-        }
-        public void OnDisconnect()
-        {
-            if (lastchunk.HasValue)
-            {
-                var chtoremove = World.W.chunks[lastchunk.Value.Item1, lastchunk.Value.Item2];
-                if (chtoremove.bots.ContainsKey(this.Id))
-                {
-                    chtoremove.bots.Remove(this.Id, out var p);
-                }
-            }
         }
 
     }

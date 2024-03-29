@@ -8,7 +8,7 @@ namespace MinesServer.Network.World
     public readonly record struct WorldInfoPacket(string Name, int Width, int Height, int VersionCode, string VersionName, string UpdateUrl, string UpdateDescription) : ITopLevelPacket, IDataPart<WorldInfoPacket>
     {
 
-        public const string packetName = "cf";
+        public const string packetName = "CF";
 
         public string PacketName => packetName;
 
@@ -25,7 +25,7 @@ namespace MinesServer.Network.World
     public readonly record struct WorldInfoPacket2(string Name, int Width, int Height, int VersionCode, string VersionName, string UpdateUrl, string UpdateDescription) : ITopLevelPacket, IDataPart<WorldInfoPacket2>
     {
 
-        public const string packetName = "CF";
+        public const string packetName = "cf";
 
         public string PacketName => packetName;
 

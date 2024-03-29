@@ -3,6 +3,8 @@ using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.Network.GUI;
 using MinesServer.Server;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MinesServer.GameShit
@@ -10,37 +12,43 @@ namespace MinesServer.GameShit
     public class Basket
     {
         public int Id { get; set; }
+        public string? serialazed { get; set; }
         [NotMapped]
         public Player player;
-        public Basket(Player player) => this.player = player;
-        public Basket()
+        public Basket(Player player)
         {
-
+            _cry = [0, 0, 0, 0, 0, 0];
+            serialazed = JsonConvert.SerializeObject(_cry);
+            this.player = player;
+        }
+        private Basket()
+        {
         }
         public long this[CrystalType type]
         {
             set => cry[(int)type] = value;
             get => cry[(int)type];
         }
-        public long[] cry =
+        private long[] _cry = null;
+        [NotMapped]
+        public long[] cry
         {
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-        };
+            get
+            {
+                _cry ??= JsonConvert.DeserializeObject<long[]>(serialazed);
+                using var db = new DataBase();
+                db.baskets.Attach(this);
+                serialazed = JsonConvert.SerializeObject(_cry);
+                db.SaveChanges();
+                return _cry;
+            }
+        }
         public void AddCrys(int index, long val)
         {
             this.cry[index] += val;
             if (cry[index] < 0)
             {
-                cry[index] = 0;
-            }
-            else if (cry[index] > 1000000000000)
-            {
-                cry[index] = 1000000000000;
+                cry[index] = long.MaxValue;
             }
             SendBasket();
         }
@@ -91,7 +99,7 @@ namespace MinesServer.GameShit
                 Title = "Создание бокса",
                 Tabs = [new Tab()
                 {
-                    Label = "Бокс",
+                    Label = "хуй",
                     Action = "dropbox",
                     InitialPage = new Page()
                     {
@@ -101,7 +109,7 @@ namespace MinesServer.GameShit
                             new CrysLine("", 0, 0, cry[3], 0),
                             new CrysLine("", 0, 0, cry[4], 0),
                             new CrysLine("", 0, 0, cry[5], 0)]),
-                        Text = "\nИспользуйте полосы прокрутки, чтобы выбрать сколько положить в бокс,\r\nВНИМАНИЕ! При создании кристаллы не теряются!\n",
+                        Text = "\nИспользуйте полосы прокрутки, чтобы выбрать сколько положить в бокс\",\r\n                    \"ВНИМАНИЕ! При создании бокса теряется нихуя кристаллов\n",
                         Buttons = [new Button("<color=green>В БОКС</color>", $"dropbox:{ActionMacros.CrystalSliders}", (args) => { player.BBox(args.CrystalSliders); })]
                     }
                 }]
@@ -109,8 +117,6 @@ namespace MinesServer.GameShit
         }
         public void SendBasket()
         {
-            using var db = new DataBase();
-            db.SaveChanges();
             var p = new BasketPacket(cry[0], cry[1], cry[2], cry[3], cry[4], cry[5], Buildcap());
             player.connection?.SendU(p);
         }

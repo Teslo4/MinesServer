@@ -36,16 +36,16 @@ namespace MinesServer.GameShit.SysMarket
             var db = new DataBase();
             for (int i = 0; i < 6; i++)
             {
-                if ((p.money + money) - (sliders[i] * (long)(World.GetCrysCost(i) * 10)) > 0 || p.money > -(money - (sliders[i] * (long)(World.GetCrysCost(i) * 10))))
+                if ((p.money + money) - (sliders[i] * (long)(World.GetCrysCost(i) * 4)) > 0 || p.money > -(money - (sliders[i] * (long)(World.GetCrysCost(i) * 4))))
                 {
                     if (sliders[i] < (long)1000000000000)
                     {
-                        money -= sliders[i] * (World.GetCrysCost(i) * 10);
+                        money -= sliders[i] * (World.GetCrysCost(i) * 4);
                         p.crys.AddCrys(i, sliders[i]);
                     }
                     else
                     {
-                        money -= sliders[i] * (World.GetCrysCost(i) * 10);
+                        money -= sliders[i] * (World.GetCrysCost(i) * 4);
                         p.crys.AddCrys(i, sliders[i]);
                     }
                 }
@@ -54,12 +54,12 @@ namespace MinesServer.GameShit.SysMarket
             {
                 OnAdmin = (p.Id != m.ownerid ? null : () => m.onadmn(p, m)),
                 CrystalConfig = new CrystalConfig(" ", "ЦЕНА   ", [
-                            new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(0) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(0) * 10)), 0),
-                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(1) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(1) * 10)), 0),
-                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(2) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(2) * 10)), 0),
-                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(3) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(3) * 10)), 0),
-                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(4) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(4) * 10)), 0),
-                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(5) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(5) * 10)), 0)
+                            new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(0) * 4}$</color>", 0, 0, (p.money / (World.GetCrysCost(0) * 4)), 0),
+                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(1) * 4}$</color>", 0, 0, (p.money / (World.GetCrysCost(1) * 4)), 0),
+                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(2) * 4}$</color>", 0, 0, (p.money / (World.GetCrysCost(2) * 4)), 0),
+                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(3) * 4}$</color>", 0, 0, (p.money / (World.GetCrysCost(3) * 4)), 0),
+                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(4) * 4}$</color>", 0, 0, (p.money / (World.GetCrysCost(4) * 4)), 0),
+                    new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(5) * 4}$</color>", 0, 0, (p.money / (World.GetCrysCost(5) * 4)), 0)
 
                             ], true),
                 Text = $"Купленно кристаллов на <color=#aaeeaa>{-money}$</color>",

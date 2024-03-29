@@ -5,6 +5,7 @@
         OnDig,
         OnExp,
         OnMove,
+        OnPackCrys,
         OnHurt,
         OnHeal,
         OnUp,
