@@ -54,40 +54,6 @@ namespace MinesServer.Server
                         }
                     }
             });
-            Task.Run(() =>
-            {
-                List<Player> bots = new();
-                for(int i = 0;i < 200;i++)
-                {
-                    var x = new Player();
-                    x.Id = new Random(Guid.NewGuid().GetHashCode()).Next(2000, 4000);
-                    x.CreatePlayer();
-                    x.name = i.ToString();
-                    bots.Add(x);
-                    DataBase.activeplayers.Add(x);
-                }
-                while (true)
-                {
-                    foreach (var i in bots)
-                    {
-                        i.Move(i.x+1, 0);
-                        Thread.Sleep(3);
-                        i.Move(i.x + 1, 0);
-                        Thread.Sleep(3);
-                        i.Move(i.x + 1, 0);
-                        Thread.Sleep(3);
-                    }
-                    foreach (var i in bots)
-                    {
-                        i.Move(i.x - 1, 0);
-                        Thread.Sleep(3);
-                        i.Move(i.x - 1, 0);
-                        Thread.Sleep(3);
-                        i.Move(i.x - 1, 0);
-                        Thread.Sleep(3);
-                    }
-                }
-            });
         }
         public void Start()
         {
@@ -120,27 +86,28 @@ namespace MinesServer.Server
                     }
                 }
             }));
+            actions.Add(new(() =>
+            {
+                for (int x = 0; x < World.ChunksW; x++)
+                {
+                    for (int y = 0; y < World.ChunksH; y++)
+                    {
+                        World.W.chunks[x, y].Update();
+                    }
+                }
+                World.Update();
+                World.W.cells.Commit();
+                World.W.road.Commit();
+                World.W.durability.Commit();
+            }));
             AddTickRateUpdate(Update);
         }
         public void Update()
         {
             if (!MServer.started)
-            {
                 return;
-            }
             foreach (var i in actions)
                 i.Call();
-            for (int x = 0; x < World.ChunksW; x++)
-            {
-                for (int y = 0; y < World.ChunksH; y++)
-                {
-                    World.W.chunks[x, y].Update();
-                }
-            }
-            World.Update();
-            World.W.cells.Commit();
-            World.W.road.Commit();
-            World.W.durability.Commit();
             using var db = new DataBase();
             foreach (var order in db.orders)
             {

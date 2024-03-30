@@ -93,7 +93,7 @@ namespace MinesServer.GameShit.Buildings
                     RichList = new RichListConfig()
                     {
                         Entries = [RichListEntry.Text($"hp {m.hp}"),
-                            RichListEntry.Button($"прибыль {m.moneyinside}$", m.moneyinside == 0 ? new Button() : new Button("Получить", "getprofit", (args) => { using var db = new DataBase(); p.money += m.moneyinside; m.moneyinside = 0; p.SendMoney(); db.SaveChanges(); m.onadmn(p, m); p.SendWindow(); })),
+                            RichListEntry.Button($"прибыль {m.moneyinside}$", m.moneyinside == 0 ? new MButton() : new MButton("Получить", "getprofit", (args) => { using var db = new DataBase(); p.money += m.moneyinside; m.moneyinside = 0; p.SendMoney(); db.SaveChanges(); m.onadmn(p, m); p.SendWindow(); })),
                         ]
                     },
                     Buttons = []
@@ -120,8 +120,8 @@ namespace MinesServer.GameShit.Buildings
                                 new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(5)}$</color>", 0, 0, p.crys[Enums.CrystalType.Cyan], 0)]
                                 ),
                     Text = "Продажа кри",
-                    Buttons = [new Button("sellall", $"sellall", (args) => MarketSystem.Sell(p.crys.cry, p, this)),
-                            new Button("sell", $"sell:{ActionMacros.CrystalSliders}", (args) => MarketSystem.Sell(args.CrystalSliders, p, this))]
+                    Buttons = [new MButton("sellall", $"sellall", (args) => MarketSystem.Sell(p.crys.cry, p, this)),
+                            new MButton("sell", $"sell:{ActionMacros.CrystalSliders}", (args) => MarketSystem.Sell(args.CrystalSliders, p, this))]
                 }
             };
         }
@@ -145,7 +145,7 @@ namespace MinesServer.GameShit.Buildings
 
                             ], true),
                     Text = "Покупка",
-                    Buttons = [new Button("buy", $"buy:{ActionMacros.CrystalSliders}", (args) => MarketSystem.Buy(args.CrystalSliders, p, this))
+                    Buttons = [new MButton("buy", $"buy:{ActionMacros.CrystalSliders}", (args) => MarketSystem.Buy(args.CrystalSliders, p, this))
                         ]
                 }
             };

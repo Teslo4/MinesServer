@@ -14,8 +14,8 @@ namespace MinesServer.GameShit
 {
     public class World
     {
-        public const int chunksx = 201;
-        public const int chunksy = 201;
+        public const int chunksx = 41;
+        public const int chunksy = 41;
         public const int CellsWidth = chunksx * ChunkWidth;
         public const int CellsHeight = chunksy * ChunkHeight;
         public const int ChunkWidth = 32;
@@ -117,9 +117,6 @@ namespace MinesServer.GameShit
                     }
                 }
             }
-            cells.Commit();
-            road.Commit();
-            durability.Commit();
 
         }
         public void CreateChunks()

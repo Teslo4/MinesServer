@@ -169,7 +169,7 @@ namespace MinesServer.Server
         }
         private void Res(TYPacket f, RESPPacket p)
         {
-            player.health.Death();
+            player.Death();
         }
         private void ADMN(TYPacket f, ADMNPacket p)
         {

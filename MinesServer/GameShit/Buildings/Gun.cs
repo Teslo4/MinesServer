@@ -7,6 +7,7 @@ using MinesServer.Network.HubEvents;
 using MinesServer.Network.World;
 using MinesServer.Server;
 using System.Numerics;
+
 namespace MinesServer.GameShit.Buildings
 {
     public class Gun : Pack, IDamagable
@@ -93,9 +94,9 @@ namespace MinesServer.GameShit.Buildings
         }
         public override Window? GUIWin(Player p)
         {
-            Button[] fillbuttons = [p.crys[CrystalType.Cyan] >= 100 ? new Button("+100", "fill:100", (args) => Fill(p, 100)) : new Button("+100", "fill:100"),
-                p.crys[CrystalType.Cyan] >= 1000 ? new Button("+1000", "fill:1000", (args) => Fill(p, 1000)) : new Button("+1000", "fill:1000"),
-                p.crys[CrystalType.Cyan] >= 0 ? new Button("max", "fill:max", (args) => Fill(p, (long)(maxcharge - charge))) : new Button("max", "fill:max")
+            MButton[] fillbuttons = [p.crys[CrystalType.Cyan] >= 100 ? new MButton("+100", "fill:100", (args) => Fill(p, 100)) : new MButton("+100", "fill:100"),
+                p.crys[CrystalType.Cyan] >= 1000 ? new MButton("+1000", "fill:1000", (args) => Fill(p, 1000)) : new MButton("+1000", "fill:1000"),
+                p.crys[CrystalType.Cyan] >= 0 ? new MButton("max", "fill:max", (args) => Fill(p, (long)(maxcharge - charge))) : new MButton("max", "fill:max")
                ];
             return new Window()
             {
@@ -135,7 +136,7 @@ namespace MinesServer.GameShit.Buildings
                                 {
                                     continue;
                                 }
-                                player.health.Hurt(60, DamageType.Gun);
+                                player.Hurt(60, DamageType.Gun);
                                 player.SendDFToBots(7, x, y, player.Id, 1);
                                 var basecrys = 0.5f;
                                 foreach (var c in player.skillslist.skills.Values)

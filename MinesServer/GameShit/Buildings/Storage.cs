@@ -125,7 +125,7 @@ namespace MinesServer.GameShit.Buildings
         #endregion
         public override Window? GUIWin(Player p)
         {
-            var ok = new Button("transfer", $"transfer:{ActionMacros.CrystalSliders}", (args) => StockTransfer(args.CrystalSliders, p));
+            var ok = new MButton("transfer", $"transfer:{ActionMacros.CrystalSliders}", (args) => StockTransfer(args.CrystalSliders, p));
             var cryslines = crysinside.Select((cry, id) => new CrysLine("", 0, 0, p.crys.cry[id] + cry, (int)(cry))).ToArray();
             var page = new Page()
             {

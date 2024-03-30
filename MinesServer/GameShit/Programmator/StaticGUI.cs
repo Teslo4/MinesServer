@@ -27,7 +27,7 @@ namespace MinesServer.GameShit.Programmator
             var progs = db.progs.Where(i => i.owner == p).ToList();
             if (progs.Count == 0)
                 return [];
-            return progs.Select(i => new ListEntry(i.name, new Button("open", $"openprog:{i.id}", (a) => OpenProg(p, i)))).ToArray();
+            return progs.Select(i => new ListEntry(i.name, new MButton("open", $"openprog:{i.id}", (a) => OpenProg(p, i)))).ToArray();
         }
         public static void OpenProg(Player p, Program prog)
         {
@@ -64,7 +64,7 @@ namespace MinesServer.GameShit.Programmator
                 {
                     FixScrollTag = "prg"
                 },
-                Buttons = [new Button("Ok", $"rename{ActionMacros.Input}", rename)]
+                Buttons = [new MButton("Ok", $"rename{ActionMacros.Input}", rename)]
                     },
                     Label = "pren2"
                 }]
@@ -96,7 +96,7 @@ namespace MinesServer.GameShit.Programmator
                 {
                     FixScrollTag = "prg"
                 },
-                Buttons = [new Button("Создать", $"create2{ActionMacros.Input}", (args) => NewProg(p, args.Input))]
+                Buttons = [new MButton("Создать", $"create2{ActionMacros.Input}", (args) => NewProg(p, args.Input))]
             });
             p.SendWindow();
         }
@@ -121,7 +121,7 @@ namespace MinesServer.GameShit.Programmator
                     InitialPage = new Page()
                     {
                         List = l,
-                        Buttons = [new Button("Создать","createrog",(e) => OpenCreateProg(p))]
+                        Buttons = [new MButton("Создать","createrog",(e) => OpenCreateProg(p))]
                     }
 
                 }]
@@ -138,7 +138,7 @@ namespace MinesServer.GameShit.Programmator
                     Title = "ПРОГРАММАТОР",
                     InitialPage = new Page()
                     {
-                        Buttons = [new Button("СОЗДАТЬ ПРОГРАММУ", "createprog", (args) => OpenCreateProg(p))]
+                        Buttons = [new MButton("СОЗДАТЬ ПРОГРАММУ", "createprog", (args) => OpenCreateProg(p))]
                     }
 
                 }]

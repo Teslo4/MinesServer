@@ -25,7 +25,7 @@ namespace MinesServer.GameShit.Skills
                 v.Add(type.GetCode(), (int)((exp * 100f) / Expiriense));
                 p.connection?.SendU(new SkillsPacket(v));
                 p.SendLvl();
-                p.health.SendHp();
+                p.SendHealth();
                 p.skillslist.Save();
                 if (EffectType() == SkillEffectType.OnMove)
                 {

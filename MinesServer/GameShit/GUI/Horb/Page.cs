@@ -8,7 +8,7 @@ namespace MinesServer.GameShit.GUI.Horb
 {
     public readonly struct Page : IPage
     {
-        public required Button[] Buttons { get; init; }
+        public required MButton[] Buttons { get; init; }
         public CrystalConfig? CrystalConfig { get; init; }
         public ListEntry[]? List { get; init; }
         public RichListConfig? RichList { get; init; }

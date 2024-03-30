@@ -66,10 +66,10 @@ namespace MinesServer.GameShit
         }
         public void SendSettingsGUI(Player p)
         {
-            Button[] btns = [new Button("Сохранить", $"save:{ActionMacros.RichList}", (args) => { Save(p, args.RichList); })];
+            MButton[] btns = [new MButton("Сохранить", $"save:{ActionMacros.RichList}", (args) => { Save(p, args.RichList); })];
             if (p.cid == 0)
             {
-                btns = btns.Append(new Button("Создать клан", $"clancreate", (args) => { Clan.OpenCreateWindow(p); })).ToArray();
+                btns = btns.Append(new MButton("Создать клан", $"clancreate", (args) => { Clan.OpenCreateWindow(p); })).ToArray();
             }
             p.win = new Window()
             {

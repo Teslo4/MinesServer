@@ -14,7 +14,6 @@ namespace MinesServer.Server
         #region player
         public DbSet<Program> progs { get; set; }
         public DbSet<Player> players { get; set; }
-        public DbSet<Health> healths { get; set; }
         public DbSet<Inventory> inventories { get; set; }
         public DbSet<Basket> baskets { get; set; }
         public DbSet<PlayerSkills> skills { get; set; }
@@ -97,7 +96,6 @@ namespace MinesServer.Server
                 .Include(p => p.crys)
                 .Include(p => p.skillslist)
                 .Include(p => p.settings)
-                .Include(p => p.health)
                 .Include(p => p.resp)
                 .FirstOrDefault();
         }
@@ -117,7 +115,6 @@ namespace MinesServer.Server
                 .Include(p => p.crys)
                 .Include(p => p.skillslist)
                 .Include(p => p.settings)
-                .Include(p => p.health)
                 .Include(p => p.resp)
                 .FirstOrDefault();
         }

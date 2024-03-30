@@ -10,6 +10,7 @@ using MinesServer.Network.World;
 using System.Security.Cryptography;
 using System.Text;
 
+
 namespace MinesServer.Server
 {
     public class Auth
@@ -65,8 +66,8 @@ namespace MinesServer.Server
                         {
                             Text = "Авторизация",
                             Buttons = [
-                                new Button("Новый акк", "newakk", (args) => CreateNew(initiator)),
-                                new Button("ok", $"nick:{ActionMacros.Input}", (args) => TryToFindByNick(args.Input!, initiator))
+                                new MButton("Новый акк", "newakk", (args) => CreateNew(initiator)),
+                                new MButton("ok", $"nick:{ActionMacros.Input}", (args) => TryToFindByNick(args.Input!, initiator))
                             ],
                             Input = new InputConfig()
                             {

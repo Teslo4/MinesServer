@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 namespace MinesServer.GameShit
 {
     public class Basket
@@ -110,7 +111,7 @@ namespace MinesServer.GameShit
                             new CrysLine("", 0, 0, cry[4], 0),
                             new CrysLine("", 0, 0, cry[5], 0)]),
                         Text = "\nИспользуйте полосы прокрутки, чтобы выбрать сколько положить в бокс\",\r\n                    \"ВНИМАНИЕ! При создании бокса теряется нихуя кристаллов\n",
-                        Buttons = [new Button("<color=green>В БОКС</color>", $"dropbox:{ActionMacros.CrystalSliders}", (args) => { player.BBox(args.CrystalSliders); })]
+                        Buttons = [new MButton("<color=green>В БОКС</color>", $"dropbox:{ActionMacros.CrystalSliders}", (args) => { player.BBox(args.CrystalSliders); })]
                     }
                 }]
             };

@@ -151,7 +151,7 @@ namespace MinesServer.GameShit.Programmator
                     p.Geo();
                     break;
                 case ActionType.Heal:
-                    p.health.Heal();
+                    p.Heal();
                     break;
                 case ActionType.ShiftUp:
                     p.programsData.shiftY--;
@@ -260,10 +260,10 @@ namespace MinesServer.GameShit.Programmator
                     p.programsData.shiftY *= -1;
                     break;
                 case ActionType.IsHpLower100:
-                    Check(p, (x, y) => p.health.HP < p.health.MaxHP);
+                    Check(p, (x, y) => p.Health < p.MaxHealth);
                     break;
                 case ActionType.IsHpLower50:
-                    Check(p, (x, y) => p.health.HP < p.health.MaxHP / 2);
+                    Check(p, (x, y) => p.Health < p.MaxHealth / 2);
                     break;
                 case ActionType.IsEmpty:
                     Check(p, (x, y) => World.GetProp(x, y).isEmpty);

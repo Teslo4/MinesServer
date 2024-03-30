@@ -23,7 +23,7 @@ namespace MinesServer.GameShit.Consumables
                         var c = World.GetCell(x, y);
                         foreach (var player in World.W.GetPlayersFromPos(x, y))
                         {
-                            player.health.Hurt(20 + 60 * player.c190stacks);
+                            player.Hurt(20 + 60 * player.c190stacks);
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
@@ -45,7 +45,7 @@ namespace MinesServer.GameShit.Consumables
                         var c = World.GetCell(x, y);
                         foreach (var player in World.W.GetPlayersFromPos(x, y))
                         {
-                            player.health.Hurt(20 + 60 * player.c190stacks);
+                            player.Hurt(20 + 60 * player.c190stacks);
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
@@ -67,7 +67,7 @@ namespace MinesServer.GameShit.Consumables
                         var c = World.GetCell(x, y);
                         foreach (var player in World.W.GetPlayersFromPos(x, y))
                         {
-                            player.health.Hurt(20 + 60 * player.c190stacks);
+                            player.Hurt(20 + 60 * player.c190stacks);
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
@@ -89,7 +89,7 @@ namespace MinesServer.GameShit.Consumables
                         var c = World.GetCell(x, y);
                         foreach (var player in World.W.GetPlayersFromPos(x, y))
                         {
-                            player.health.Hurt(20 + 60 * player.c190stacks);
+                            player.Hurt(20 + 60 * player.c190stacks);
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
@@ -120,7 +120,7 @@ namespace MinesServer.GameShit.Consumables
                         {
                             foreach (var p in World.W.GetPlayersFromPos(x + _x, y + _y))
                             {
-                                p.health.Hurt(40);
+                                p.Hurt(40);
                             }
                             var c = World.GetCell(x + _x, y + _y);
                             if (World.GetProp(c).is_destructible && !World.PackPart(x + _x, y + _y))
@@ -159,7 +159,7 @@ namespace MinesServer.GameShit.Consumables
                         {
                             foreach (var p in World.W.GetPlayersFromPos(x + _x, y + _y))
                             {
-                                p.health.Hurt(50);
+                                p.Hurt(50);
                             }
                             var c = World.GetCell(x + _x, y + _y);
                             if (World.GetProp(c).is_destructible && !World.PackPart(x + _x, y + _y))
@@ -202,7 +202,7 @@ namespace MinesServer.GameShit.Consumables
                             }
                             foreach (var player in World.W.GetPlayersFromPos(x + _x, y + _y))
                             {
-                                player.health.Hurt(500);
+                                player.Hurt(500);
                             }
                         }
                     }

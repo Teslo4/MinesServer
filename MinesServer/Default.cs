@@ -1,7 +1,6 @@
 ﻿using MinesServer.GameShit;
 using MinesServer.Server;
 using Newtonsoft.Json;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -21,15 +20,16 @@ namespace MinesServer
                 .Any(p => p.Name == name);
         }
         public static bool ToBool(this string s) => s != "0";
-        /*public static Form mf = new Form();*/
         public static int port = 8090;
         private static Dictionary<string, Action> commands = new Dictionary<string, Action>();
         public static void Main(string[] args)
         {
             CellsSerializer.Load();
+#if DEBUG
             //var t = new Thread(ShowUp);
             //t.SetApartmentState(ApartmentState.STA);
             //t.Start();
+#endif
             var configPath = "config.json";
             if (File.Exists(configPath))
             {
@@ -80,42 +80,14 @@ namespace MinesServer
             var method = trace.GetFrame(1).GetMethod().Name;
             Console.WriteLine($"{method} caused error {ex}");
         }
-        /*
+#if DEBUG
+        /*public static Form mf = new Form();
         public static void ShowUp()
         {
-            PictureBox pb = new PictureBox()
-            {
-                Location = new Point(0, 0)
-            };
-            var dialog = new OpenFileDialog();
-            dialog.Title = "Open Image";
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                var PictureBox1 = new PictureBox();
-                orgimage = new Bitmap(Image.FromFile(dialog.FileName));
-                pb.Image = orgimage;
-            }
-            float zoom = 1;
-            var i = new Bitmap(orgimage);
-            var imageRect = new RectangleF(Point.Empty, i.Size);
-            pb.Paint += (e, m) =>
-            {
-
-            };
-            var step = 0.05f;
-            pb.MouseWheel += (e, mouse) =>
-            {
-
-            };
-            pb.SizeMode = PictureBoxSizeMode.AutoSize;
-            mf.Width = 500;
-            mf.Height = 500;
-            mf.Controls.Add(pb);
-
             Application.Run(mf);
         }*/
+#endif
         public static int size = 1;
-        /*public static Image orgimage;*/
         public static MServer server { get; set; }
     }
     public static class E

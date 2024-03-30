@@ -24,7 +24,7 @@ using System.Numerics;
 
 namespace MinesServer.GameShit
 {
-    public class Player
+    public class Player : IEntity
     {
         #region forprogs
         PData _pdata;
@@ -68,7 +68,7 @@ namespace MinesServer.GameShit
         public Rank? clanrank { get; set; }
         public int pause //= 3500;
         {
-        get
+            get
             {
                 var retval = 10000;
                 foreach (var c in skillslist.skills.Values)
@@ -111,7 +111,6 @@ namespace MinesServer.GameShit
         public DateTimeOffset lastc190hit = ServerTime.Now;
         public Basket crys { get; set; }
         public Inventory inventory { get; set; }
-        public Health health { get; set; }
         public Settings settings { get; set; }
         public PlayerSkills skillslist { get; set; }
         public Stack<byte> geo = new Stack<byte>();
@@ -123,7 +122,7 @@ namespace MinesServer.GameShit
         public DateTimeOffset Delay = ServerTime.Now;
         public bool CanAct { get => !(Delay.AddMilliseconds(ServerTime.offset) > ServerTime.Now); }
         public bool OnRoad { get => World.isRoad(World.GetCell(x, y)); }
-        public int dir { 
+        public int dir {
             get;
             set;
         }
@@ -165,7 +164,7 @@ namespace MinesServer.GameShit
                 if (ServerTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
                 {
                     DataBase.activeplayers.Remove(this);
-                    health.Death();
+                    Death();
                 }
                 return;
             }
@@ -177,7 +176,7 @@ namespace MinesServer.GameShit
             var cellprop = World.GetProp(cell);
             if (!cellprop.isEmpty)
             {
-                health.Hurt(cellprop.fall_damage);
+                Hurt(cellprop.fall_damage);
                 if (cell == 90)
                 {
                     GetBox(x, y);
@@ -198,7 +197,7 @@ namespace MinesServer.GameShit
         {
             resp = r;
         }
-        public void TryAct(Action a,double delay)
+        public void TryAct(Action a, double delay)
         {
             if (Delay < ServerTime.Now)
             {
@@ -328,7 +327,7 @@ namespace MinesServer.GameShit
             var cell = World.GetCell(x, y);
             if (World.GetProp(cell).damage > 0)
             {
-                health.Hurt(World.GetProp(cell).damage);
+                Hurt(World.GetProp(cell).damage);
             }
             if (!World.GetProp(cell).is_diggable)
             {
@@ -412,17 +411,17 @@ namespace MinesServer.GameShit
             var newpos = new Vector2(x, y);
             if (Vector2.Distance(pos, newpos) < 1.2f)
             {
-                    foreach (var c in skillslist.skills.Values)
+                foreach (var c in skillslist.skills.Values)
+                {
+                    if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
                     {
-                        if (c != null && c.UseSkill(SkillEffectType.OnMove, this))
+                        if (c.type == SkillType.Movement)
                         {
-                            if (c.type == SkillType.Movement)
-                            {
-                                c.AddExp(this);
-                            }
+                            c.AddExp(this);
                         }
                     }
-                    pos = newpos;
+                }
+                pos = newpos;
             }
             else
             {
@@ -461,13 +460,13 @@ namespace MinesServer.GameShit
                             }
                             return;
                         }
-                       else if (c.type == SkillType.BuildYellow && World.GetCell(x,y) == (byte)CellType.GreenBlock)
+                        else if (c.type == SkillType.BuildYellow && World.GetCell(x, y) == (byte)CellType.GreenBlock)
                         {
                             c.AddExp(this);
                             if (crys.RemoveCrys(4, (long)c.Effect))
                             {
                                 World.SetCell(x, y, CellType.YellowBlock);
-                                World.SetDurability(x, y, World.GetDurability(x,y) + c.AdditionalEffect);
+                                World.SetDurability(x, y, World.GetDurability(x, y) + c.AdditionalEffect);
                             }
                             return;
                         }
@@ -543,19 +542,19 @@ namespace MinesServer.GameShit
             creds = 0;
             hash = GenerateHash();
             passwd = "";
-            health = new Health();
+            Health = 100;
+            MaxHealth = 100;
             inventory = new Inventory();
             inventory.items = new int[49];
             settings = new Settings(true);
             crys = new Basket(this);
             skillslist = new PlayerSkills();
             AddBasicSkills();
-            health.LoadHealth(this);
             pos = new Vector2(0, 0);
             dir = 0;
             clan = null;
             skin = 0;
-            //RandomResp();
+            RandomResp();
         }
         public void RandomResp()
         {
@@ -588,19 +587,30 @@ namespace MinesServer.GameShit
             {
                 DataBase.activeplayers.Add(this);
             }
+            MaxHealth = 100;
+            foreach (var c in skillslist.skills.Values)
+            {
+                if (c != null && c.UseSkill(SkillEffectType.OnHealth, this))
+                {
+                    if (c.type == SkillType.Health)
+                    {
+                        MaxHealth += (int)c.Effect;
+                    }
+                }
+            }
+            Health = Health <= 0 ? MaxHealth : Health;
             connection.auth = null;
             crys.player = this;
             skillslist.LoadSkills();
-            health.LoadHealth(this);
             connection?.SendPing();
             connection?.SendWorldInfo();
             SendAutoDigg();
             SendGeo();
             tp(x, y);
+            SendHealth();
             SendBInfo();
             SendSpeed();
             SendCrys();
-            health.SendHp();
             SendMoney();
             SendLvl();
             SendMap();
@@ -696,6 +706,10 @@ namespace MinesServer.GameShit
         public void SendCrys()
         {
             crys.SendBasket();
+        }
+        public void SendHealth()
+        {
+            connection?.SendU(new LivePacket(Health, MaxHealth));
         }
         public void SendSpeed()
         {
@@ -832,7 +846,6 @@ namespace MinesServer.GameShit
             {
                 MoveToChunk(ChunkX, ChunkY);
                 List<IHubPacket> packetsmap = new();
-                List<IHubPacket> packetspacks = new();
                 for (int x = -2; x <= 2; x++)
                 {
                     for (int y = -2; y <= 2; y++)
@@ -952,6 +965,110 @@ namespace MinesServer.GameShit
             }
             win.ProcessButton(text);
         }
+        #region health
+        public void Heal(int num = -1)
+        {
+            
+        }
 
+        public void Hurt(int num, DamageType t = DamageType.Pure)
+        {
+            foreach (var c in skillslist.skills.Values)
+            {
+                if (c != null && c.UseSkill(SkillEffectType.OnHealth, this))
+                {
+                    if (c.type == Enums.SkillType.Health)
+                    {
+                        c.AddExp(this);
+                    }
+                }
+                if (c != null && c.UseSkill(SkillEffectType.OnHurt, this) && t == DamageType.Gun)
+                {
+                    if (c.type == Enums.SkillType.Induction)
+                    {
+                        c.AddExp(this);
+                    }
+                    if (c.type == Enums.SkillType.AntiGun)
+                    {
+                        c.AddExp(this);
+                        var eff = (int)(num * (c.Effect / 100));
+                        if (num - eff >= 0)
+                        {
+                            num -= eff;
+                        }
+                        else
+                        {
+                            num = 0;
+                        }
+                    }
+                }
+            }
+            if (Health - num > 0)
+            {
+                Health -= num;
+                SendDFToBots(6, 0, 0, Id, 0);
+            }
+            else
+            {
+                Death();
+            }
+            SendHealth();
+        }
+        private async Task<(int x, int y)> FindEmptyForBox(int x, int y)
+        {
+            var dirs = new (int, int)[] { (0, 1), (1, 0), (-1, 0), (0, -1) };
+            var q = new Queue<(int, int)>();
+            var valid = bool (int x, int y) => World.GetProp(x, y).isEmpty && !World.PackPart(x, y) && World.W.ValidCoord(x, y);
+            var a = World.PackPart(x, y);
+            if (!valid(x, y))
+            {
+                q.Enqueue((x, y));
+            }
+            while (q.Count > 0)
+            {
+                var b = q.Dequeue();
+                foreach (var dir in dirs)
+                {
+                    if (!valid(b.Item1 + dir.Item1, b.Item2 + dir.Item2))
+                    {
+                        q.Enqueue((b.Item1 + dir.Item1, b.Item2 + dir.Item2));
+                        continue;
+                    }
+                    return (b.Item1 + dir.Item1, b.Item2 + dir.Item2);
+                }
+            }
+            return (x, y);
+        }
+
+        public void Death()
+        {
+            if (crys.AllCry > 0)
+            {
+                var c = FindEmptyForBox(x, y);
+                c.ContinueWith((f) =>
+                {
+                    Box.BuildBox(f.Result.x, f.Result.y, crys.cry, this, true);
+                    crys.ClearCrys();
+                });
+            }
+            win = null;
+            SendWindow();
+            SendFXoBots(2, x, y);
+            Health = MaxHealth;
+            var r = GetCurrentResp()!;
+            r.OnRespawn(this);
+            r = GetCurrentResp()!;
+            var newpos = r.GetRandompoint();
+            x = newpos.Item1; y = newpos.Item2;
+            tp(x, y);
+            ReSendPacks();
+            ReSendBots();
+            SendMap();
+            SendHealth();
+        }
+        public int Health { get; set; }
+
+        public int MaxHealth { get; set; }
+        #endregion
     }
 }

@@ -8,6 +8,7 @@ using MoreLinq;
 using System;
 using System.ComponentModel.DataAnnotations;
 
+
 namespace MinesServer.GameShit.SysMarket
 {
     public static class MarketSystem
@@ -59,7 +60,7 @@ namespace MinesServer.GameShit.SysMarket
 
                             ], true),
                 Text = $"Покупка\nКупленно кристалов на <color=#aaeeaa>{-money}$</color>",
-                Buttons = [new Button("buy", $"buy:{ActionMacros.CrystalSliders}", (args) => Buy(args.CrystalSliders, p, m))]
+                Buttons = [new MButton("buy", $"buy:{ActionMacros.CrystalSliders}", (args) => Buy(args.CrystalSliders, p, m))]
             };
             p.win?.CurrentTab.Replace(page);
             p.SendWindow();
@@ -91,8 +92,8 @@ namespace MinesServer.GameShit.SysMarket
                         new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(4)}$</color>", 0, 0, p.crys[Enums.CrystalType.White], 0),
                         new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(5)}$</color>", 0, 0, p.crys[Enums.CrystalType.Cyan], 0)]),
                     Text = $"Продажа кри\nПродано кристалов на <color=#aaeeaa>{money}$</color>",
-                    Buttons = [new Button("sellall", $"sellall", (args) => Sell(p.crys.cry, p, m)),
-                        new Button("sell", $"sell:{ActionMacros.CrystalSliders}", (args) => Sell(args.CrystalSliders, p, m))]
+                    Buttons = [new MButton("sellall", $"sellall", (args) => Sell(p.crys.cry, p, m)),
+                        new MButton("sell", $"sell:{ActionMacros.CrystalSliders}", (args) => Sell(args.CrystalSliders, p, m))]
                 };
                 p.win?.CurrentTab.Replace(page);
                 p.SendWindow();
@@ -140,7 +141,7 @@ namespace MinesServer.GameShit.SysMarket
                 Title = $"Order of player {p.name} {timer}",
                 Text = buyer == null ? null : $"last bet by: {buyer.name}",
                 Input = new InputConfig($"minimal bet is <color=#aaeeaa>{(int)Math.Ceiling(cost)}$</color>", null, false),
-                Buttons = [new Button("minimalbet","minimalbet", (args) => { var db = new DataBase(); db.Attach(o); o.Bet(p, (long)cost); db.SaveChanges(); OpenOrder(p, orderid); p.SendWindow(); }),new Button("bet", $"bet:{ActionMacros.Input}", (args) => { if (int.TryParse(args.Input, out var bet)) { var db = new DataBase(); db.Attach(o); o.Bet(p, bet); db.SaveChanges(); } OpenOrder(p, orderid); p.SendWindow(); })],
+                Buttons = [new MButton("minimalbet","minimalbet", (args) => { var db = new DataBase(); db.Attach(o); o.Bet(p, (long)cost); db.SaveChanges(); OpenOrder(p, orderid); p.SendWindow(); }),new MButton("bet", $"bet:{ActionMacros.Input}", (args) => { if (int.TryParse(args.Input, out var bet)) { var db = new DataBase(); db.Attach(o); o.Bet(p, bet); db.SaveChanges(); } OpenOrder(p, orderid); p.SendWindow(); })],
                 Card = new Card(CardImageType.Item, o.itemid.ToString(), $"{PackName(o.itemid)} x{o.num} costs <color=#aaeeaa>{o.cost}$</color>"),
             });
 
@@ -153,7 +154,7 @@ namespace MinesServer.GameShit.SysMarket
             foreach (var i in list.OrderBy(it => it.cost))
             {
                 var cost = i.buyerid == 0 ? i.cost : i.cost + (i.cost * 0.01f);
-                re = re.Append(new ListEntry($"{PackName(i.itemid)} x{i.num}", new Button($"<color=#aaeeaa>{(int)Math.Ceiling(cost)}$</color>", $"openorder:{i.id}", (args) => { OpenOrder(p, i.id); p.SendWindow(); }))).ToArray();
+                re = re.Append(new ListEntry($"{PackName(i.itemid)} x{i.num}", new MButton($"<color=#aaeeaa>{(int)Math.Ceiling(cost)}$</color>", $"openorder:{i.id}", (args) => { OpenOrder(p, i.id); p.SendWindow(); }))).ToArray();
             }
             return re;
         }
@@ -174,7 +175,7 @@ namespace MinesServer.GameShit.SysMarket
                 Title = $"Order creation {PackName(itemtype)}",
                 Text = "Enter cost",
                 Input = new InputConfig("cost", null, false),
-                Buttons = [new Button("createorder", $"createorder:{ActionMacros.Input}", (args) => { if (int.TryParse(args.Input, out var res)) OrderCreationNum(p, itemtype, res); else p.win = null; p.SendWindow(); })],
+                Buttons = [new MButton("createorder", $"createorder:{ActionMacros.Input}", (args) => { if (int.TryParse(args.Input, out var res)) OrderCreationNum(p, itemtype, res); else p.win = null; p.SendWindow(); })],
                 Card = new Card(CardImageType.Item, itemtype.ToString(), PackName(itemtype)),
             });
         }
@@ -185,7 +186,7 @@ namespace MinesServer.GameShit.SysMarket
                 Title = $"Order creation {PackName(itemtype)}",
                 Text = $"{PackName(itemtype)} to sell count",
                 Input = new InputConfig("num", null, false),
-                Buttons = [new Button("createorder", $"createorder:{ActionMacros.Input}", (args) => { if (int.TryParse(args.Input, out var res)) CreateOrder(p, itemtype, res, cost); else p.win = null; p.SendWindow(); })],
+                Buttons = [new MButton("createorder", $"createorder:{ActionMacros.Input}", (args) => { if (int.TryParse(args.Input, out var res)) CreateOrder(p, itemtype, res, cost); else p.win = null; p.SendWindow(); })],
                 Card = new Card(CardImageType.Item, itemtype.ToString(), PackName(itemtype)),
             });
         }
@@ -208,7 +209,7 @@ namespace MinesServer.GameShit.SysMarket
             p.win?.CurrentTab.Open(new Page()
             {
                 Title = "Auc " + PackName(item),
-                Buttons = [new Button("Создать Ордер", "createorder", (args) => { OpenOrderCreation(p, item); p.SendWindow(); })],
+                Buttons = [new MButton("Создать Ордер", "createorder", (args) => { OpenOrderCreation(p, item); p.SendWindow(); })],
                 List = GetItems(p, item)
             });
         }
@@ -248,7 +249,7 @@ namespace MinesServer.GameShit.SysMarket
                 OnInventory = oninventory,
                 Inventory = Items(),
                 Title = "МАРКЕТ",
-                Buttons = [new Button("Продать кри", "sell", (args) => { Console.WriteLine("sell"); })],
+                Buttons = [new MButton("Продать кри", "sell", (args) => { Console.WriteLine("sell"); })],
             };
         }
     }

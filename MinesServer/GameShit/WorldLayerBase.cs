@@ -49,13 +49,19 @@ namespace MinesServer.GameShit
         /// <param name="y">Y coordinate of the value</param>
         /// <param name="value">The new value</param>
         public abstract void ForceWrite(int x, int y, T value);
-
+        public void Reload()
+        {
+            _stream.Close();
+            _stream = new(filename, FileMode.OpenOrCreate);
+        }
         /// <summary>
         /// Commits all changes to the main array and writed changes to the disk.
         /// </summary>
         public void Commit()
         {
-                foreach (var index in _updatedChunks)
+            var localch = new HashSet<int>(_updatedChunks);
+            _updatedChunks.Clear();
+                foreach (var index in localch)
                     if (_buffer[index] is not null)
                     {
                         var chunk = _buffer[index]!;
@@ -67,7 +73,6 @@ namespace MinesServer.GameShit
                         chunk.CopyTo(_data[index]!, 0);
                         WriteToFile(index, chunk);
                     }
-                _updatedChunks.Clear();
         }
 
         /// <summary>

@@ -117,7 +117,7 @@ namespace MinesServer.GameShit
                         },
                         ClanList = [],
                         Text = string.Join("", p.console.Select(x => x.text + '\n').ToArray()),
-                        Buttons = [new Button("ВЫПОЛНИТЬ", $"{ActionMacros.Input}", (args) =>
+                        Buttons = [new MButton("ВЫПОЛНИТЬ", $"{ActionMacros.Input}", (args) =>
                         {
                             var msg = args.Input!;
                             AddConsoleLine(p, msg);

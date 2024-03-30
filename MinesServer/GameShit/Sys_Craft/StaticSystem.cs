@@ -33,7 +33,7 @@ namespace MinesServer.GameShit.Sys_Craft
                 Card = new Card(CardImageType.Item, recipie.result.id.ToString(), $" {MarketSystem.PackName(recipie.result.id)} x{recipie.result.num}\n Время сборки:{recipie.time} сек."),
                 Text = $"@@\n\nНужно для сборки четатам\n\n{text}\n\n",
                 Input = new InputConfig($"num", null, false),
-                Buttons = [new Button("craft", $"craft:{ActionMacros.Input}", (a) => { if (int.TryParse(a.Input, out var num)) Craft(p, recipie, num); })],
+                Buttons = [new MButton("craft", $"craft:{ActionMacros.Input}", (a) => { if (int.TryParse(a.Input, out var num)) Craft(p, recipie, num); })],
             });
         }
         public static void Craft(Player p, Recipie r, int num)
@@ -90,7 +90,7 @@ namespace MinesServer.GameShit.Sys_Craft
                 {
                     Title = "Крафтер",
                     Text = $"@@\nprogress {progress}% {bar}\n\n{remain}",
-                    Buttons = [new Button("claim", "claim", (a) => Claim(p, c))]
+                    Buttons = [new MButton("claim", "claim", (a) => Claim(p, c))]
                 };
             }
             return new Page()
@@ -105,7 +105,7 @@ namespace MinesServer.GameShit.Sys_Craft
             var lol = RDes.recipies.Where(i => i.result.id == type);
             p.win?.CurrentTab.Open(new Page()
             {
-                List = lol.Select(r => new ListEntry(r.result.id.ToString(), new Button("open", $"openrecipie:{r.id}", (arg) => OpenRecipie(p, r.id)))).ToArray(),
+                List = lol.Select(r => new ListEntry(r.result.id.ToString(), new MButton("open", $"openrecipie:{r.id}", (arg) => OpenRecipie(p, r.id)))).ToArray(),
                 Title = "Крафтер",
                 Buttons = [],
             });

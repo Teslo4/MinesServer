@@ -13,7 +13,7 @@ namespace MinesServer.GameShit.GUI.Horb.Canvas
         public int? Width { get; init; }
         public int? Height { get; init; }
         public byte? Alpha { get; init; }
-        public Button? Content { get; init; }
+        public MButton? Content { get; init; }
         public CanvasElementPivot Pivot { get; init; }
         public bool IsBlinking { get; init; }
 
@@ -47,7 +47,7 @@ namespace MinesServer.GameShit.GUI.Horb.Canvas
             Content = new(string.Format("{0:x6}", color.ToArgb() & 0xFFFFFF), "nop")
         };
 
-        public static CanvasElement Button(Button button, int? originDX = null, int? originDY = null, int? offsetX = null, int? offsetY = null, CanvasElementPivot pivot = CanvasElementPivot.Default) => new()
+        public static CanvasElement Button(MButton button, int? originDX = null, int? originDY = null, int? offsetX = null, int? offsetY = null, CanvasElementPivot pivot = CanvasElementPivot.Default) => new()
         {
             Type = CanvasElementType.Button,
             OriginX = originDX,
@@ -85,7 +85,7 @@ namespace MinesServer.GameShit.GUI.Horb.Canvas
             IsBlinking = isBlinking
         };
 
-        public static CanvasElement TPButton(Button button, int? originDX = null, int? originDY = null, int? offsetX = null, int? offsetY = null, CanvasElementPivot pivot = CanvasElementPivot.Default) => new()
+        public static CanvasElement TPButton(MButton button, int? originDX = null, int? originDY = null, int? offsetX = null, int? offsetY = null, CanvasElementPivot pivot = CanvasElementPivot.Default) => new()
         {
             Type = CanvasElementType.TPButton,
             OriginX = originDX,
@@ -96,7 +96,7 @@ namespace MinesServer.GameShit.GUI.Horb.Canvas
             Content = button
         };
 
-        public static CanvasElement MicroButton(Button button, int? originDX = null, int? originDY = null, int? offsetX = null, int? offsetY = null, CanvasElementPivot pivot = CanvasElementPivot.Default) => new()
+        public static CanvasElement MicroButton(MButton button, int? originDX = null, int? originDY = null, int? offsetX = null, int? offsetY = null, CanvasElementPivot pivot = CanvasElementPivot.Default) => new()
         {
             Type = CanvasElementType.MicroButton,
             OriginX = originDX,

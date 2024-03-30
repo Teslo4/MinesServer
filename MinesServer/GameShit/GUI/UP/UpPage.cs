@@ -9,7 +9,7 @@ namespace MinesServer.GameShit.GUI.UP
         UpSkill[] Skills,
         int SlotAmount,
         int? SelectedSlot,
-        Button? Button,
+        MButton? Button,
         string? Title,
         string? Text,
         Action? OnAdmin,

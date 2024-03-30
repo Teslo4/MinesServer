@@ -166,9 +166,9 @@ namespace MinesServer.GameShit.Buildings
         public int clanzone { get; set; }
         private IPage AdmnPage(Player p)
         {
-            Button[] fillbuttons = [p.crys[Enums.CrystalType.Blue] >= 100 ? new Button("+100", "fill:100", (args) => Fill(p, 100)) : new Button("+100", "fill:100"),
-                p.crys[Enums.CrystalType.Blue] >= 1000 ? new Button("+1000", "fill:1000", (args) => Fill(p, 1000)) : new Button("+1000", "fill:1000"),
-                p.crys[Enums.CrystalType.Blue] >= 0 ? new Button("max", "fill:max", (args) => Fill(p, (long)(maxcharge - charge))) : new Button("max", "fill:max")
+            MButton[] fillbuttons = [p.crys[Enums.CrystalType.Blue] >= 100 ? new MButton("+100", "fill:100", (args) => Fill(p, 100)) : new MButton("+100", "fill:100"),
+                p.crys[Enums.CrystalType.Blue] >= 1000 ? new MButton("+1000", "fill:1000", (args) => Fill(p, 1000)) : new MButton("+1000", "fill:1000"),
+                p.crys[Enums.CrystalType.Blue] >= 0 ? new MButton("max", "fill:max", (args) => Fill(p, (long)(maxcharge - charge))) : new MButton("max", "fill:max")
                ];
             return new Page()
             {
@@ -178,12 +178,12 @@ namespace MinesServer.GameShit.Buildings
                     Entries = [RichListEntry.Fill("заряд", (int)charge, (int)maxcharge, Enums.CrystalType.Blue, fillbuttons[0], fillbuttons[1], fillbuttons[2]),
                         RichListEntry.Text("hp"),
                         RichListEntry.UInt32("cost", "cost", (uint)cost),
-                        RichListEntry.Button($"прибыль {moneyinside}$", moneyinside == 0 ? new Button() : new Button("Получить", "getprofit", (args) => { using var db = new DataBase(); p.money += moneyinside; moneyinside = 0; p.SendMoney(); db.SaveChanges(); p.win?.CurrentTab.Replace(AdmnPage(p)); p.SendWindow(); })),
+                        RichListEntry.Button($"прибыль {moneyinside}$", moneyinside == 0 ? new MButton() : new MButton("Получить", "getprofit", (args) => { using var db = new DataBase(); p.money += moneyinside; moneyinside = 0; p.SendMoney(); db.SaveChanges(); p.win?.CurrentTab.Replace(AdmnPage(p)); p.SendWindow(); })),
                         RichListEntry.Bool("Клановый респ", "clan", cid > 0),
                         RichListEntry.UInt32("clanzone", "clanzone", (uint)clanzone)
                             ]
                 },
-                Buttons = [new Button("СОХРАНИТЬ", $"save:{ActionMacros.RichList}", (args) => { AdminSaveChanges(p, args.RichList); })]
+                Buttons = [new MButton("СОХРАНИТЬ", $"save:{ActionMacros.RichList}", (args) => { AdminSaveChanges(p, args.RichList); })]
             };
         }
         public override Window? GUIWin(Player p)
@@ -200,7 +200,7 @@ namespace MinesServer.GameShit.Buildings
                 OnAdmin = adminaction,
 
                 Text = $"@@Респ - это место, где будет появляться ваш робот\nпосле уничтожения (HP = 0)\n\nЦена восстановления: <color=green>${cost}</color>\n\n<color=#f88>Привязать робота к респу?</color>",
-                Buttons = [new Button("ПРИВЯЗАТЬ", "bind", (args) =>
+                Buttons = [new MButton("ПРИВЯЗАТЬ", "bind", (args) =>
                 {
                     p.SetResp(this);
                     p.win = GUIWin(p)!;

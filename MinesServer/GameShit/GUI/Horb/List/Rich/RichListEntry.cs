@@ -9,7 +9,7 @@ namespace MinesServer.GameShit.GUI.Horb.List.Rich
         public string Values { get; init; }
         public string InitialValue { get; init; }
         public string Action { get; init; }
-        public Button[]? Buttons { get; init; }
+        public MButton[]? Buttons { get; init; }
         public RichCard[]? Cards { get; init; }
 
         public string SerializedLabel => Type switch
@@ -72,7 +72,7 @@ namespace MinesServer.GameShit.GUI.Horb.List.Rich
             };
         }
 
-        public static RichListEntry Fill(string label, string barLabel, int percent, CrystalType crystal, Button action100, Button action1000, Button actionMax)
+        public static RichListEntry Fill(string label, string barLabel, int percent, CrystalType crystal, MButton action100, MButton action1000, MButton actionMax)
         {
             if (percent < 0 || percent > 100) throw new ArgumentException("Ты рукожоп! Процент это между 0 и 100. Всё хуйня, переделывай.", nameof(percent));
             return new()
@@ -86,7 +86,7 @@ namespace MinesServer.GameShit.GUI.Horb.List.Rich
             };
         }
 
-        public static RichListEntry Fill(string label, int current, int max, CrystalType crystal, Button action100, Button action1000, Button actionMax)
+        public static RichListEntry Fill(string label, int current, int max, CrystalType crystal, MButton action100, MButton action1000, MButton actionMax)
         {
             if (max < 0) throw new ArgumentException($"Ты рукожоп! Максимальное число должно быть положительным. Всё хуйня, переделывай.", nameof(max));
             if (current < 0 || current > max) throw new ArgumentException($"Ты рукожоп! Текущее количество это между 0 и {max}. Всё хуйня, переделывай.", nameof(current));
@@ -102,7 +102,7 @@ namespace MinesServer.GameShit.GUI.Horb.List.Rich
             };
         }
 
-        public static RichListEntry Button(string label, Button button) => new()
+        public static RichListEntry Button(string label, MButton button) => new()
         {
             Type = RichListEntryType.Button,
             Label = label,
