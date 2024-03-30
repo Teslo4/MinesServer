@@ -2,6 +2,7 @@
 using MinesServer.GameShit.Generator;
 using MinesServer.GameShit.SysMarket;
 using MinesServer.Network.Constraints;
+using MinesServer.Network.GUI;
 using MinesServer.Network.HubEvents.FX;
 using MinesServer.Network.World;
 using MinesServer.Server;
@@ -431,6 +432,10 @@ namespace MinesServer.GameShit
         {
             if (ServerTime.Now - lazyupd >= TimeSpan.FromMinutes(1))
             {
+                foreach (var player in DataBase.activeplayers)
+                {
+                    player.connection?.SendU(new OnlinePacket(DataBase.activeplayers.Count, 0));
+                }
                 MarketSystem.GenerateRandomOrders();
                 lazyupd = ServerTime.Now;
             }

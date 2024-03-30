@@ -15,7 +15,7 @@ namespace MinesServer.GameShit
         /// Currently loaded chunks, indecies
         /// </summary>
         public IEnumerable<int> LoadedChunks => Enumerable.Range(0, _data.Length).Where(x => _data[x] is not null);
-
+        private object llock = new();
         /// <summary>
         /// The chunks that were updated since last <see cref='Commit()'/> call, indecies
         /// </summary>
@@ -31,11 +31,11 @@ namespace MinesServer.GameShit
             }
             set
             {
-                if (x < 0 || x >= CellsWidth || y < 0 || y >= CellsHeight) return;
-                var chunkIndex = GetChunkIndex(x / ChunkWidth, y / ChunkHeight);
-                var buffer = Buffer(chunkIndex);
-                buffer[x % ChunkWidth + y % ChunkHeight * ChunkHeight] = value!.Value;
-                _updatedChunks.Add(chunkIndex);
+                    if (x < 0 || x >= CellsWidth || y < 0 || y >= CellsHeight) return;
+                    var chunkIndex = GetChunkIndex(x / ChunkWidth, y / ChunkHeight);
+                    var buffer = Buffer(chunkIndex);
+                    buffer[x % ChunkWidth + y % ChunkHeight * ChunkHeight] = value!.Value;
+                    _updatedChunks.Add(chunkIndex);
             }
         }
 
@@ -55,19 +55,19 @@ namespace MinesServer.GameShit
         /// </summary>
         public void Commit()
         {
-            foreach (var index in _updatedChunks)
-                if (_buffer[index] is not null)
-                {
-                    var chunk = _buffer[index]!;
-                    if (_data[index] is null)
+                foreach (var index in _updatedChunks)
+                    if (_buffer[index] is not null)
                     {
-                        _data[index] = chunk;
-                        continue;
+                        var chunk = _buffer[index]!;
+                        if (_data[index] is null)
+                        {
+                            _data[index] = chunk;
+                            continue;
+                        }
+                        chunk.CopyTo(_data[index]!, 0);
+                        WriteToFile(index, chunk);
                     }
-                    chunk.CopyTo(_data[index]!, 0);
-                    WriteToFile(index, chunk);
-                }
-            _updatedChunks.Clear();
+                _updatedChunks.Clear();
         }
 
         /// <summary>

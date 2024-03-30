@@ -174,6 +174,7 @@ namespace MinesServer.GameShit
                 db.SaveChanges();
             }
         }
+        private (int id,int num)[] lastused = new (int id, int num)[4];
         private Dictionary<int, int> getinv()
         {
             var dick = new Dictionary<int, int>();

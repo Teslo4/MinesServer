@@ -126,7 +126,7 @@ namespace MinesServer.Server
         }
         private void Invn(TYPacket f,INVNPacket invn)
         {
-
+           
         }
         private void Chat(TYPacket f,ChatPacket chat)
         {
@@ -198,8 +198,12 @@ namespace MinesServer.Server
             }
             var now = ServerTime.Now;
             var localserver = (int)(now - starttime).TotalMilliseconds;
-            SendU(new PingPacket(52, localserver, $"{(localserver - p.CurrentTime) - (int)(now - lastcall).TotalMilliseconds} "));
-            lastcall = now;
+            Task.Run(() =>
+            {
+                Thread.Sleep(100);
+                SendU(new PingPacket(52, localserver, $"{(localserver - p.CurrentTime) - (int)(now - lastcall).TotalMilliseconds} "));
+                lastcall = now;
+            });
         }
         private void Inus(TYPacket f, INUSPacket inus)
         {
@@ -309,7 +313,7 @@ namespace MinesServer.Server
             }
             father.time.AddAction(() =>
             {
-                if (button.ToString() == "exit")
+                if (button.ToString() is "exit" or "exit:0")
                 {
                     CloseWindow();
                     return;

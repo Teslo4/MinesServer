@@ -30,6 +30,7 @@ namespace MinesServer.GameShit
             get => pos.Item2 * 32;
         }
         private long lasttick = ServerTime.Now.ToUnixTimeMilliseconds();
+        private DateTimeOffset lastCrysupd = ServerTime.Now;
         public byte[] cells => Enumerable.Range(0, World.ChunkHeight).SelectMany(y => Enumerable.Range(0, World.ChunkWidth).Select(x => this[x, y])).ToArray();
         public void Update()
         {
@@ -45,11 +46,11 @@ namespace MinesServer.GameShit
                 }
                 return;
             }
-            /*else if (lastCrysupd - DateTime.Now > TimeSpan.FromMinutes(5))
+            else if (ServerTime.Now - lastCrysupd > TimeSpan.FromMinutes(5))
             {
                 UpdateCrys();
-                lastCrysupd = DateTime.Now;
-            }*/
+                lastCrysupd = ServerTime.Now;
+            }
             Dispose();
         }
         public void SetCell(int x, int y, byte cell, bool packmesh = false)

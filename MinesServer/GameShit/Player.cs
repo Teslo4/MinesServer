@@ -121,7 +121,7 @@ namespace MinesServer.GameShit
         [NotMapped]
         private float cb;
         public DateTimeOffset Delay = ServerTime.Now;
-        public bool CanAct { get => !(Delay > ServerTime.Now); }
+        public bool CanAct { get => !(Delay.AddMilliseconds(ServerTime.offset) > ServerTime.Now); }
         public bool OnRoad { get => World.isRoad(World.GetCell(x, y)); }
         public int dir { 
             get;
@@ -160,7 +160,7 @@ namespace MinesServer.GameShit
                 c190stacks = 1;
                 lastc190hit = ServerTime.Now;
             }
-           if (!online)
+            if (!online)
             {
                 if (ServerTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
                 {
@@ -555,7 +555,7 @@ namespace MinesServer.GameShit
             dir = 0;
             clan = null;
             skin = 0;
-            RandomResp();
+            //RandomResp();
         }
         public void RandomResp()
         {
@@ -700,7 +700,7 @@ namespace MinesServer.GameShit
         public void SendSpeed()
         {
             Console.WriteLine(pause / 100);
-            connection?.SendU(new SpeedPacket((int)(pause / 100 * 1.2), (int)((pause / 100 * 1.2) * 0.6), 100000));
+            connection?.SendU(new SpeedPacket((int)((pause / 100) * 1.6), (int)(((pause / 100) * 1.6) * 0.6), 100000));
         }
         public void SendInventory()
         {

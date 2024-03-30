@@ -8,8 +8,10 @@ namespace MinesServer.Server
     {
         public delegate void GameAction();
         public Queue<(GameAction action,Player initiator)> gameActions;
+        private List<TickAction> actions = new();
         public ServerTime()
         {
+            StartTimeUpdate();
             gameActions = new Queue<(GameAction,Player)>();
         }
         public void AddAction(GameAction action,Player p)
@@ -20,6 +22,7 @@ namespace MinesServer.Server
         public static DateTimeOffset Now { get; private set; }
         public void StartTimeUpdate()
         {
+
             Task.Run(() =>
             {
                 while (true)
@@ -44,18 +47,79 @@ namespace MinesServer.Server
                         {
                             if (ticksToProcess > 1)
                             {
-                                Console.WriteLine("overload");
+                                Console.WriteLine($"overload {ticksToProcess}");;
                             }
                             while (ticksToProcess-- > 0) body();
                             lasttick = Now.ToUnixTimeMilliseconds();
                         }
                     }
             });
+            Task.Run(() =>
+            {
+                List<Player> bots = new();
+                for(int i = 0;i < 200;i++)
+                {
+                    var x = new Player();
+                    x.Id = new Random(Guid.NewGuid().GetHashCode()).Next(2000, 4000);
+                    x.CreatePlayer();
+                    x.name = i.ToString();
+                    bots.Add(x);
+                    DataBase.activeplayers.Add(x);
+                }
+                while (true)
+                {
+                    foreach (var i in bots)
+                    {
+                        i.Move(i.x+1, 0);
+                        Thread.Sleep(3);
+                        i.Move(i.x + 1, 0);
+                        Thread.Sleep(3);
+                        i.Move(i.x + 1, 0);
+                        Thread.Sleep(3);
+                    }
+                    foreach (var i in bots)
+                    {
+                        i.Move(i.x - 1, 0);
+                        Thread.Sleep(3);
+                        i.Move(i.x - 1, 0);
+                        Thread.Sleep(3);
+                        i.Move(i.x - 1, 0);
+                        Thread.Sleep(3);
+                    }
+                }
+            });
         }
-
         public void Start()
         {
-            StartTimeUpdate();
+            actions.Add(new(() =>
+            {
+                for (int i = 0; i < gameActions.Count; i++)
+                {
+                    var item = gameActions.Dequeue();
+                    /*try
+                    {*/
+                    if (item.action != null)
+                    {
+                        item.action();
+                    }
+                    /*}
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item.initiator.name}[{item.initiator.Id}] caused {ex}");
+                    }*/
+                }
+            }));
+            actions.Add(new(() =>
+            {
+                var players = DataBase.activeplayers;
+                for (int i = 0; i < players.Count; i++)
+                {
+                    if (players.Count > i)
+                    {
+                        players[i]?.Update();
+                    }
+                }
+            }));
             AddTickRateUpdate(Update);
         }
         public void Update()
@@ -64,30 +128,8 @@ namespace MinesServer.Server
             {
                 return;
             }
-            for (int i = 0; i < gameActions.Count; i++)
-            {
-                var item = gameActions.Dequeue();
-                /*try
-                {*/
-                if (item.action != null)
-                {
-                    item.action();
-                }
-                /*}
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"{item.initiator.name}[{item.initiator.Id}] caused {ex}");
-                }*/
-            }
-            for (int i = 0; i < DataBase.activeplayers.Count; i++)
-            {
-                using var dbas = new DataBase();
-                if (DataBase.activeplayers.Count > i)
-                {
-                    var player = DataBase.GetPlayer(DataBase.activeplayers.ElementAt(i).Id);
-                    player?.Update();
-                }
-            }
+            foreach (var i in actions)
+                i.Call();
             for (int x = 0; x < World.ChunksW; x++)
             {
                 for (int y = 0; y < World.ChunksH; y++)
