@@ -294,6 +294,15 @@ namespace MinesServer.GameShit
                     expfunc = (int x) => 0,
                     type = SkillType.AntiGun, // антипуфка
                     effecttype = SkillEffectType.OnHurt
+                },
+                new Skill()
+                {
+                    requirements = null,
+                    costfunc = (int x) =>1f,
+                    effectfunc = (int x) =>  52,
+                    expfunc = (int x) => 0,
+                    type = SkillType.Repair, // хил
+                    effecttype = SkillEffectType.OnHealth
                 }
 
         };

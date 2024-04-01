@@ -183,7 +183,7 @@ namespace MinesServer.GameShit.ClanSystem
                 reqs.Add(req);
             }
             db.SaveChanges();
-            p.win.CurrentTab.Open(new Page()
+            p.win?.CurrentTab.Open(new Page()
             {
                 Text = "Заявка подана",
                 Title = "КЛАНЫ",
@@ -375,8 +375,8 @@ namespace MinesServer.GameShit.ClanSystem
         public void OpenPreview(Player p)
         {
             var text = "";
-            GUI.MButton[] buttons = [new MButton("Подать заявку", "reqin", (args) => AddReq(p.Id))];
-            if (members.Contains(p) || ownerid == p.Id)
+            MButton[] buttons = [new MButton("Подать заявку", "reqin", (args) => AddReq(p.Id))];
+            if (p.clan != null)
             {
                 buttons = [];
             }

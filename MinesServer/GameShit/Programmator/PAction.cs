@@ -58,6 +58,10 @@ namespace MinesServer.GameShit.Programmator
             CellType.AcidRock or CellType.CorrosiveActiveAcid or CellType.GrayAcid or CellType.GrayAcid or CellType.LivingActiveAcid or CellType.PassiveAcid or CellType.PurpleAcid => true,
             _ => false
         };
+        private bool? CallWSAction()
+        {
+            return false;
+        }
         public object? Execute(Player p, ref bool? template)
         {
             switch (type)
@@ -346,6 +350,11 @@ namespace MinesServer.GameShit.Programmator
                     break;
                 case ActionType.GoTo:
                     return label;
+                case ActionType.WritableState or ActionType.WritableStateLower or ActionType.WritableStateMore:
+                    var res = CallWSAction();
+                    if (res is not null)
+                        return res;
+                    break;
                 case 0 or _:
                     break;
             }

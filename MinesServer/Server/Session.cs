@@ -114,6 +114,7 @@ namespace MinesServer.Server
                 case PRENPacket pren: Pren(packet, pren); break;
                 case ChatPacket chat: Chat(packet, chat);break;
                 case INVNPacket invn: Invn(packet, invn); break;
+                case XheaPacket xhea: Xhea(packet, xhea); break;
                 case ChinPacket chin: Chin(packet, chin);break;
                 default:
                     // Invalid event type
@@ -158,6 +159,10 @@ namespace MinesServer.Server
         {
             StaticGUI.StartedProg(player, p.prog);
             SendU(new ProgrammatorPacket(player.programsData.ProgRunning));
+        }
+        private void Xhea(TYPacket f,XheaPacket heal)
+        {
+            player.Heal();
         }
         private void Pope(TYPacket f, PopePacket p)
         {

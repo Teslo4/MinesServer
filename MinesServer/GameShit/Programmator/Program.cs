@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using MinesServer.GameShit.Programmator.SevenZip.LZMA;
+using System.Diagnostics;
+using System.Reflection.Metadata.Ecma335;
+using System.Text;
 
 namespace MinesServer.GameShit.Programmator
 {
@@ -21,7 +24,7 @@ namespace MinesServer.GameShit.Programmator
         {
             get
             {
-                //_programm ??= Parse();
+                _programm ??= parseNormal();
                 return _programm;
             }
         }
@@ -29,6 +32,47 @@ namespace MinesServer.GameShit.Programmator
         {
             Dictionary<string, PFunction> functions = new();
             functions[""] = new PFunction();
+            string currentFunc = "";
+            byte[] array = SevenZipHelper.Decompress(Convert.FromBase64String(data));
+            int num = BitConverter.ToInt32(array, 0);
+            var array2 = Encoding.UTF8.GetString(array, num + 4, array.Length - num - 4).Split(':');
+            for (int i = 0; i < num; i++)
+            {
+                var atype = GetActionType(Convert.ToInt16(array[i + 4]));
+                var name = "0";
+                var number = 0;
+                if (array2.Length > i)
+                {
+                    if (array2[i].Contains('@'))
+                    {
+                        var a3 = array2[i].Split('@');
+                        name = a3[0];
+                        if (int.TryParse(a3[1], out var n))
+                            number = n;
+                    }
+                    else
+                        name = array2[i];
+                }
+                switch (atype)
+                {
+                    case ActionType.CreateFunction:
+                        functions.Add(name, new PFunction());
+                        currentFunc = name;
+                        break;
+                    case ActionType.WritableState or ActionType.WritableStateLower or ActionType.WritableStateMore:
+                        functions[currentFunc] += new PAction(atype, name, number);
+                        break;
+                    case ActionType.RunFunction or ActionType.RunIfFalse or ActionType.RunIfTrue or ActionType.RunOnRespawn
+                    or ActionType.RunState or ActionType.RunSub or ActionType.GoTo:
+                        functions[currentFunc] += new PAction(atype, name);
+                        break;
+                    case ActionType.None:
+                        break;
+                    case 0 or _:
+                        functions[currentFunc] += new PAction(atype);
+                        break;
+                }
+            }
             return functions;
         }
         private static ActionType GetActionType(int id)
@@ -42,7 +86,7 @@ namespace MinesServer.GameShit.Programmator
                 4 => ActionType.MoveUp,
                 5 => ActionType.MoveLeft,
                 6 => ActionType.MoveDown,
-                7 => ActionType.MoveLeft,
+                7 => ActionType.MoveRight,
                 8 => ActionType.Dig,
                 9 => ActionType.RotateUp,
                 10 => ActionType.RotateLeft,

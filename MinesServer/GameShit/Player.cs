@@ -996,7 +996,17 @@ namespace MinesServer.GameShit
         #region health
         public void Heal(int num = -1)
         {
-            
+            var heal = skillslist.skills.Values.FirstOrDefault(i => i.type == SkillType.Repair);
+            if (Health == MaxHealth || heal == default)
+                return;
+            num = (int)heal.Effect;
+            if (num == -1)
+                return;
+            Health += num;
+            if (Health > MaxHealth)
+                Health = MaxHealth;
+            SendDFToBots(5, 0, 0, Id, 0);
+            SendHealth();
         }
 
         public void Hurt(int num, DamageType t = DamageType.Pure)
@@ -1005,18 +1015,18 @@ namespace MinesServer.GameShit
             {
                 if (c != null && c.UseSkill(SkillEffectType.OnHealth, this))
                 {
-                    if (c.type == Enums.SkillType.Health)
+                    if (c.type == SkillType.Health)
                     {
                         c.AddExp(this);
                     }
                 }
                 if (c != null && c.UseSkill(SkillEffectType.OnHurt, this) && t == DamageType.Gun)
                 {
-                    if (c.type == Enums.SkillType.Induction)
+                    if (c.type == SkillType.Induction)
                     {
                         c.AddExp(this);
                     }
-                    if (c.type == Enums.SkillType.AntiGun)
+                    if (c.type == SkillType.AntiGun)
                     {
                         c.AddExp(this);
                         var eff = (int)(num * (c.Effect / 100));

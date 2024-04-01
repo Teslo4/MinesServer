@@ -7,7 +7,6 @@
         OnMove,
         OnPackCrys,
         OnHurt,
-        OnHeal,
         OnUp,
         OnBld,
         OnDigCrys,

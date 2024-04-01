@@ -43,7 +43,6 @@ namespace MinesServer.GameShit.Programmator
         }
         public void Run(Program p)
         {
-            return;
             selected = p;
             currentprog = p.programm;
             //func logger
@@ -114,11 +113,29 @@ namespace MinesServer.GameShit.Programmator
                                 cFunction = label;
                             }
                             break;
-                        case ActionType.RunSub or ActionType.RunFunction:
+                        case ActionType.RunSub:
+                            if (currentprog.TryGetValue(label, out var _))
+                            {
+                                currentprog[label].calledfrom = cFunction;
+                                cFunction = label;
+                            }
+                            break;
+                        case ActionType.RunFunction:
                             if (currentprog.TryGetValue(label, out var _))
                             {
                                 if (shiftX != 0 || shiftY != 0 || checkX != 0 || checkY != 0)
                                     currentprog[label].startoffset = (shiftX + checkX, shiftY + checkY);
+                                currentprog[label].calledfrom = cFunction;
+                                cFunction = label;
+                            }
+                            break;
+                        case ActionType.RunState:
+                            if (currentprog.TryGetValue(label, out var _))
+                            {
+                                if (shiftX != 0 || shiftY != 0 || checkX != 0 || checkY != 0)
+                                    currentprog[label].startoffset = (shiftX + checkX, shiftY + checkY);
+                                currentprog[label].state = current.state;
+                                currentprog[label].laststateaction = current.laststateaction;
                                 currentprog[label].calledfrom = cFunction;
                                 cFunction = label;
                             }
@@ -172,6 +189,17 @@ namespace MinesServer.GameShit.Programmator
                             current.Reset();
                             if (current.calledfrom is not null)
                             {
+                                cFunction = current.calledfrom;
+                            }
+                            break;
+                        case ActionType.ReturnState:
+                            current.Reset();
+                            if (current.calledfrom is not null)
+                            {
+                                if (shiftX != 0 || shiftY != 0 || checkX != 0 || checkY != 0)
+                                    currentprog[current.calledfrom].startoffset = (shiftX + checkX, shiftY + checkY);
+                                currentprog[current.calledfrom].state = current.state;
+                                currentprog[current.calledfrom].laststateaction = current.laststateaction;
                                 cFunction = current.calledfrom;
                             }
                             break;
