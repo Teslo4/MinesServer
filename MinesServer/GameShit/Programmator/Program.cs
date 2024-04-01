@@ -1,4 +1,6 @@
-﻿namespace MinesServer.GameShit.Programmator
+﻿using System.Diagnostics;
+
+namespace MinesServer.GameShit.Programmator
 {
     public class Program
     {
@@ -19,9 +21,116 @@
         {
             get
             {
-                _programm ??= Parse();
+                //_programm ??= Parse();
                 return _programm;
             }
+        }
+        private Dictionary<string,PFunction> parseNormal()
+        {
+            Dictionary<string, PFunction> functions = new();
+            functions[""] = new PFunction();
+            return functions;
+        }
+        private static ActionType GetActionType(int id)
+        {
+            return id switch
+            {
+                0 => ActionType.None,
+                1 => ActionType.NextRow,
+                2 => ActionType.Start,
+                3 => ActionType.Stop,
+                4 => ActionType.MoveUp,
+                5 => ActionType.MoveLeft,
+                6 => ActionType.MoveDown,
+                7 => ActionType.MoveLeft,
+                8 => ActionType.Dig,
+                9 => ActionType.RotateUp,
+                10 => ActionType.RotateLeft,
+                11 => ActionType.RotateDown,
+                12 => ActionType.RotateRight,
+                14 => ActionType.MoveForward,
+                15 => ActionType.RotateLeftRelative,
+                16 => ActionType.RotateRightRelative,
+                17 => ActionType.BuildBlock,
+                18 => ActionType.Geology,
+                19 => ActionType.BuildRoad,
+                20 => ActionType.Heal,
+                21 => ActionType.BuildPillar,
+                22 => ActionType.RotateRandom,
+                23 => ActionType.Beep,
+                24 => ActionType.GoTo,
+                25 => ActionType.RunSub,
+                26 => ActionType.RunFunction,
+                27 => ActionType.Return,
+                28 => ActionType.ReturnFunction,
+                29 => ActionType.CheckUpLeft,
+                30 => ActionType.CheckDownRight,
+                31 => ActionType.CheckUp,
+                32 => ActionType.CheckUpRight,
+                33 => ActionType.CheckLeft,
+                34 => ActionType.None,
+                35 => ActionType.CheckRight,
+                36 => ActionType.CheckDownLeft,
+                37 => ActionType.CheckDown,
+                38 => ActionType.Or,
+                39 => ActionType.And,
+                40 => ActionType.CreateFunction,
+                41 => ActionType.None,
+                42 => ActionType.None,
+                43 => ActionType.IsNotEmpty,
+                44 => ActionType.IsEmpty,
+                45 => ActionType.IsFalling,
+                46 => ActionType.IsCrystal,
+                47 => ActionType.IsLivingCrystal,
+                48 => ActionType.IsBoulder,
+                49 => ActionType.IsSand,
+                50 => ActionType.IsBreakableRock,
+                51 => ActionType.IsUnbreakable,
+                52 => ActionType.IsRedRock,
+                53 => ActionType.IsBlackRock,
+                54 => ActionType.IsAcid,
+                55 => ActionType.None,
+                56 => ActionType.None,
+                57 => ActionType.IsQuadBlock,
+                58 => ActionType.IsRoad,
+                59 => ActionType.IsRedBlock,
+                60 => ActionType.IsYellowBlock,
+                61 => ActionType.None, //хуй знает чет с хп
+                62 => ActionType.None, //хуй знает чет с хп
+                74 => ActionType.IsBox,
+                76 => ActionType.IsPillar,
+                77 => ActionType.IsGreenBlock,
+                119 => ActionType.WritableStateMore,
+                120 => ActionType.WritableStateLower,
+                123 => ActionType.WritableState,
+                131 => ActionType.ShiftUp,
+                132 => ActionType.ShiftLeft,
+                133 => ActionType.ShiftDown,
+                134 => ActionType.ShiftRight,
+                135 => ActionType.CheckForward,
+                136 => ActionType.ShiftForward,
+                137 => ActionType.RunState,
+                138 => ActionType.ReturnState,
+                139 => ActionType.RunIfFalse,
+                140 => ActionType.RunIfTrue,
+                141 => ActionType.MacrosDig,
+                142 => ActionType.MacrosBuild,
+                143 => ActionType.MacrosHeal,
+                144 => ActionType.Flip,
+                145 => ActionType.MacrosMine,
+                146 => ActionType.CheckGun,
+                147 => ActionType.FillGun,
+                148 => ActionType.IsHpLower100,
+                149 => ActionType.IsHpLower50,
+                156 => ActionType.CheckForwardLeft,
+                157 => ActionType.CheckForwardRight,
+                158 => ActionType.EnableAutoDig,
+                159 => ActionType.DisableAutoDig,
+                160 => ActionType.EnableAgression,
+                161 => ActionType.DisableAgression,
+                166 => ActionType.RunOnRespawn,
+                _ => ActionType.None
+            };
         }
         private Dictionary<string, PFunction> Parse()
         {
@@ -78,6 +187,19 @@
                             i += next;
                         }
 
+                        break;
+                    case '(':
+                        next = context[(i + 1)..].IndexOf(')');
+                        if (next != -1)
+                        {
+                            next++;
+                            var lines = context[i..][1..next].Split('=');
+                            if (lines.Length == 2 &&  int.TryParse(lines[1],out var n))
+                            {
+                                functions[currentFunc] += new PAction(ActionType.WritableState, lines[0],n);
+                            }
+                            i += next + 1;
+                        }
                         break;
                     case '!':
                         i++;

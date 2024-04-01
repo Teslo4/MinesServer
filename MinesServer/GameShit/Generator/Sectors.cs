@@ -131,7 +131,6 @@ namespace MinesServer.GameShit.Generator
             map = new SectorCell[size.Item1 * size.Item2];
             max = (float)fr.Get(0, 0);
             min = (float)fr.Get(0, 0);
-            var time = DateTime.Now;
             var counter = 0;
             for (int x = 0; x < size.Item1; x++)
             {
@@ -146,12 +145,10 @@ namespace MinesServer.GameShit.Generator
                 Console.Write($"\r{counter}/{map.Length} setting base map");
             }
             Console.WriteLine("");
-            Console.WriteLine($"{(DateTime.Now - time)} base set");
             Console.WriteLine(max);
             Console.WriteLine(min);
             mid = 0f;
             counter = 0;
-            time = DateTime.Now;
             for (int x = 0; x < size.Item1; x++)
             {
                 for (int y = 0; y < size.Item2; y++)
@@ -163,7 +160,6 @@ namespace MinesServer.GameShit.Generator
                 Console.Write($"\r{counter}/{map.Length} sampling map");
             }
             Console.WriteLine("");
-            Console.WriteLine($"{(DateTime.Now - time)} sampling");
             mid /= map.Length;
             Console.WriteLine(mid);
             resample(res);

@@ -1,4 +1,6 @@
-﻿namespace MinesServer.GameShit.Generator
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace MinesServer.GameShit.Generator
 {
     public class Gen
     {
@@ -80,11 +82,8 @@
                         World.SetCell(c.pos.Item1, c.pos.Item2, 32);
                     }
                 }
+                s[i] = null;
             }
-            World.W.cells.Commit();
-            World.W.road.Commit();
-            World.W.durability.Commit();
-
             Console.WriteLine("END END");
         }
     }

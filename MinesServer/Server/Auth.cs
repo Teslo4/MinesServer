@@ -53,7 +53,6 @@ namespace MinesServer.Server
             }
             if (player == null)
             {
-                initiator.SendPing();
                 initiator.SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 0, "COCK", "http://pi.door/", "ok"));
                 authwin = new Window()
                 {
@@ -179,7 +178,6 @@ namespace MinesServer.Server
 
             }
             initiator.SendU(new OKPacket("auth", "Игрок не найден"));
-            initiator.SendPing();
             initiator.SendWorldInfo();
             initiator.SendWin(authwin.ToString());
         }

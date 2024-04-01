@@ -92,13 +92,13 @@ namespace MinesServer.GameShit.Generator
             }
             return typesresult;
         }
-        //TODO: если значение не попадает в существующие отрезки перегенирировать
         public void CreateFillForCells(Sector s, bool gig = false, params CellType[] args)
         {
             var segmentsmall = 0;
             var notenouthparts = 0;
             var empty = 0;
             restart:
+            Console.WriteLine("");
             var parts = RandomSizedParts(args);
             while(parts.Count < args.Length)
             {
@@ -113,10 +113,10 @@ namespace MinesServer.GameShit.Generator
                 if (notenouthparts > 2)
                 {
                     notenouthparts = 0;
-                    Console.WriteLine("restarted");
+                    Console.WriteLine("\rrestarted");
                     goto restart;
                 }
-                Console.WriteLine("to small result");
+                Console.WriteLine("\rto small result");
                 goto refillnoise;
             }
             if (result.ContainsKey(CellType.Empty) && s.seccells.Count * 0.4 < result[CellType.Empty])
@@ -124,7 +124,7 @@ namespace MinesServer.GameShit.Generator
                 empty++;
                 if (empty > 4)
                 {
-                    Console.WriteLine("too empty");
+                    Console.WriteLine("\rtoo empty");
                     empty = 0;
                     goto restart;
                 }
@@ -139,10 +139,10 @@ namespace MinesServer.GameShit.Generator
                     if (segmentsmall > 2)
                     {
                         segmentsmall = 0;
-                        Console.WriteLine("OneOfsegmentstosmall restart");
+                        Console.WriteLine("\rOneOfsegmentstosmall restart");
                         goto restart;
                     }
-                    Console.WriteLine($"OneOfsegmentstosmall resample {segmentsmall}");
+                    Console.WriteLine($"\rOneOfsegmentstosmall resample {segmentsmall}");
                     goto refillnoise;
                 }
             }

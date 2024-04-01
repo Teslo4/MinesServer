@@ -20,8 +20,9 @@ namespace MinesServer.GameShit.SysMarket
             Player? buyer = null;
             if (buyerid != 0)
             {
-                buyer = db.players.First(i => i.Id == buyerid);
+                buyer = DataBase.GetPlayer(buyerid);
                 buyer.money += cost;
+                buyer.SendMoney();
             }
             cost = money;
             buyerid = p.Id;

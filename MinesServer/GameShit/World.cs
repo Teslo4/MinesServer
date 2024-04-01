@@ -14,24 +14,19 @@ namespace MinesServer.GameShit
 {
     public class World
     {
-        public const int chunksx = 41;
-        public const int chunksy = 41;
-        public const int CellsWidth = chunksx * ChunkWidth;
-        public const int CellsHeight = chunksy * ChunkHeight;
+        public const int ChunksW = 51;
+        public const int ChunksH = 351;
+        public const int CellsWidth = ChunksW * ChunkWidth;
+        public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;
         public const int ChunkHeight = 32;
         public const int ChunkVolume = ChunkWidth * ChunkHeight;
         public const int TotalVolume = ChunksAmount * ChunkVolume;
-
-        const float _chunksWidth = (float)CellsWidth / ChunkWidth;
-        const float _chunksHeight = (float)CellsWidth / ChunkHeight;
-        public const int ChunksW = _chunksWidth > (int)_chunksWidth ? (int)_chunksWidth + 1 : (int)_chunksWidth; // Альтернатива Math.Ceiling для константных выражений
-        public const int ChunksH = _chunksHeight > (int)_chunksHeight ? (int)_chunksHeight + 1 : (int)_chunksHeight; // Альтернатива Math.Ceiling для константных выражений
         public const int ChunksAmount = ChunksW * ChunksH;
 
         public string name { get; private set; }
-        public ByteWorldLayer cells;
-        public ByteWorldLayer road;
+        public WorldLayer<byte> road;
+        public WorldLayer<byte> cells;
         public WorldLayer<float> durability;
         public Chunk[,] chunks;
         public static World W;
@@ -42,26 +37,23 @@ namespace MinesServer.GameShit
             W = this;
             this.name = name;
             gen = new Gen(CellsWidth, CellsHeight);
-            var x = DateTime.Now;
             chunks = new Chunk[ChunksW, ChunksH];
             CreateChunks();
             if (!File.Exists($"{name}.mapb"))
             {
-                cells = new($"{name}.mapb");
-                road = new($"{name}_road.mapb");
-                durability = new($"{name}_durability.mapb");
+                cells = new($"{name}.mapb",(ChunksW,ChunksH));
+                road = new($"{name}_road.mapb", (ChunksW, ChunksH));
+                durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
                 Console.WriteLine($"Creating World Preset {CellsWidth} x {CellsHeight}({ChunksW} x {ChunksH} chunks)");
                 Console.WriteLine("EmptyMapGeneration");
-                x = DateTime.Now;
                 gen.StartGeneration();
                 Console.WriteLine("Generation End");
-                Console.WriteLine($"{DateTime.Now - x} loaded");
             }
             if (cells == null)
             {
-                cells = new($"{name}.mapb");
-                road = new($"{name}_road.mapb");
-                durability = new($"{name}_durability.mapb");
+                cells = new($"{name}.mapb", (ChunksW, ChunksH));
+                road = new($"{name}_road.mapb", (ChunksW, ChunksH));
+                durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
             }
             CreateSpawns(4);
             using var db = new DataBase();
@@ -72,8 +64,6 @@ namespace MinesServer.GameShit
                 db.SaveChanges();
             }
             Console.WriteLine("Creating chunkmesh");
-            x = DateTime.Now;
-            Console.WriteLine($"{DateTime.Now - x} loaded");
             Console.WriteLine("LoadConfirmed");
             Console.WriteLine("Started");
             DataBase.Load();

@@ -16,6 +16,19 @@ namespace MinesServer.GameShit.Programmator
         public int checkY;
         public int shiftX;
         public int shiftY;
+        public bool flipstate = false;
+        private void Drop()
+        {
+            GotoDeath = null;
+            cFunction = "";
+            checkX = 0;
+            checkY = 0;
+            shiftX = 0;
+            shiftY = 0;
+            flipstate = false;
+            foreach (var function in currentprog)
+                function.Value.Reset();
+        }
         public bool ProgRunning { 
             get; 
             set; 
@@ -30,9 +43,8 @@ namespace MinesServer.GameShit.Programmator
         }
         public void Run(Program p)
         {
-            GotoDeath = null;
+            return;
             selected = p;
-            cFunction = "";
             currentprog = p.programm;
             //func logger
             foreach (var i in currentprog)
@@ -42,11 +54,17 @@ namespace MinesServer.GameShit.Programmator
             foreach (var i in currentprog.Values)
                 i.Close();
             delay = DateTime.Now;
+            Drop();
             ProgRunning = true;
         }
         public bool RespawnOnProg
         {
             get => p.resp.cost == 0 && GotoDeath != null;
+        }
+        public void OnDeath()
+        {
+            current.Reset();
+            cFunction = GotoDeath;
         }
         private string? GotoDeath;
         public void Run()
@@ -75,8 +93,9 @@ namespace MinesServer.GameShit.Programmator
                 return;
             }
             PAction action;
-            if (current.actions.Count <= 0)
+            if (current.actions.Count <= 0 || current.actions.Count - 1 < current.current)
             {
+                current.Reset();
                 Next();
                 return;
             }
@@ -109,8 +128,6 @@ namespace MinesServer.GameShit.Programmator
                             {
                                 if (label == "")
                                 {
-                                    current.Reset();
-                                    cFunction = currentprog.FirstOrDefault().Key;
                                     break;
                                 }
                                 current.Reset();
@@ -131,7 +148,10 @@ namespace MinesServer.GameShit.Programmator
                         case ActionType.ReturnFunction:
                             current.Reset();
                             current.startoffset = (0, 0);
-                            cFunction = current.calledfrom;
+                            if (current.calledfrom is not null)
+                            {
+                                cFunction = current.calledfrom;
+                            }
                             current.state = state;
                             current.startoffset = (0, 0);
                             break;
@@ -150,10 +170,16 @@ namespace MinesServer.GameShit.Programmator
                                 break;
                         case ActionType.Return:
                             current.Reset();
-                            cFunction = current.calledfrom;
+                            if (current.calledfrom is not null)
+                            {
+                                cFunction = current.calledfrom;
+                            }
                             break;
                         case ActionType.Stop:
                             Run();
+                            break;
+                        case ActionType.Flip:
+                            flipstate = !flipstate;
                             break;
                     }
                     break;

@@ -9,15 +9,11 @@
             {
                 var c = actions[current];
                 current++;
-                if (actions.Count <= current)
-                {
-                    current = 0;
-                }
                 return c;
             }
         }
         public (int x, int y) startoffset { get; set; }
-        public string calledfrom { get; set; }
+        public string? calledfrom { get; set; }
         public void Reset()
         {
             current = 0;

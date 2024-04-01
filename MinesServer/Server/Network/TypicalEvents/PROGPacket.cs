@@ -1,5 +1,6 @@
 ﻿using MinesServer.Network.Constraints;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MinesServer.Network.TypicalEvents
 {
@@ -13,7 +14,8 @@ namespace MinesServer.Network.TypicalEvents
             {
                 int id = BitConverter.ToInt32(program[4..8]);
                 string source = Encoding.Default.GetString(program[8..Length]);
-                source = source[source.IndexOf('$')..source.Length];
+                //source = Regex.Replace(source, @"[\u0000-\u0008\u000A-\u001F\u0100-\uFFFF]", "");
+                source = source[(source.IndexOf('�') + 1)..];
                 return (id, source);
             }
         }

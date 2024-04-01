@@ -8,6 +8,7 @@ using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.Skills;
 using MinesServer.Network.BotInfo;
 using MinesServer.Network.Chat;
+using MinesServer.Network.ConnectionStatus;
 using MinesServer.Network.Constraints;
 using MinesServer.Network.GUI;
 using MinesServer.Network.HubEvents;
@@ -61,6 +62,7 @@ namespace MinesServer.GameShit
         public DateTimeOffset lastPlayersend = ServerTime.Now;
         public DateTimeOffset lastPacks = ServerTime.Now;
         public DateTimeOffset afkstarttime = ServerTime.Now;
+        private DateTimeOffset lastping;
         public Queue<Action> playerActions = new();
         public int Id { get; set; }
         public string name { get; set; }
@@ -154,21 +156,33 @@ namespace MinesServer.GameShit
         #region actions
         public void Update()
         {
-            if (ServerTime.Now - lastc190hit >= TimeSpan.FromMinutes(1))
+            var now = ServerTime.Now;
+            if (lastping != default)
+            {
+                if (now - lastping >= TimeSpan.FromSeconds(30))
+                {
+                    connection?.Disconnect();
+                }
+                else if (now - lastping >= TimeSpan.FromSeconds(10))
+                {
+                    SendPing(default);
+                }
+            }
+            if (now - lastc190hit >= TimeSpan.FromMinutes(1))
             {
                 c190stacks = 1;
-                lastc190hit = ServerTime.Now;
+                lastc190hit = now;
             }
             if (!online)
             {
-                if (ServerTime.Now - afkstarttime > TimeSpan.FromMinutes(5))
+                if (now - afkstarttime > TimeSpan.FromMinutes(5))
                 {
                     DataBase.activeplayers.Remove(this);
                     Death();
                 }
                 return;
             }
-            if (ServerTime.Now - lastPlayersend > TimeSpan.FromSeconds(4))
+            if (now - lastPlayersend > TimeSpan.FromSeconds(4))
             {
                 ReSendBots();
             }
@@ -602,7 +616,6 @@ namespace MinesServer.GameShit
             connection.auth = null;
             crys.player = this;
             skillslist.LoadSkills();
-            connection?.SendPing();
             connection?.SendWorldInfo();
             SendAutoDigg();
             SendGeo();
@@ -632,6 +645,8 @@ namespace MinesServer.GameShit
             SendClan();
             SendChat();
             SendMap(true);
+            connection.starttime = ServerTime.Now;
+            SendPing(default);
         }
 
         #endregion
@@ -648,6 +663,19 @@ namespace MinesServer.GameShit
             {
                 connection?.SendU(new ChatMessagesPacket("FED", currentchat.GetMessages()));
             }
+        }
+        public void SendPing(PongPacket p)
+        {
+            if (connection is null)
+                return;
+            var now = ServerTime.Now;
+            var localserver = (int)(now - connection.starttime).TotalMilliseconds;
+            Task.Run(() =>
+            {
+                Thread.Sleep(100);
+                connection?.SendU(new PingPacket(52, localserver, $"{(localserver - p.CurrentTime) - (int)(now - lastping).TotalMilliseconds} "));
+                lastping = now;
+            });
         }
         public void SendWindow()
         {
@@ -1065,6 +1093,12 @@ namespace MinesServer.GameShit
             ReSendBots();
             SendMap();
             SendHealth();
+            if (programsData.ProgRunning)
+            {
+                if (programsData.RespawnOnProg)
+                    programsData.OnDeath();
+                RunProgramm();
+            }
         }
         public int Health { get; set; }
 

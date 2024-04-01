@@ -25,6 +25,9 @@
         NextRow,
         CreateFunction,
         GoTo,
+        WritableStateMore,
+        WritableStateLower,
+        WritableState,
         RunSub,
         RunFunction,
         RunState,
@@ -46,6 +49,8 @@
         CheckDownLeft,
         CheckDownRight,
         CheckForward,
+        CheckForwardLeft,
+        CheckForwardRight,
         CheckLeftRelative,
         CheckRightRelative,
         ShiftUp,
@@ -84,6 +89,8 @@
         IsPillar,
         IsQuadBlock,
         IsRoad,
-        IsBox
+        IsBox,
+        CheckGun,
+        FillGun
     }
 }

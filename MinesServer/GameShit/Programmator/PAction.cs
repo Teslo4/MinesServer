@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Drawing;
 using System.Numerics;
 
 namespace MinesServer.GameShit.Programmator
@@ -14,8 +15,13 @@ namespace MinesServer.GameShit.Programmator
         {
             this.label = label; type = t;
         }
+        public PAction(ActionType t, string label,int number)
+        {
+            this.label = label; type = t;this.num = number;
+        }
         public int delay = 0;
         public string label;
+        public int num;
         public ActionType type;
         private void Check(Player p,Func<int,int,bool> func)
         {
@@ -23,13 +29,13 @@ namespace MinesServer.GameShit.Programmator
             var y = p.y;
             if (father.startoffset != default)
             {
-                x += father.startoffset.x;
-                y += father.startoffset.y;
+                x += p.programsData.flipstate ? -father.startoffset.x : father.startoffset.x;
+                y += p.programsData.flipstate ? -father.startoffset.y : father.startoffset.y;
             }
             else
             {
-                x += p.programsData.shiftX + p.programsData.checkX;
-                y += p.programsData.shiftY + p.programsData.checkY;
+                x += p.programsData.flipstate ? -(p.programsData.shiftX + p.programsData.checkX) : p.programsData.shiftX + p.programsData.checkX;
+                y += p.programsData.flipstate ? -(p.programsData.shiftY + p.programsData.checkY) : p.programsData.shiftY + p.programsData.checkY;
             }
             p.programsData.checkX = 0;p.programsData.checkY = 0;p.programsData.shiftX = 0;p.programsData.shiftY = 0;
             if (World.W.ValidCoord(x, y))
@@ -252,12 +258,6 @@ namespace MinesServer.GameShit.Programmator
                 case ActionType.CheckDownRight:
                     p.programsData.checkX = 1;
                     p.programsData.checkY = 1;
-                    break;
-                case ActionType.Flip:
-                    p.programsData.checkX *= -1;
-                    p.programsData.checkY *= -1;
-                    p.programsData.shiftX *= -1;
-                    p.programsData.shiftY *= -1;
                     break;
                 case ActionType.IsHpLower100:
                     Check(p, (x, y) => p.Health < p.MaxHealth);

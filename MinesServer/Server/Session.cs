@@ -189,22 +189,7 @@ namespace MinesServer.Server
             player.win = player.crys.OpenBoxGui();
             player.SendWindow();
         }
-        private DateTimeOffset lastcall = ServerTime.Now;
-        private void Ping(PongPacket p)
-        {
-            if (starttime == default)
-            {
-                starttime = ServerTime.Now;
-            }
-            var now = ServerTime.Now;
-            var localserver = (int)(now - starttime).TotalMilliseconds;
-            Task.Run(() =>
-            {
-                Thread.Sleep(100);
-                SendU(new PingPacket(52, localserver, $"{(localserver - p.CurrentTime) - (int)(now - lastcall).TotalMilliseconds} "));
-                lastcall = now;
-            });
-        }
+        private void Ping(PongPacket p) => player.SendPing(p);
         private void Inus(TYPacket f, INUSPacket inus)
         {
             player.inventory.Use(player);
@@ -327,10 +312,6 @@ namespace MinesServer.Server
         public void SendWorldInfo()
         {
             SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 123, "COCK", "http://pi.door/", "ok"));
-        }
-        public void SendPing()
-        {
-            SendU(new PingPacket(10000, -1, "sosi"));
         }
         public void SendWin(string win)
         {
