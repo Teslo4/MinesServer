@@ -10,6 +10,10 @@ namespace MinesServer.Server
         public ServerTime time { get; private set; }
         public static MServer? Instance;
         public static bool started = false;
+        public int online
+        {
+            get => DataBase.activeplayers.Count;
+        }
         public MServer(IPAddress address, int port) : base(address, port)
         {
             Instance = this;

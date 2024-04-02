@@ -62,7 +62,7 @@ namespace MinesServer
                 for (int i = 0; i < DataBase.activeplayers.Count; i++)
                 {
                     var player = DataBase.activeplayers.ElementAt(i);
-                    Console.WriteLine($"id: {player.Id}\n name :[{player.name}] online:{player.online}");
+                    Console.WriteLine($"id: {player.id}\n name :[{player.name}] online:{player.online}");
                 }
             });
             for (; ; )

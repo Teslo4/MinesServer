@@ -1,4 +1,5 @@
-﻿using MinesServer.Server;
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.Server;
 
 namespace MinesServer.GameShit.SysMarket
 {
@@ -25,7 +26,7 @@ namespace MinesServer.GameShit.SysMarket
                 buyer.SendMoney();
             }
             cost = money;
-            buyerid = p.Id;
+            buyerid = p.id;
             p.money -= money;
             p.SendMoney();
             bettime = ServerTime.Now;

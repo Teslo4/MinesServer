@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.GUI;
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.Sys_Craft;
 using MinesServer.GameShit.SysCraft;
 using MinesServer.Server;
@@ -66,7 +67,7 @@ namespace MinesServer.GameShit.Buildings
         #endregion
         public override Window? GUIWin(Player p)
         {
-            if (p.Id != ownerid)
+            if (p.id != ownerid)
                 return null;
             return new Window()
             {

@@ -1,4 +1,5 @@
 ﻿using MinesServer.Enums;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List.Rich;
@@ -137,7 +138,7 @@ namespace MinesServer.GameShit.Buildings
                                     continue;
                                 }
                                 player.Hurt(60, DamageType.Gun);
-                                player.SendDFToBots(7, x, y, player.Id, 1);
+                                player.SendDFToBots(7, x, y, player.id, 1);
                                 var basecrys = 0.5f;
                                 foreach (var c in player.skillslist.skills.Values)
                                 {

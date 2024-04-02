@@ -1,4 +1,5 @@
 ﻿using Azure.Core.GeoJson;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Network.Chat;
 using MinesServer.Server;
 using System;
@@ -25,7 +26,7 @@ namespace MinesServer.GameShit.GChat
             for(int i = messages.Count - 1;i > ((messages.Count - 1) > 30 ? (messages.Count - 1) - 30 : 0); i--)
             {
                 var line = messages[i];
-                l.Add(new GCMessage(line.time, line.player.cid, line.player.Id, line.player.name, line.message, 1));
+                l.Add(new GCMessage(line.time, line.player.cid, line.player.id, line.player.name, line.message, 1));
             }
             return l.ToArray();
         }
@@ -40,7 +41,7 @@ namespace MinesServer.GameShit.GChat
             {
                 foreach (var i in DataBase.activeplayers)
                 {
-                    i.connection?.SendU(new ChatMessagesPacket("FED", [new GCMessage(line.time, p.cid, p.Id, p.name,msg, 10)]));
+                    i.connection?.SendU(new ChatMessagesPacket("FED", [new GCMessage(line.time, p.cid, p.id, p.name,msg, 10)]));
                 }
             }
         }

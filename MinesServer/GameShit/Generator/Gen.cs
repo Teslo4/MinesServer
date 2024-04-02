@@ -52,38 +52,7 @@ namespace MinesServer.GameShit.Generator
                 }
                 Console.Write($"\r{rc}/{map.Length} saving rocks");
             }
-            var s = sec.DetectSectors();
-            for (int i = 0; i < s.Count; i++)
-            {
-                if (s[i].seccells.Count < 50)
-                {
-                    continue;
-                }
-                Console.WriteLine($"fill sectors {s[i].seccells.Count} {i}/{s.Count}");
-                var inside = new SectorFiller();
-                if (s[i].seccells.Count > 40000)
-                {
-                    inside.CreateFillForCells(s[i], false, s[i].GenerateInsides());
-                }
-                else if (s[i].seccells.Count <= 40000)
-                {
-                    inside.CreateFillForCells(s[i], true, s[i].GenerateInsides());
-                }
-                Console.WriteLine("saving sector " + s[i].seccells.Count);
-                foreach (var c in s[i].seccells)
-                {
-                    var ty = c.type == CellType.Empty ? (byte)0 : (byte)c.type;
-                    if (ty != 0)
-                    {
-                        World.SetCell(c.pos.Item1, c.pos.Item2, ty);
-                    }
-                    else
-                    {
-                        World.SetCell(c.pos.Item1, c.pos.Item2, 32);
-                    }
-                }
-                s[i] = null;
-            }
+            sec.DetectAndFillSectors();
             Console.WriteLine("END END");
         }
     }

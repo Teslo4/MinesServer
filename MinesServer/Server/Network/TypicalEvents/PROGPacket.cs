@@ -12,9 +12,10 @@ namespace MinesServer.Network.TypicalEvents
         {
             get
             {
+                int len = BitConverter.ToInt32(program[0..4]);
                 int id = BitConverter.ToInt32(program[4..8]);
-                string source = Encoding.Default.GetString(program[8..Length]);
-                source = Regex.Replace(source, @"[\u0000-\u0008\u000A-\u001F\u0100-\uFFFF]", "");
+                string source = Encoding.UTF8.GetString(program[(8 + len)..Length]);
+                //source = Regex.Replace(source, @"[\u0000-\u0008\u000A-\u001F\u0100-\uFFFF]", "");
                 return (id, source);
             }
         }

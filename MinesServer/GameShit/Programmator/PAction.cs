@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MinesServer.GameShit.Entities;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using System.Drawing;
 using System.Numerics;
 
@@ -23,7 +25,7 @@ namespace MinesServer.GameShit.Programmator
         public string label;
         public int num;
         public ActionType type;
-        private void Check(Player p,Func<int,int,bool> func)
+        private void Check(BaseEntity p,Func<int,int,bool> func)
         {
             var x = p.x;
             var y = p.y;
@@ -62,7 +64,7 @@ namespace MinesServer.GameShit.Programmator
         {
             return false;
         }
-        public object? Execute(Player p, ref bool? template)
+        public object? Execute(BaseEntity p, ref bool? template)
         {
             switch (type)
             {
@@ -96,7 +98,7 @@ namespace MinesServer.GameShit.Programmator
                     break;
                 case ActionType.MoveForward:
                     delay = p.pause / 100;
-                    if (p.Move((int)p.GetDirCord().X, (int)p.GetDirCord().Y))
+                    if (p.Move((int)p.GetDirCord().x, (int)p.GetDirCord().y))
                     {
                         delay += 200;
                     }

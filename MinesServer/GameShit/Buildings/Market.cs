@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.GUI;
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List.Rich;
 using MinesServer.GameShit.SysMarket;
@@ -85,7 +86,7 @@ namespace MinesServer.GameShit.Buildings
         #endregion
         public Action<Player, Market> onadmn = (p, m) =>
         {
-            if (p.Id == m.ownerid)
+            if (p.id == m.ownerid)
             {
                 p.win.CurrentTab.Open(new Page()
                 {
@@ -103,7 +104,7 @@ namespace MinesServer.GameShit.Buildings
         };
         private Tab BuildSelltab(Player p)
         {
-            Action adminaction = (p.Id != ownerid ? null : () => onadmn(p, this));
+            Action adminaction = (p.id != ownerid ? null : () => onadmn(p, this));
             return new Tab()
             {
                 Label = "ПРОДАЖА",
@@ -127,7 +128,7 @@ namespace MinesServer.GameShit.Buildings
         }
         private Tab BuildBuytab(Player p)
         {
-            Action adminaction = (p.Id != ownerid ? null : () => onadmn(p, this));
+            Action adminaction = (p.id != ownerid ? null : () => onadmn(p, this));
             return new Tab()
             {
                 Label = "Покупка",

@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.Network;
@@ -149,7 +150,7 @@ namespace MinesServer.Server
             temp.name = nick;
             db.Attach(temp.resp); db.Attach(temp.skillslist);
             db.SaveChanges();
-            initiator.SendU(new AHPacket(temp.Id, temp.hash));
+            initiator.SendU(new AHPacket(temp.id, temp.hash));
             initiator.player = DataBase.GetPlayer(temp.name);
             initiator.player.connection = initiator;
             initiator.player.Init();
@@ -186,9 +187,9 @@ namespace MinesServer.Server
             if (temp.passwd == passwd)
             {
                 complited = true;
-                initiator.player = DataBase.GetPlayer(temp.Id);
+                initiator.player = DataBase.GetPlayer(temp.id);
                 initiator.player.connection = initiator;
-                initiator.SendU(new AHPacket(temp.Id, temp.hash));
+                initiator.SendU(new AHPacket(temp.id, temp.hash));
                 initiator.player.Init();
                 return;
             }

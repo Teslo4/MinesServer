@@ -1,5 +1,6 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Consumables;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Network.Constraints;
 using MinesServer.Network.GUI;
 using MinesServer.Server;
@@ -25,9 +26,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 6, -2, 3, (int)coord.X, (int)coord.Y, p))
+                        if (World.W.CanBuildPack(-2, 6, -2, 3, (int)coord.x, (int)coord.y, p))
                         {
-                            new Resp((int)coord.X, (int)coord.Y, p.Id).Build();
+                            new Resp((int)coord.x, (int)coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -38,9 +39,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 2, -3, 4, (int)coord.X, (int)coord.Y, p))
+                        if (World.W.CanBuildPack(-2, 2, -3, 4, (int)coord.x, (int)coord.y, p))
                         {
-                            new Up((int)coord.X, (int)coord.Y, p.Id).Build();
+                            new Up((int)coord.x, (int)coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -51,9 +52,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-3, 3, -3, 3, (int)coord.X, (int)coord.Y, p))
+                        if (World.W.CanBuildPack(-3, 3, -3, 3, (int)coord.x, (int)coord.y, p))
                         {
-                            new Market((int)coord.X, (int)coord.Y, p.Id).Build();
+                            new Market((int)coord.x, (int)coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -70,9 +71,9 @@ namespace MinesServer.GameShit
                     5,
                     (p) =>
                     {
-                        if (!World.GunRadius((int)p.GetDirCord().X, (int)p.GetDirCord().Y, p))
+                        if (!World.GunRadius((int)p.GetDirCord().x, (int)p.GetDirCord().y, p))
                         {
-                            ShitClass.Boom((int)p.GetDirCord().X, (int)p.GetDirCord().Y, p);
+                            ShitClass.Boom((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
                             return true;
                         }
                         return false;
@@ -82,9 +83,9 @@ namespace MinesServer.GameShit
                     6,
                     (p) =>
                     {
-                        if (!World.GunRadius((int)p.GetDirCord().X, (int)p.GetDirCord().Y, p))
+                        if (!World.GunRadius((int)p.GetDirCord().x, (int)p.GetDirCord().y, p))
                         {
-                            ShitClass.Prot((int)p.GetDirCord().X, (int)p.GetDirCord().Y, p);
+                            ShitClass.Prot((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
                             return true;
                         }
                         return false;
@@ -94,7 +95,7 @@ namespace MinesServer.GameShit
                     7,
                     (p) =>
                     {
-                        ShitClass.Raz((int)p.GetDirCord().X, (int)p.GetDirCord().Y, p);
+                        ShitClass.Raz((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
                         return true;
                     }
                 },
@@ -104,9 +105,9 @@ namespace MinesServer.GameShit
                     {
                         var coord = p.GetDirCord(true);
                         Console.WriteLine(coord);
-                        if (World.W.CanBuildPack(-2, 2, -2, 2, (int)coord.X, (int)coord.Y, p))
+                        if (World.W.CanBuildPack(-2, 2, -2, 2, (int)coord.x, (int)coord.y, p))
                         {
-                            new Crafter((int)coord.X, (int)coord.Y, p.Id).Build();
+                            new Crafter((int)coord.x, (int)coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -117,9 +118,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 2, -2, 2, (int)coord.X, (int)coord.Y, p) && p.clan != null)
+                        if (World.W.CanBuildPack(-2, 2, -2, 2, (int)coord.x, (int)coord.y, p) && p.clan != null)
                         {
-                            new Gun((int)coord.X, (int)coord.Y, p.Id, p.cid).Build();
+                            new Gun((int)coord.x, (int)coord.y, p.id, p.cid).Build();
                             return true;
                         }
                         return false;
@@ -128,9 +129,9 @@ namespace MinesServer.GameShit
                 {
                     29, (p) => {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 2, -2, 1, (int)coord.X, (int)coord.Y, p))
+                        if (World.W.CanBuildPack(-2, 2, -2, 1, (int)coord.x, (int)coord.y, p))
                         {
-                            new Storage((int)coord.X, (int)coord.Y, p.Id).Build();
+                            new Storage((int)coord.x, (int)coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -140,7 +141,7 @@ namespace MinesServer.GameShit
                     40,
                     (p) =>
                     {
-                        ShitClass.C190Shot((int)p.GetDirCord().X, (int)p.GetDirCord().Y, p);
+                        ShitClass.C190Shot((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
                         return true;
                     }
                 },
@@ -197,7 +198,7 @@ namespace MinesServer.GameShit
         {
             if (DateTime.Now - time >= TimeSpan.FromMilliseconds(400))
             {
-                if (typeditems.ContainsKey(selected) && !World.ContainsPack((int)p.GetDirCord().X, (int)p.GetDirCord().Y, out var pack) && (World.GetProp((int)p.GetDirCord().X, (int)p.GetDirCord().Y).can_place_over || selected == 40) && this[selected] > 0)
+                if (typeditems.ContainsKey(selected) && !World.ContainsPack((int)p.GetDirCord().x, (int)p.GetDirCord().y, out var pack) && (World.GetProp((int)p.GetDirCord().x, (int)p.GetDirCord().y).can_place_over || selected == 40) && this[selected] > 0)
                 {
                     if (typeditems[selected](p))
                     {

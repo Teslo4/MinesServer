@@ -1,4 +1,6 @@
-﻿namespace MinesServer.GameShit.ClanSystem
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+
+namespace MinesServer.GameShit.ClanSystem
 {
     public class Request
     {

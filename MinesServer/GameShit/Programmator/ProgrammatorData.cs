@@ -1,24 +1,27 @@
-﻿
+﻿using MinesServer.GameShit.Entities;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MoreLinq;
 using System.ComponentModel.Design;
 
 namespace MinesServer.GameShit.Programmator
 {
-    public class PData
+    public class ProgrammatorData
     {
-        public PData(Player p)
+        public ProgrammatorData(BaseEntity e)
         {
             ProgRunning = false;
-            this.p = p;
+            entity = e;
         }
-        Player p;
+        BaseEntity entity;
         public int checkX;
         public int checkY;
         public int shiftX;
         public int shiftY;
+        public (string,int) startpoint;
         public bool flipstate = false;
         private void Drop()
         {
+            startpoint = ("", 0);
             GotoDeath = null;
             cFunction = "";
             checkX = 0;
@@ -58,7 +61,7 @@ namespace MinesServer.GameShit.Programmator
         }
         public bool RespawnOnProg
         {
-            get => p.resp.cost == 0 && GotoDeath != null;
+            get => entity is Player && (entity as Player).resp.cost == 0 && GotoDeath != null;
         }
         public void OnDeath()
         {
@@ -99,7 +102,7 @@ namespace MinesServer.GameShit.Programmator
                 return;
             }
             action = current.Next;
-            object result = action.Execute(p, ref temp)!;
+            object result = action.Execute(entity, ref temp)!;
             switch (result)
             {
                 case string label:
@@ -205,6 +208,9 @@ namespace MinesServer.GameShit.Programmator
                             break;
                         case ActionType.Stop:
                             Run();
+                            break;
+                        case ActionType.Start:
+                            startpoint = (cFunction, current.current);
                             break;
                         case ActionType.Flip:
                             flipstate = !flipstate;

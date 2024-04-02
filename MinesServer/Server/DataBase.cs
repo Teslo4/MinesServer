@@ -2,6 +2,7 @@
 using MinesServer.GameShit;
 using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.ClanSystem;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GChat;
 using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.Sys_Craft;
@@ -82,14 +83,14 @@ namespace MinesServer.Server
         }
         public static Player? GetPlayer(int id)
         {
-            var player = activeplayers.FirstOrDefault(p => p.Id == id);
+            var player = activeplayers.FirstOrDefault(p => p.id == id);
             if (player != null)
             {
                 return player;
             }
             using var db = new DataBase();
             return db.players
-                .Where(i => i.Id == id)
+                .Where(i => i.id == id)
                 .Include(p => p.clanrank)
                 .Include(p => p.clan)
                 .Include(p => p.inventory)

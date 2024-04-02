@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit.ClanSystem;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.Network.HubEvents;
@@ -56,7 +57,7 @@ namespace MinesServer.GameShit
             });
             commands.Add("myid", (p, arg) =>
             {
-                AddConsoleLine(p, p.Id.ToString());
+                AddConsoleLine(p, p.id.ToString());
             });
             commands.Add("getallmap", (p, arg) =>
             {

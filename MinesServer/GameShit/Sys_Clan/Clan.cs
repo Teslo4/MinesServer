@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List;
@@ -43,7 +44,7 @@ namespace MinesServer.GameShit.ClanSystem
         public void OpenClanWin(Player p)
         {
             GUI.MButton[] buttons = [new MButton("leave", "leave", (args) => LeaveClan(p))];
-            if (p.Id == ownerid && members.Count > 1)
+            if (p.id == ownerid && members.Count > 1)
             {
                 buttons = [];
             }
@@ -97,7 +98,7 @@ namespace MinesServer.GameShit.ClanSystem
             {
                 foreach (var player in members)
                 {
-                    list.Add(new ClanListEntry(new MButton($"<color={player?.clanrank.colorhex}>{player?.name}</color> - {player?.clanrank.name}", $"listrow:{player?.Id}", (args) => OpenPlayerPrew(p, player)), 0, "онлайн?"));
+                    list.Add(new ClanListEntry(new MButton($"<color={player?.clanrank.colorhex}>{player?.name}</color> - {player?.clanrank.name}", $"listrow:{player?.id}", (args) => OpenPlayerPrew(p, player)), 0, "онлайн?"));
                 }
             }
             return list.ToArray();
@@ -125,7 +126,7 @@ namespace MinesServer.GameShit.ClanSystem
             p.win.CurrentTab.Open(new Page()
             {
                 RichList = new RichListConfig(list, true),
-                Text = $"@@ПРОФИЛЬ СОКЛАНА\n\nИмя: <color={target.clanrank?.colorhex}>{target.name}</color>\nЗвание: {target.clanrank.name}\nID:  <color=white>{target.Id}</color>",
+                Text = $"@@ПРОФИЛЬ СОКЛАНА\n\nИмя: <color={target.clanrank?.colorhex}>{target.name}</color>\nЗвание: {target.clanrank.name}\nID:  <color=white>{target.id}</color>",
                 Buttons = buttons
             });
             p.SendWindow();
@@ -133,7 +134,7 @@ namespace MinesServer.GameShit.ClanSystem
         public void KickPlayer(Player p, Player target)
         {
             using var db = new DataBase();
-            target = DataBase.GetPlayer(target.Id);
+            target = DataBase.GetPlayer(target.id);
             db.players.Attach(target);
             target.clanrank = null;
             target.clan = null;
@@ -144,23 +145,23 @@ namespace MinesServer.GameShit.ClanSystem
         }
         public void OpenPlayerSkills(Player p, Player target)
         {
-            target = DataBase.GetPlayer(target.Id);
+            target = DataBase.GetPlayer(target.id);
             p.win.CurrentTab.Open(new UpPage()
             {
                 Skills = target.skillslist.GetSkills(),
                 SlotAmount = target.skillslist.slots,
                 SkillsToInstall = [],
-                Text = $"Просмотр скиллов игрока\n\n<color=white>{target.name}</color>\nID <color=white>{target.Id}</color>\nОбщий уровень: <color=white>{target.skillslist.lvlsummary()}</color>"
+                Text = $"Просмотр скиллов игрока\n\n<color=white>{target.name}</color>\nID <color=white>{target.id}</color>\nОбщий уровень: <color=white>{target.skillslist.lvlsummary()}</color>"
             });
             p.SendWindow();
         }
         public void LeaveClan(Player p)
         {
             using var db = new DataBase();
-            p = DataBase.GetPlayer(p.Id);
+            p = DataBase.GetPlayer(p.id);
             p.clan = null;
             p.clanrank = null;
-            if (p.Id == ownerid)
+            if (p.id == ownerid)
             {
                 db.clans.Remove(this);
             }
@@ -177,7 +178,7 @@ namespace MinesServer.GameShit.ClanSystem
             using var db = new DataBase();
             var p = DataBase.GetPlayer(id);
             db.clans.Attach(this);
-            if (reqs.FirstOrDefault(i => i.player?.Id == id) == null)
+            if (reqs.FirstOrDefault(i => i.player?.id == id) == null)
             {
                 var req = new Request() { player = p, reqtime = DateTime.Now };
                 reqs.Add(req);
@@ -198,7 +199,7 @@ namespace MinesServer.GameShit.ClanSystem
             var c = 1;
             foreach (var request in reqs)
             {
-                rq.Add(new ListEntry($"{c}.<color=white>{request.player?.name}</color>", new MButton("...", $"openreq:{request.player?.Id}", (args) => OpenReq(p, request))));
+                rq.Add(new ListEntry($"{c}.<color=white>{request.player?.name}</color>", new MButton("...", $"openreq:{request.player?.id}", (args) => OpenReq(p, request))));
                 c++;
             }
             return rq.ToArray();
@@ -214,7 +215,7 @@ namespace MinesServer.GameShit.ClanSystem
                     Label = "req",
                     InitialPage = new Page()
                     {
-                        Text = $"@@Заявка на прием в клан:\n\n\nИмя: <color=white>{target.player?.name}</color>\nID <color=white>{target.player?.Id}</color>\nИстекает через:" +
+                        Text = $"@@Заявка на прием в клан:\n\n\nИмя: <color=white>{target.player?.name}</color>\nID <color=white>{target.player?.id}</color>\nИстекает через:" +
                         $" {string.Format("{0:hh}ч.{0:mm} мин.", (TimeSpan.FromDays(1) - (DateTime.Now - target.reqtime)))}",
                         Buttons = [new MButton("Принять", "accept", (args) => { AddMember(target); OpenClanWin(p); }), new MButton("Откланить", "decline", (args) => { DeclineReq(target); OpenClanWin(p); }), new MButton("Прокачка", "openskills", (args) => OpenPlayerSkills(p, target?.player))]
                     }
@@ -231,7 +232,7 @@ namespace MinesServer.GameShit.ClanSystem
         public void AddMember(Request q)
         {
             using var db = new DataBase();
-            q.player = DataBase.GetPlayer(q.player.Id);
+            q.player = DataBase.GetPlayer(q.player.id);
             db.clans.Attach(this);
             members.Add(q.player);
             q.player.clanrank = ranks.OrderBy(r => r.priority).First();
@@ -250,7 +251,7 @@ namespace MinesServer.GameShit.ClanSystem
             db.Attach(p);
             if (db.clans.FirstOrDefault(i => i.id == icon || i.name == name) == null)
             {
-                var c = new Clan() { ownerid = p.Id, id = icon, abr = abr, name = name };
+                var c = new Clan() { ownerid = p.id, id = icon, abr = abr, name = name };
                 c.ranks = new List<Rank>()
             {
                 new Rank() { name = "хуесос",priority = 0,colorhex = "#00FF00",owner = c },
@@ -375,13 +376,13 @@ namespace MinesServer.GameShit.ClanSystem
         public void OpenPreview(Player p)
         {
             var text = "";
-            MButton[] buttons = [new MButton("Подать заявку", "reqin", (args) => AddReq(p.Id))];
+            MButton[] buttons = [new MButton("Подать заявку", "reqin", (args) => AddReq(p.id))];
             if (p.clan != null)
             {
                 buttons = [];
             }
             using var db = new DataBase();
-            if (reqs.FirstOrDefault(i => i.player.Id == p.Id) != null)
+            if (reqs.FirstOrDefault(i => i.player.id == p.id) != null)
             {
                 text += "\n Заявка уже подана";
                 buttons = [];

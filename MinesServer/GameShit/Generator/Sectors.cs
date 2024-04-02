@@ -16,7 +16,7 @@ namespace MinesServer.GameShit.Generator
             seed = Environment.TickCount;
             r = new Random(seed);
         }
-        public List<Sector> DetectSectors()
+        public void DetectAndFillSectors()
         {
             List<Sector> sectors = new List<Sector>();
             var v = bool (int x, int y) => x < size.Item1 && x >= 0 && y < size.Item2 && y >= 0;
@@ -26,7 +26,7 @@ namespace MinesServer.GameShit.Generator
             {
                 for (int x = 0; x < size.Item1; x++)
                 {
-                    if (map[x * size.Item2 + y].sector == -1 && map[x * size.Item2 + y].value == 0) //если клетка не принадлежит сектору и пустая, подзалупный алгоритм начинает работать
+                    if (map[x * size.Item2 + y].sector == -1 && map[x * size.Item2 + y].value == 0) 
                     {
                         var swidth = 0;
                         var sheight = 0;
@@ -39,28 +39,52 @@ namespace MinesServer.GameShit.Generator
                             swidth = swidth > (cell.pos.Item1 - map[x * size.Item2 + y].pos.Item1) ? swidth : (map[x * size.Item2 + y].pos.Item1 - map[x * size.Item2 + y].pos.Item2);
                             sheight = sheight > (cell.pos.Item2 - map[x * size.Item2 + y].pos.Item2) ? sheight : (cell.pos.Item1 - map[x * size.Item2 + y].pos.Item2);
                             ce.Add(cell);
-                            cell.sector = sectors.Count; //тут заполнение сектора клетки
+                            cell.sector = sectors.Count;
                             foreach (var i in dirs)
                             {
                                 var nx = cell.pos.Item1 + i.Item1; var ny = cell.pos.Item2 + i.Item2;
                                 if (v(nx, ny))
                                 {
                                     var ncell = map[nx * size.Item2 + ny];
-                                    if (ncell.sector == -1 && ncell.value == 0) // если клетка пустая, она становится частью сектора
+                                    if (ncell.sector == -1 && ncell.value == 0) 
                                     {
-                                        ncell.sector = sectors.Count; //заполнение сектора клетки
+                                        ncell.sector = sectors.Count; 
                                         que.Enqueue(ncell);
                                     }
                                 }
                             }
                         }
                         var s = new Sector() { seccells = ce, width = swidth, height = sheight, depth = depth };
-                        sectors.Add(s);
+                        if (s.seccells.Count < 50)
+                        {
+                            continue;
+                        }
+                        var inside = new SectorFiller();
+                        if (s.seccells.Count > 40000)
+                        {
+                            inside.CreateFillForCells(s, false, s.GenerateInsides());
+                        }
+                        else if (s.seccells.Count <= 40000)
+                        {
+                            inside.CreateFillForCells(s, true, s.GenerateInsides());
+                        }
+                        Console.WriteLine("saving sector " + s.seccells.Count);
+                        foreach (var c in s.seccells)
+                        {
+                            var ty = c.type == CellType.Empty ? (byte)0 : (byte)c.type;
+                            if (ty != 0)
+                            {
+                                World.SetCell(c.pos.Item1, c.pos.Item2, ty);
+                            }
+                            else
+                            {
+                                World.SetCell(c.pos.Item1, c.pos.Item2, 32);
+                            }
+                        }
                         ce = new List<SectorCell>();
                     }
                 }
             }
-            return sectors;
 
         }
         private float chs(int y)

@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.GUI;
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.GUI;
 using MinesServer.Server;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace MinesServer.GameShit.Buildings

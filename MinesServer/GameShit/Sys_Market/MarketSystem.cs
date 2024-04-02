@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit.Buildings;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List;
@@ -49,7 +50,7 @@ namespace MinesServer.GameShit.SysMarket
             p.SendMoney();
             var page = new Page()
             {
-                OnAdmin = (p.Id != m.ownerid ? null : () => m.onadmn(p, m)),
+                OnAdmin = (p.id != m.ownerid ? null : () => m.onadmn(p, m)),
                 CrystalConfig = new CrystalConfig(" ", "цена", [
                             new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(0) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(0) * 10)), 0),
                     new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(1) * 10}$</color>", 0, 0, (int)(p.money / (World.GetCrysCost(1) * 10)), 0),
@@ -84,7 +85,7 @@ namespace MinesServer.GameShit.SysMarket
                 p.SendMoney();
                 var page = new Page()
                 {
-                    OnAdmin = (p.Id != m.ownerid ? null : () => m.onadmn(p, m)),
+                    OnAdmin = (p.id != m.ownerid ? null : () => m.onadmn(p, m)),
                     CrystalConfig = new CrystalConfig(" ", "цена", [new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(0)}$</color>", 0, 0, p.crys[Enums.CrystalType.Green], 0),
                         new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(1)}$</color>", 0, 0, p.crys[Enums.CrystalType.Blue], 0),
                         new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(2)}$</color>", 0, 0, p.crys[Enums.CrystalType.Red], 0),
@@ -111,7 +112,7 @@ namespace MinesServer.GameShit.SysMarket
             using var db = new DataBase();
             var order = new Order()
             {
-                initiatorid = p.Id,
+                initiatorid = p.id,
                 cost = cost,
                 num = num,
                 itemid = type
@@ -132,7 +133,7 @@ namespace MinesServer.GameShit.SysMarket
             Player? buyer = null;
             if (o.buyerid > 0)
             {
-                buyer = db.players.First(p => p.Id == o.buyerid);
+                buyer = db.players.First(p => p.id == o.buyerid);
             }
             var cost = buyer == null ? o.cost : o.cost + (o.cost * 0.01f);
             var timer = o.buyerid > 0 ? $"(time till ends {TimeSpan.FromMinutes(5) - (DateTime.Now - o.bettime):mm\\:ss})" : "";

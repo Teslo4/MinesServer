@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.GUI;
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List.Rich;
 using MinesServer.Network.HubEvents;
@@ -64,7 +65,7 @@ namespace MinesServer.GameShit.Buildings
         {
             get => (charge > 0 ? 1 : 0);
         }
-        public (int, int) GetRandompoint()
+        public (int x, int y) GetRandompoint()
         {
             var r = new Random();
             return (r.Next(x + 2, x + 5), r.Next(y - 1, y + 3));
@@ -188,9 +189,9 @@ namespace MinesServer.GameShit.Buildings
         }
         public override Window? GUIWin(Player p)
         {
-            Action adminaction = (p.Id != ownerid && p.cid != cid ? null : () =>
+            Action adminaction = (p.id != ownerid && p.cid != cid ? null : () =>
             {
-                if (p.Id == ownerid)
+                if (p.id == ownerid)
                 {
                     p.win?.CurrentTab.Open(AdmnPage(p));
                 }

@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit.Buildings;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.Generator;
 using MinesServer.GameShit.SysMarket;
 using MinesServer.Network.Constraints;
@@ -15,7 +16,7 @@ namespace MinesServer.GameShit
     public class World
     {
         public const int ChunksW = 51;
-        public const int ChunksH = 351;
+        public const int ChunksH = 451;
         public const int CellsWidth = ChunksW * ChunkWidth;
         public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;

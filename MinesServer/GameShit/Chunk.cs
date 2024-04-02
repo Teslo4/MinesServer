@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit.Buildings;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Network.HubEvents.FX;
 using MinesServer.Network.HubEvents.Packs;
 using MinesServer.Network.World;
@@ -202,7 +203,7 @@ namespace MinesServer.GameShit
             {
                 if (i.Value.ChunkX != pos.Item1 || i.Value.ChunkY != pos.Item2 || !DataBase.activeplayers.Contains(i.Value))
                 {
-                    bots.Remove(i.Value.Id, out var p);
+                    bots.Remove(i.Value.id, out var p);
                 }
             }
         }
@@ -239,9 +240,9 @@ namespace MinesServer.GameShit
         private bool updlasttick = false;
         public void AddBot(Player player)
         {
-            if (this != null && !bots.ContainsKey(player.Id))
+            if (this != null && !bots.ContainsKey(player.id))
             {
-                bots[player.Id] = player;
+                bots[player.id] = player;
             }
         }
         public bool shouldbeloaded()

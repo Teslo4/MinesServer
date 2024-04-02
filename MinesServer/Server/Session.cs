@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MinesServer.GameShit;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.Programmator;
 using MinesServer.Network;
 using MinesServer.Network.Auth;
@@ -24,10 +25,6 @@ namespace MinesServer.Server
         public Player player;
         public Auth auth;
         public Session(TcpServer server) : base(server) { father = server as MServer; }
-        public int online
-        {
-            get => DataBase.activeplayers.Count;
-        }
         public DateTimeOffset starttime;
         public string sid { get; set; }
         #endregion
@@ -59,7 +56,7 @@ namespace MinesServer.Server
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"invalid packet from {player?.Id} {ex}");
+                Console.WriteLine($"invalid packet from {player?.id} {ex}");
             }
         }
         protected override void OnDisconnected()

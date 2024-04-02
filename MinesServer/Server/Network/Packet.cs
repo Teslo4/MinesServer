@@ -8,6 +8,7 @@ using MinesServer.Network.Movement;
 using MinesServer.Network.Programmator;
 using MinesServer.Network.Tutorial;
 using MinesServer.Network.World;
+using MinesServer.Server.Network;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -77,6 +78,7 @@ namespace MinesServer.Network
             HBPacket.packetName => x => HBPacket.Decode(x), // HB
             InventoryPacket.packetName => x => InventoryPacket.Decode(x), // IN
             UpdateProgrammatorPacket.packetName => x => UpdateProgrammatorPacket.Decode(x),
+            ConfigPacket.packetName => x => ConfigPacket.Decode(x),
             _ => null
         };
 

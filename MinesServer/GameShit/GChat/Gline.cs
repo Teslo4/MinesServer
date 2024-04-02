@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Server;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace MinesServer.GameShit.GChat
         [NotMapped]
         public Player player {
             get => DataBase.GetPlayer(playerid);
-            set => playerid = value.Id;
+            set => playerid = value.id;
                 }
         public int playerid { get; set; }
         public string message { get; set; }

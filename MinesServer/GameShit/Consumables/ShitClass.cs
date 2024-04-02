@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit.Buildings;
+using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Server;
 
 namespace MinesServer.GameShit.Consumables

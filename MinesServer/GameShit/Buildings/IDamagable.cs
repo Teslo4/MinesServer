@@ -1,4 +1,6 @@
-﻿namespace MinesServer.GameShit.Buildings
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+
+namespace MinesServer.GameShit.Buildings
 {
     public interface IDamagable
     {
