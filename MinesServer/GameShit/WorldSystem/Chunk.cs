@@ -6,7 +6,7 @@ using MinesServer.Network.World;
 using MinesServer.Server;
 using System.Collections.Concurrent;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.WorldSystem
 {
     public class Chunk
     {
@@ -65,12 +65,12 @@ namespace MinesServer.GameShit
         }
         public void UpdateCrys()
         {
-            for(int lx = 0;lx < 32;lx++)
+            for (int lx = 0; lx < 32; lx++)
             {
                 for (int ly = 0; ly < 32; ly++)
                 {
-                    (int x,int y) d = (WorldX + lx, WorldY + ly);
-                    if (World.isCry(World.GetCell(d.x,d.y)))
+                    (int x, int y) d = (WorldX + lx, WorldY + ly);
+                    if (World.isCry(World.GetCell(d.x, d.y)))
                     {
                         World.SetDurability(d.x, d.y, World.GetDurability(d.x, d.y) + 1);
                     }
@@ -101,8 +101,8 @@ namespace MinesServer.GameShit
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = (pos.Item1 + xxx);
-                    var cy = (pos.Item2 + yyy);
+                    var cx = pos.Item1 + xxx;
+                    var cy = pos.Item2 + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];
@@ -120,8 +120,8 @@ namespace MinesServer.GameShit
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = (pos.Item1 + xxx);
-                    var cy = (pos.Item2 + yyy);
+                    var cx = pos.Item1 + xxx;
+                    var cy = pos.Item2 + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];
@@ -150,8 +150,8 @@ namespace MinesServer.GameShit
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = (pos.Item1 + xxx);
-                    var cy = (pos.Item2 + yyy);
+                    var cx = pos.Item1 + xxx;
+                    var cy = pos.Item2 + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];
@@ -170,8 +170,8 @@ namespace MinesServer.GameShit
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = (pos.Item1 + xxx);
-                    var cy = (pos.Item2 + yyy);
+                    var cx = pos.Item1 + xxx;
+                    var cy = pos.Item2 + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];
@@ -259,8 +259,8 @@ namespace MinesServer.GameShit
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = (pos.Item1 + xxx);
-                    var cy = (pos.Item2 + yyy);
+                    var cx = pos.Item1 + xxx;
+                    var cy = pos.Item2 + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];
@@ -273,15 +273,15 @@ namespace MinesServer.GameShit
             }
             return false;
         }
-        public static bool valid(int x, int y) => (x >= 0 && y >= 0) && (x < World.ChunksW && y < World.ChunksH);
+        public static bool valid(int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
         private void SendCellToBots(int x, int y, byte cell)
         {
             for (var xxx = -2; xxx <= 2; xxx++)
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = (pos.Item1 + xxx);
-                    var cy = (pos.Item2 + yyy);
+                    var cx = pos.Item1 + xxx;
+                    var cy = pos.Item2 + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];

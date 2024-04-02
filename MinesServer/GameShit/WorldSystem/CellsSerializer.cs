@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.WorldSystem
 {
     public static class CellsSerializer
     {

@@ -5,6 +5,7 @@ using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List;
 using MinesServer.GameShit.SysCraft;
 using MinesServer.GameShit.SysMarket;
+using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.GUI;
 using MinesServer.Server;
 
@@ -49,6 +50,7 @@ namespace MinesServer.GameShit.Sys_Craft
                 db.SaveChanges();
                 p.win?.CurrentTab.Open(FilledPage(p, c));
                 World.W.GetChunk(c.x, c.y).ResendPack(c);
+                p.SendInventory();
                 return;
             }
             p.connection?.SendU(new OKPacket("Недостаточно ресов", "..."));

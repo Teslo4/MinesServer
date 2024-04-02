@@ -1,4 +1,6 @@
-﻿namespace MinesServer.GameShit
+﻿using MinesServer.GameShit.Enums;
+
+namespace MinesServer.GameShit.WorldSystem
 {
     public static class Physics
     {

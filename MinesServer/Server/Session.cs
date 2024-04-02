@@ -2,6 +2,7 @@
 using MinesServer.GameShit;
 using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.Programmator;
+using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network;
 using MinesServer.Network.Auth;
 using MinesServer.Network.ConnectionStatus;
@@ -124,7 +125,8 @@ namespace MinesServer.Server
         }
         private void Invn(TYPacket f,INVNPacket invn)
         {
-           
+            player.inventory.minv = !player.inventory.minv;
+            player.SendInventory();
         }
         private void Chat(TYPacket f,ChatPacket chat)
         {

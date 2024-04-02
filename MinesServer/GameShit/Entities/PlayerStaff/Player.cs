@@ -2,10 +2,12 @@
 using MinesServer.Enums;
 using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.ClanSystem;
+using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.GChat;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.Skills;
+using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network;
 using MinesServer.Network.BotInfo;
 using MinesServer.Network.Chat;
@@ -63,7 +65,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public string name { get; set; }
         public Clan? clan { get; set; }
         public Rank? clanrank { get; set; }
-        public int pause //= 3500;
+        public override int pause //= 3500;
         {
             get
             {
@@ -538,7 +540,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             Health = 100;
             MaxHealth = 100;
             inventory = new Inventory();
-            inventory.items = new int[49];
             settings = new Settings(true);
             crys = new Basket(this);
             skillslist = new PlayerSkills();
@@ -1036,8 +1037,12 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (programsData.ProgRunning)
             {
                 if (programsData.RespawnOnProg)
+                {
                     programsData.OnDeath();
+                    return;
+                }
                 RunProgramm();
+                connection?.SendU(new ProgrammatorPacket(false));
             }
         }
         #endregion

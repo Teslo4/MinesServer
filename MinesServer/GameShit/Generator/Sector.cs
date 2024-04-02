@@ -1,7 +1,8 @@
-﻿using MinesServer.GameShit.Generator;
+﻿using MinesServer.GameShit.Enums;
+using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.TypicalEvents;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.Generator
 {
     public class Sector
     {
@@ -57,26 +58,26 @@ namespace MinesServer.GameShit
             }
             var lenm = r.Next(1, types.Length);
             var lencry = r.Next(1, crys.Length);
-                for(int i = 0;i < lenm;i++)
+            for (int i = 0; i < lenm; i++)
+            {
+                var j = types[r.Next(0, types.Length)];
+                if (!re.Contains(j))
                 {
-                    var j = types[r.Next(0, types.Length)];
-                    if (!re.Contains(j))
-                    {
-                        re = re.Append(j).ToArray();
-                        continue;
-                    }
-                    i--;
+                    re = re.Append(j).ToArray();
+                    continue;
                 }
-                for (int i = 0; i < lencry; i++)
+                i--;
+            }
+            for (int i = 0; i < lencry; i++)
+            {
+                var j = crys[r.Next(0, crys.Length)];
+                if (!re.Contains(j))
                 {
-                    var j = crys[r.Next(0, crys.Length)];
-                    if (!re.Contains(j))
-                    {
-                        re = re.Append(j).ToArray();
-                        continue;
-                    }
-                    i--;
+                    re = re.Append(j).ToArray();
+                    continue;
                 }
+                i--;
+            }
             return re;
         }
 

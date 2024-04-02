@@ -1,4 +1,4 @@
-﻿namespace MinesServer.GameShit
+﻿namespace MinesServer.GameShit.Enums
 {
     public enum CellType : byte
     {

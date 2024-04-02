@@ -1,5 +1,4 @@
 ﻿using MinesServer.Enums;
-using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.Network.GUI;
@@ -9,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class Basket
     {
@@ -47,7 +46,7 @@ namespace MinesServer.GameShit
         }
         public void AddCrys(int index, long val)
         {
-            this.cry[index] += val;
+            cry[index] += val;
             if (cry[index] < 0)
             {
                 cry[index] = long.MaxValue;
@@ -56,7 +55,7 @@ namespace MinesServer.GameShit
         }
         public void Boxcrys(long[] crys)
         {
-            for (var i = 0; i < this.cry.Length; i++)
+            for (var i = 0; i < cry.Length; i++)
             {
                 cry[i] += crys[i];
             }
@@ -65,9 +64,9 @@ namespace MinesServer.GameShit
         }
         public void ClearCrys()
         {
-            for (var i = 0; i < this.cry.Length; i++)
+            for (var i = 0; i < cry.Length; i++)
             {
-                this.cry[i] = 0;
+                cry[i] = 0;
             }
 
             SendBasket();
@@ -79,9 +78,9 @@ namespace MinesServer.GameShit
                 return false;
             }
 
-            if ((this.cry[index] - val) >= 0)
+            if (cry[index] - val >= 0)
             {
-                this.cry[index] -= val;
+                cry[index] -= val;
                 SendBasket();
                 return true;
             }
@@ -123,7 +122,7 @@ namespace MinesServer.GameShit
             player.connection?.SendU(p);
         }
         public int cap = 0;
-        public long AllCry => this.cry.Select((t, i) => cry[i]).Sum();
-        public string GetCry => this.cry.Aggregate("", (current, t) => current + (t + ":")) + cap;
+        public long AllCry => cry.Select((t, i) => cry[i]).Sum();
+        public string GetCry => cry.Aggregate("", (current, t) => current + t + ":") + cap;
     }
 }

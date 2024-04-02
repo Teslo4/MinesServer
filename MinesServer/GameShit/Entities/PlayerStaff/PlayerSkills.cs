@@ -1,5 +1,4 @@
 ﻿using MinesServer.Enums;
-using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI.UP;
 using MinesServer.GameShit.Skills;
 using MinesServer.Server;
@@ -7,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection.Metadata.Ecma335;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class PlayerSkills
     {
@@ -35,7 +34,7 @@ namespace MinesServer.GameShit
         }
         public void InstallSkill(string type, int slot, Player p)
         {
-            if ((skills.ContainsKey(slot) && skills[slot] != null) || slot > slots || slot < 0 || !skillz.First(i => i.type.GetCode() == type).MeetReqs(p))
+            if (skills.ContainsKey(slot) && skills[slot] != null || slot > slots || slot < 0 || !skillz.First(i => i.type.GetCode() == type).MeetReqs(p))
             {
                 return;
             }
@@ -86,28 +85,28 @@ namespace MinesServer.GameShit
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 100f + x * 10,
-                    expfunc = (int x) => 1,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 100f + x * 10,
+                    expfunc = (x) => 1,
                     type = SkillType.Digging, // dick
                     effecttype = SkillEffectType.OnDig
                 },
                 new Skill()
                 {
                     requirements = new() { {SkillType.Digging,1} },
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 5f - x * 0.2f < 0 ? 1f : 5f - x * 0.2f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 5f - x * 0.2f < 0 ? 1f : 5f - x * 0.2f,
+                    expfunc = (x) => 1f,
                     type = SkillType.BuildRoad,
                     effecttype = SkillEffectType.OnBld
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1,
-                    dopfunc = (int x) => x,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1,
+                    dopfunc = (x) => x,
+                    expfunc = (x) => 1f,
                     type = SkillType.BuildGreen,
                     effecttype = SkillEffectType.OnBld,
                     description = (lvl,effect,dopeffect,cost,expcurrent,expneed) =>
@@ -118,10 +117,10 @@ namespace MinesServer.GameShit
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1,
-                    dopfunc = (int x) => x,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1,
+                    dopfunc = (x) => x,
+                    expfunc = (x) => 1f,
                     type = SkillType.BuildYellow,
                     effecttype = SkillEffectType.OnBld,
                     description = (lvl,effect,dopeffect,cost,expcurrent,expneed) =>
@@ -132,10 +131,10 @@ namespace MinesServer.GameShit
                  new Skill()
                 {
                      requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1,
-                    dopfunc = (int x) => x,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1,
+                    dopfunc = (x) => x,
+                    expfunc = (x) => 1f,
                     type = SkillType.BuildRed,
                     effecttype = SkillEffectType.OnBld,
                      description = (lvl,effect,dopeffect,cost,expcurrent,expneed) =>
@@ -146,19 +145,19 @@ namespace MinesServer.GameShit
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.BuildStructure,
                     effecttype = SkillEffectType.OnBld
                 },
                  new Skill()
                 {
                      requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    dopfunc = (int x) => x,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    dopfunc = (x) => x,
+                    expfunc = (x) => 1f,
                     type = SkillType.BuildWar,
                     effecttype = SkillEffectType.OnBld,
                     description = (lvl,effect,dopeffect,cost,expcurrent,expneed) =>
@@ -169,139 +168,139 @@ namespace MinesServer.GameShit
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.Fridge, // охлад
                     effecttype = SkillEffectType.OnMove
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 0f,
-                    effectfunc = (int x) => 70f - x * 0.05f > 30f ? 70f - x * 0.05f : 30f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 0f,
+                    effectfunc = (x) => 70f - x * 0.05f > 30f ? 70f - x * 0.05f : 30f,
+                    expfunc = (x) => 1f,
                     type = SkillType.Movement, // движение,
                     effecttype = SkillEffectType.OnMove,
                     description = (lvl,effect,dopeffect,cost,expcurrent,expneed) =>
                     {
-                        return $"Передвижение Уровень:{lvl}\nExp - {expcurrent}/{expneed}\nСкорость передвижения {Math.Round((1 / (effect * 1.2f * 0.001f)) * 0.3f * 3.6f,2)} км/ч";
+                        return $"Передвижение Уровень:{lvl}\nExp - {expcurrent}/{expneed}\nСкорость передвижения {Math.Round(1 / (effect * 1.2f * 0.001f) * 0.3f * 3.6f,2)} км/ч";
                     }
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.RoadMovement, // по дорогам
                     effecttype = SkillEffectType.OnMove
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 100 + 20 * x,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 100 + 20 * x,
+                    expfunc = (x) => 1f,
                     type = SkillType.Packing, // упаковка
                     effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => x * 3f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => x * 3f,
+                    expfunc = (x) => 1f,
                     type = SkillType.Health, // хп
                     effecttype = SkillEffectType.OnHealth
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.PackingBlue, // упаковка синь
                     effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.PackingCyan, // упаковка голь
                     effecttype = SkillEffectType.OnPackCrys
                 },
                  new Skill()
                 {
                      requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.PackingGreen, // упаковка зель
                     effecttype = SkillEffectType.OnPackCrys
                 },
                   new Skill()
                 {
                       requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.PackingRed, // упаковка крась
                     effecttype = SkillEffectType.OnPackCrys
                 },
                     new Skill()
                 {
                         requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.PackingViolet, // упаковка фиоль
                     effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 1f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.PackingWhite, // упаковка бель
                     effecttype = SkillEffectType.OnPackCrys
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 0.08f + (float)(Math.Log10(x) * (Math.Pow(x, 0.5) / 4)),
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 0.08f + (float)(Math.Log10(x) * (Math.Pow(x, 0.5) / 4)),
+                    expfunc = (x) => 1f,
                     type = SkillType.MineGeneral, // доба
                     effecttype = SkillEffectType.OnDigCrys
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) => 1f,
-                    effectfunc = (int x) => 100f + x * 0.2f,
-                    expfunc = (int x) => 1f,
+                    costfunc = (x) => 1f,
+                    effectfunc = (x) => 100f + x * 0.2f,
+                    expfunc = (x) => 1f,
                     type = SkillType.Induction, // инда
                     effecttype = SkillEffectType.OnHurt
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) =>1f,
-                    effectfunc = (int x) =>  (float)Math.Round(1f+(x-((float)Math.Log10(x)*((float)Math.Pow(x,0.9))/2f)-x*0.098f)) >= 92 ? 92 : (float)Math.Round(1f+(x-((float)Math.Log10(x)*((float)Math.Pow(x,0.9))/2f)-x*0.098f)),
-                    expfunc = (int x) => 0,
+                    costfunc = (x) =>1f,
+                    effectfunc = (x) =>  (float)Math.Round(1f+(x-(float)Math.Log10(x)*(float)Math.Pow(x,0.9)/2f-x*0.098f)) >= 92 ? 92 : (float)Math.Round(1f+(x-(float)Math.Log10(x)*(float)Math.Pow(x,0.9)/2f-x*0.098f)),
+                    expfunc = (x) => 0,
                     type = SkillType.AntiGun, // антипуфка
                     effecttype = SkillEffectType.OnHurt
                 },
                 new Skill()
                 {
                     requirements = null,
-                    costfunc = (int x) =>1f,
-                    effectfunc = (int x) =>  52,
-                    expfunc = (int x) => 0,
+                    costfunc = (x) =>1f,
+                    effectfunc = (x) =>  52,
+                    expfunc = (x) => 0,
                     type = SkillType.Repair, // хил
                     effecttype = SkillEffectType.OnHealth
                 }

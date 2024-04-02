@@ -1,11 +1,13 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Consumables;
-using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.Constraints;
 using MinesServer.Network.GUI;
 using MinesServer.Server;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class Inventory
     {
@@ -26,9 +28,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 6, -2, 3, (int)coord.x, (int)coord.y, p))
+                        if (World.W.CanBuildPack(-2, 6, -2, 3, coord.x, coord.y, p))
                         {
-                            new Resp((int)coord.x, (int)coord.y, p.id).Build();
+                            new Resp(coord.x, coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -39,9 +41,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 2, -3, 4, (int)coord.x, (int)coord.y, p))
+                        if (World.W.CanBuildPack(-2, 2, -3, 4, coord.x, coord.y, p))
                         {
-                            new Up((int)coord.x, (int)coord.y, p.id).Build();
+                            new Up(coord.x, coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -52,9 +54,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-3, 3, -3, 3, (int)coord.x, (int)coord.y, p))
+                        if (World.W.CanBuildPack(-3, 3, -3, 3, coord.x, coord.y, p))
                         {
-                            new Market((int)coord.x, (int)coord.y, p.id).Build();
+                            new Market(coord.x, coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -71,9 +73,9 @@ namespace MinesServer.GameShit
                     5,
                     (p) =>
                     {
-                        if (!World.GunRadius((int)p.GetDirCord().x, (int)p.GetDirCord().y, p))
+                        if (!World.GunRadius(p.GetDirCord().x, p.GetDirCord().y, p))
                         {
-                            ShitClass.Boom((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
+                            ShitClass.Boom(p.GetDirCord().x, p.GetDirCord().y, p);
                             return true;
                         }
                         return false;
@@ -83,9 +85,9 @@ namespace MinesServer.GameShit
                     6,
                     (p) =>
                     {
-                        if (!World.GunRadius((int)p.GetDirCord().x, (int)p.GetDirCord().y, p))
+                        if (!World.GunRadius(p.GetDirCord().x, p.GetDirCord().y, p))
                         {
-                            ShitClass.Prot((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
+                            ShitClass.Prot(p.GetDirCord().x, p.GetDirCord().y, p);
                             return true;
                         }
                         return false;
@@ -95,7 +97,7 @@ namespace MinesServer.GameShit
                     7,
                     (p) =>
                     {
-                        ShitClass.Raz((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
+                        ShitClass.Raz(p.GetDirCord().x, p.GetDirCord().y, p);
                         return true;
                     }
                 },
@@ -105,9 +107,9 @@ namespace MinesServer.GameShit
                     {
                         var coord = p.GetDirCord(true);
                         Console.WriteLine(coord);
-                        if (World.W.CanBuildPack(-2, 2, -2, 2, (int)coord.x, (int)coord.y, p))
+                        if (World.W.CanBuildPack(-2, 2, -2, 2, coord.x, coord.y, p))
                         {
-                            new Crafter((int)coord.x, (int)coord.y, p.id).Build();
+                            new Crafter(coord.x, coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -118,9 +120,9 @@ namespace MinesServer.GameShit
                     (p) =>
                     {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 2, -2, 2, (int)coord.x, (int)coord.y, p) && p.clan != null)
+                        if (World.W.CanBuildPack(-2, 2, -2, 2, coord.x, coord.y, p) && p.clan != null)
                         {
-                            new Gun((int)coord.x, (int)coord.y, p.id, p.cid).Build();
+                            new Gun(coord.x, coord.y, p.id, p.cid).Build();
                             return true;
                         }
                         return false;
@@ -129,9 +131,9 @@ namespace MinesServer.GameShit
                 {
                     29, (p) => {
                         var coord = p.GetDirCord(true);
-                        if (World.W.CanBuildPack(-2, 2, -2, 1, (int)coord.x, (int)coord.y, p))
+                        if (World.W.CanBuildPack(-2, 2, -2, 1, coord.x, coord.y, p))
                         {
-                            new Storage((int)coord.x, (int)coord.y, p.id).Build();
+                            new Storage(coord.x, coord.y, p.id).Build();
                             return true;
                         }
                         return false;
@@ -141,7 +143,7 @@ namespace MinesServer.GameShit
                     40,
                     (p) =>
                     {
-                        ShitClass.C190Shot((int)p.GetDirCord().x, (int)p.GetDirCord().y, p);
+                        ShitClass.C190Shot(p.GetDirCord().x, p.GetDirCord().y, p);
                         return true;
                     }
                 },
@@ -151,54 +153,30 @@ namespace MinesServer.GameShit
         {
             get
             {
-                if (items == null)
-                {
-                    var splited = itemstobd.Split(";");
-                    items = new int[49];
-                    if (splited.Length > 1)
-                    {
-                        for (var it = 0; it < splited.Length; it++)
-                        {
-                            items[it] = int.Parse(splited[it]);
-                        }
-                    }
-                }
                 return items[index];
             }
             set
             {
                 using var db = new DataBase();
-                db.Attach(this);
+                db.inventories.Attach(this);
                 items[index] = value;
-                itemstobd = string.Join(';', items);
+                itemstobd = JsonConvert.SerializeObject(items);
                 DataBase.GetPlayer(Id)?.SendInventory();
                 db.SaveChanges();
             }
         }
-        private (int id,int num)[] lastused = new (int id, int num)[4];
-        private Dictionary<int, int> getinv()
-        {
-            var dick = new Dictionary<int, int>();
-            var t = "";
-            for (int i = 0; i < 49; i++)
-            {
-                if (this[i] > 0)
-                {
-                    dick[i] = this[i];
-                }
-            }
-            return dick;
-        }
         public InventoryPacket InvToSend()
         {
-            return new InventoryPacket(new InventoryShowPacket(getinv(), selected, Lenght));
+            if (miniq.Count == 0 && Lenght > 0) foreach (var i in items) AddChoose(i.Key);
+            var invgrid = minv ? miniq.Select(i => new KeyValuePair<int, int>(i, this[i])).ToDictionary() : items;
+            return new InventoryPacket(new InventoryShowPacket(invgrid, selected, Lenght));
         }
         public DateTime time = DateTime.Now;
         public void Use(Player p)
         {
             if (DateTime.Now - time >= TimeSpan.FromMilliseconds(400))
             {
-                if (typeditems.ContainsKey(selected) && !World.ContainsPack((int)p.GetDirCord().x, (int)p.GetDirCord().y, out var pack) && (World.GetProp((int)p.GetDirCord().x, (int)p.GetDirCord().y).can_place_over || selected == 40) && this[selected] > 0)
+                if (typeditems.ContainsKey(selected) && !World.ContainsPack(p.GetDirCord().x, p.GetDirCord().y, out var pack) && (World.GetProp(p.GetDirCord().x, p.GetDirCord().y).can_place_over || selected == 40) && this[selected] > 0)
                 {
                     if (typeditems[selected](p))
                     {
@@ -209,16 +187,24 @@ namespace MinesServer.GameShit
                 time = DateTime.Now;
             }
         }
+        private void AddChoose(int item)
+        {
+            if (miniq.Contains(item) || item == -1)
+                return;
+            if (miniq.Count >= 4) miniq.Dequeue();
+            miniq.Enqueue(item);
+        }
+        public bool minv = true;
+        private Queue<int> miniq = new();
         public Dictionary<int, ItemUsage> typeditems;
         public delegate bool ItemUsage(Player p);
         public void Choose(int id, Player p)
         {
+            AddChoose(id);
             ITopLevelPacket packet = InventoryPacket.Choose("ты хуесос", new bool[0, 0], 123, 123, 12);
             selected = id;
             if (id == -1)
-            {
                 packet = InventoryPacket.Close();
-            }
             p.connection?.SendU(InvToSend());
             p.connection?.SendU(packet);
         }
@@ -229,18 +215,22 @@ namespace MinesServer.GameShit
             get
             {
                 var l = 0;
-                for (int i = 0; i < items.Length; i++)
-                {
-                    if (items[i] > 0)
-                    {
-                        l++;
-                    }
-                }
+                List<int> remove = new();
+                foreach (var i in items)
+                    if (i.Value > 0) l++;
+                    else remove.Add(i.Key);
+                foreach (var key in remove)
+                    items.Remove(key);
                 return l;
             }
         }
-        public string itemstobd { get; set; } = "";
+        public string itemstobd { get; set; }
+        private Dictionary<int, int> _items;
         [NotMapped]
-        public int[] items { get; set; } = null;
+        private Dictionary<int, int> items
+        {
+            get => _items ??= JsonConvert.DeserializeObject<Dictionary<int, int>>(itemstobd);
+            set => itemstobd = JsonConvert.SerializeObject(_items = value);
+        }
     }
 }

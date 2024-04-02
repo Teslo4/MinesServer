@@ -1,5 +1,4 @@
 ﻿using MinesServer.GameShit.ClanSystem;
-using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.GameShit.GUI.Horb.List.Rich;
@@ -8,7 +7,7 @@ using MinesServer.Server;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class Settings
     {
@@ -95,20 +94,7 @@ namespace MinesServer.GameShit
                         },
                         Buttons = btns
                     }
-                },
-                    new Tab()
-                    {
-                        Label = "хуй1",
-                        Action = "hots"
-
-                    },
-                    new Tab()
-                    {
-                        Label = "хуй3",
-                        Action = "config"
-
-                    }
-                ]
+                }]
             };
             p.SendWindow();
         }

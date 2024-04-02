@@ -39,9 +39,12 @@ namespace MinesServer.GameShit.Programmator
                 byte[] array = SevenZipHelper.Decompress(Convert.FromBase64String(data));
                 int num = BitConverter.ToInt32(array, 0);
                 var array2 = Encoding.UTF8.GetString(array, num + 4, array.Length - num - 4).Split(':');
+                bool containsnextrow = false;
+                int index = 0;
                 for (int i = 0; i < num; i++)
                 {
                     var atype = GetActionType(Convert.ToInt16(array[i + 4]));
+                    Console.WriteLine(atype);
                     var name = "0";
                     var number = 0;
                     if (array2.Length > i)
@@ -58,6 +61,9 @@ namespace MinesServer.GameShit.Programmator
                     }
                     switch (atype)
                     {
+                        case ActionType.NextRow:
+                            containsnextrow = true;
+                            break;
                         case ActionType.CreateFunction:
                             functions.Add(name, new PFunction());
                             currentFunc = name;
@@ -75,6 +81,14 @@ namespace MinesServer.GameShit.Programmator
                             functions[currentFunc] += new PAction(atype);
                             break;
                     }
+                    if (index > 0 && index % 15 == 0)
+                    {
+                        if (functions[currentFunc].actions.Last().type is not (ActionType.GoTo or ActionType.NextRow) && !containsnextrow)
+                            functions[currentFunc].actions.Add(new PAction(ActionType.GoTo, ""));
+                        index = 0;
+                        containsnextrow = false;
+                    }
+                    index++;
                 }
             }catch(Exception ex)
             {

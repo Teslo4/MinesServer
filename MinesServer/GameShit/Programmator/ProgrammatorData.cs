@@ -17,7 +17,7 @@ namespace MinesServer.GameShit.Programmator
         public int checkY;
         public int shiftX;
         public int shiftY;
-        public (string,int) startpoint;
+        public (string name,int pos) startpoint;
         public bool flipstate = false;
         private void Drop()
         {
@@ -112,8 +112,18 @@ namespace MinesServer.GameShit.Programmator
                             if (currentprog.TryGetValue(label, out var _))
                             {
                                 current.Reset();
+                                if (label == "")
+                                {
+                                    label = startpoint.name;
+                                    currentprog[label].current = startpoint.pos;
+                                }
                                 currentprog[label].calledfrom = cFunction;
                                 cFunction = label;
+                            }
+                            else
+                            {
+                                cFunction = startpoint.name;
+                                current.current = startpoint.pos;
                             }
                             break;
                         case ActionType.RunSub:

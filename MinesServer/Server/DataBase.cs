@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using MinesServer.GameShit;
 using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.ClanSystem;
 using MinesServer.GameShit.Entities.PlayerStaff;
@@ -7,6 +6,7 @@ using MinesServer.GameShit.GChat;
 using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.Sys_Craft;
 using MinesServer.GameShit.SysMarket;
+using MinesServer.GameShit.WorldSystem;
 
 namespace MinesServer.Server
 {
@@ -108,7 +108,7 @@ namespace MinesServer.Server
                 return player;
             }
             using var db = new DataBase();
-            return db.players
+                return db.players
                 .Where(i => i.name == name)
                 .Include(p => p.clanrank)
                 .Include(p => p.clan)

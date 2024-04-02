@@ -3,7 +3,7 @@ using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Server;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.WorldSystem
 {
     public class Box
     {

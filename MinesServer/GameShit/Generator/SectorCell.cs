@@ -1,4 +1,6 @@
-﻿namespace MinesServer.GameShit.Generator
+﻿using MinesServer.GameShit.Enums;
+
+namespace MinesServer.GameShit.Generator
 {
     public class SectorCell
     {

@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.Programmator;
+﻿using MinesServer.GameShit.Enums;
+using MinesServer.GameShit.Programmator;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace MinesServer.GameShit.Entities
                 return _pdata;
             }
         }
-        protected ProgrammatorData _pdata { get; set; }
+        protected ProgrammatorData? _pdata { get; set; }
         public virtual int Health { get; set; }
         public virtual int MaxHealth { get; set; }
         public virtual int pause { get; set; }

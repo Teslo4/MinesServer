@@ -1,4 +1,4 @@
-﻿using MinesServer.GameShit;
+﻿using MinesServer.GameShit.WorldSystem;
 using MinesServer.Server;
 using Newtonsoft.Json;
 using System.Reflection;
@@ -6,10 +6,6 @@ using System.Text.RegularExpressions;
 
 namespace MinesServer
 {
-    /// <summary>
-    ///  MinetServer
-    ///  GUI and Network implementation by Darkar25
-    /// </summary>
     // <image src="a.jpg"/>
     public static class Default
     {
@@ -80,13 +76,6 @@ namespace MinesServer
             var method = trace.GetFrame(1).GetMethod().Name;
             Console.WriteLine($"{method} caused error {ex}");
         }
-#if DEBUG
-        /*public static Form mf = new Form();
-        public static void ShowUp()
-        {
-            Application.Run(mf);
-        }*/
-#endif
         public static int size = 1;
         public static MServer server { get; set; }
     }

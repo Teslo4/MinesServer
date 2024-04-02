@@ -1,5 +1,6 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.Generator;
 using MinesServer.GameShit.SysMarket;
 using MinesServer.Network.Constraints;
@@ -11,12 +12,12 @@ using System.ComponentModel.DataAnnotations;
 using System.IO.Pipes;
 using System.Numerics;
 
-namespace MinesServer.GameShit
+namespace MinesServer.GameShit.WorldSystem
 {
     public class World
     {
-        public const int ChunksW = 51;
-        public const int ChunksH = 451;
+        public const int ChunksW = 20;
+        public const int ChunksH = 20;
         public const int CellsWidth = ChunksW * ChunkWidth;
         public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;
@@ -42,7 +43,7 @@ namespace MinesServer.GameShit
             CreateChunks();
             if (!File.Exists($"{name}.mapb"))
             {
-                cells = new($"{name}.mapb",(ChunksW,ChunksH));
+                cells = new($"{name}.mapb", (ChunksW, ChunksH));
                 road = new($"{name}_road.mapb", (ChunksW, ChunksH));
                 durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
                 Console.WriteLine($"Creating World Preset {CellsWidth} x {CellsHeight}({ChunksW} x {ChunksH} chunks)");
@@ -60,8 +61,8 @@ namespace MinesServer.GameShit
             using var db = new DataBase();
             if (db.chats.FirstOrDefault(i => i.Name == "FED") == default)
             {
-                db.chats.Add(new GChat.Chat("FED","Федеральный чат"));
-                db.chats.Add(new GChat.Chat("DNO","Дно"));
+                db.chats.Add(new GChat.Chat("FED", "Федеральный чат"));
+                db.chats.Add(new GChat.Chat("DNO", "Дно"));
                 db.SaveChanges();
             }
             Console.WriteLine("Creating chunkmesh");
@@ -129,7 +130,7 @@ namespace MinesServer.GameShit
                 for (int cy = bottom; cy <= top; cy++)
                 {
                     var p = GetProp(GetCell(x + cx, y + cy));
-                    if (!ValidCoord(x + cx, y + cy) || (ignoreplace && (!p.is_diggable || !p.is_destructible || GetCell(x + cx, y + cy) == 36)) || PackPart(x + cx, y + cy) || ((!p.can_place_over || !p.isEmpty) && !ignoreplace))
+                    if (!ValidCoord(x + cx, y + cy) || ignoreplace && (!p.is_diggable || !p.is_destructible || GetCell(x + cx, y + cy) == 36) || PackPart(x + cx, y + cy) || (!p.can_place_over || !p.isEmpty) && !ignoreplace)
                     {
                         if (player != null && ValidCoord(x + cx, y + cy))
                         {
@@ -159,7 +160,7 @@ namespace MinesServer.GameShit
         public static bool DamageCell(int x, int y, float dmg)
         {
             var d = GetDurability(x, y);
-            if ((d - dmg) <= 0)
+            if (d - dmg <= 0)
             {
                 SetDurability(x, y, 0);
                 Destroy(x, y);
@@ -222,7 +223,7 @@ namespace MinesServer.GameShit
                 for (int y = 0; y < CellsHeight; y++)
                 {
                     cells += 1;
-                    World.SetCell(x, y, cell);
+                    SetCell(x, y, cell);
                 }
                 if (DateTime.Now - j > TimeSpan.FromSeconds(2))
                 {
@@ -285,7 +286,7 @@ namespace MinesServer.GameShit
             }
             var ch = W.GetChunk(x, y);
             ch.LoadPackProps();
-            return ch.packsprop[(x - ch.WorldX) + (y - ch.WorldY) * 32];
+            return ch.packsprop[x - ch.WorldX + (y - ch.WorldY) * 32];
         }
         public static void AddPack(int x, int y, Pack p)
         {
@@ -319,7 +320,7 @@ namespace MinesServer.GameShit
         {
             await Task.Run(delegate ()
             {
-                System.Threading.Thread.Sleep(secdelay * 100);
+                Thread.Sleep(secdelay * 100);
                 act();
             });
         }
@@ -350,7 +351,7 @@ namespace MinesServer.GameShit
             }
             var chpos = W.GetChunkPosByCoords(x, y);
             var ch = W.chunks[chpos.Item1, chpos.Item2];
-            p = ch.GetPack((x - ch.WorldX), (y - ch.WorldY))!;
+            p = ch.GetPack(x - ch.WorldX, y - ch.WorldY)!;
             if (p == null)
             {
                 return false;
@@ -359,7 +360,7 @@ namespace MinesServer.GameShit
         }
         public static bool isAlive(byte cell)
         {
-            return ((CellType)cell) switch
+            return (CellType)cell switch
             {
                 CellType.AliveBlue or CellType.AliveCyan or CellType.AliveRed or CellType.AliveNigger or CellType.AliveViol or CellType.AliveWhite or CellType.AliveRainbow => true,
                 _ => false
@@ -375,7 +376,7 @@ namespace MinesServer.GameShit
         }
         public static bool isCry(byte cell)
         {
-            return ((CellType)cell) switch
+            return (CellType)cell switch
             {
                 CellType.XGreen or CellType.Green => true,
                 CellType.XBlue or CellType.Blue => true,
@@ -386,7 +387,7 @@ namespace MinesServer.GameShit
                 _ => false
             };
         }
-        public bool ValidCoord(int x, int y) => (x >= 0 && y >= 0) && (x < CellsWidth && y < CellsHeight);
+        public bool ValidCoord(int x, int y) => x >= 0 && y >= 0 && x < CellsWidth && y < CellsHeight;
         private (int, int) GetChunkPosByCoords(int x, int y) => ((int)Math.Floor((float)x / 32), (int)Math.Floor((float)y / 32));
         public void UpdateChunkByCoords(int x, int y)
         {
@@ -404,7 +405,7 @@ namespace MinesServer.GameShit
                 {
                     if (Vector2.Distance(new Vector2(x, y), new Vector2(x + chx, y + chy)) <= 20f)
                     {
-                        if (World.W.ValidCoord(x + chx, y + chy) && (ContainsPack(x + chx, y + chy, out var p) && p is Gun && (p as Gun).charge > 0 && (p as Gun).cid != player.cid))
+                        if (W.ValidCoord(x + chx, y + chy) && ContainsPack(x + chx, y + chy, out var p) && p is Gun && (p as Gun).charge > 0 && (p as Gun).cid != player.cid)
                         {
                             return true;
                         }
@@ -490,14 +491,14 @@ namespace MinesServer.GameShit
             {
                 for (int i = 0; i < W.cryscostmod.Length; i++)
                 {
-                    var p = ((W.summary[i] + W.summary.Sum()) / 100);
+                    var p = (W.summary[i] + W.summary.Sum()) / 100;
                     if (p > 0)
                     {
-                        if (p > 20 && (W.cryscostbase[i] + W.cryscostmod[i]) > W.cryscostbase[i])
+                        if (p > 20 && W.cryscostbase[i] + W.cryscostmod[i] > W.cryscostbase[i])
                         {
                             W.cryscostmod[i] -= 1;
                         }
-                        else if (p < 10 && (W.cryscostbase[i] + W.cryscostmod[i]) < 70)
+                        else if (p < 10 && W.cryscostbase[i] + W.cryscostmod[i] < 70)
                         {
                             W.cryscostmod[i] += 1;
                         }
