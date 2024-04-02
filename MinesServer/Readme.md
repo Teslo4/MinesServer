@@ -1,3 +1,2 @@
 # MinesServer
-Имплементация сервака Шахт.
 thx Darkar25 for help with Network, GUI, etc...
