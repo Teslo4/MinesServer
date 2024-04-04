@@ -730,7 +730,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                         var ch = World.W.chunks[x, y];
                         foreach (var p in ch.packs.Values)
                         {
-                            connection?.SendB(new HBPacket([new HBPacksPacket(p.x / 32 + p.y / 32 * World.ChunksH, [])]));
                             connection?.SendB(new HBPacket([new HBPacksPacket(p.x / 32 + p.y / 32 * World.ChunksH, [new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off)])]));
                         }
                     }
@@ -1030,7 +1029,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             var newpos = r.GetRandompoint();
             x = newpos.Item1; y = newpos.Item2;
             tp(x, y);
-            ReSendPacks();
             ReSendBots();
             SendMap();
             this.SendHealth();

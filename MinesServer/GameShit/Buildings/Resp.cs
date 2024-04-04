@@ -6,6 +6,7 @@ using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.HubEvents;
 using MinesServer.Network.World;
 using MinesServer.Server;
+using MinesServer.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace MinesServer.GameShit.Buildings
 {
@@ -74,12 +75,12 @@ namespace MinesServer.GameShit.Buildings
         public void Fill(Player p, long num)
         {
             using var db = new DataBase();
-            if (p.crys[Enums.CrystalType.Blue] < num)
+            if (p.crys[CrystalType.Blue] < num)
             {
-                num = p.crys[Enums.CrystalType.Blue];
+                num = p.crys[CrystalType.Blue];
             }
             db.Attach(this);
-            if (p.crys.RemoveCrys((int)Enums.CrystalType.Blue, num))
+            if (p.crys.RemoveCrys((int)CrystalType.Blue, num))
             {
                 charge += (int)num;
             }
@@ -168,16 +169,16 @@ namespace MinesServer.GameShit.Buildings
         public int clanzone { get; set; }
         private IPage AdmnPage(Player p)
         {
-            MButton[] fillbuttons = [p.crys[Enums.CrystalType.Blue] >= 100 ? new MButton("+100", "fill:100", (args) => Fill(p, 100)) : new MButton("+100", "fill:100"),
-                p.crys[Enums.CrystalType.Blue] >= 1000 ? new MButton("+1000", "fill:1000", (args) => Fill(p, 1000)) : new MButton("+1000", "fill:1000"),
-                p.crys[Enums.CrystalType.Blue] >= 0 ? new MButton("max", "fill:max", (args) => Fill(p, (long)(maxcharge - charge))) : new MButton("max", "fill:max")
+            MButton[] fillbuttons = [p.crys[CrystalType.Blue] >= 100 ? new MButton("+100", "fill:100", (args) => Fill(p, 100)) : new MButton("+100", "fill:100"),
+                p.crys[CrystalType.Blue] >= 1000 ? new MButton("+1000", "fill:1000", (args) => Fill(p, 1000)) : new MButton("+1000", "fill:1000"),
+                p.crys[CrystalType.Blue] >= 0 ? new MButton("max", "fill:max", (args) => Fill(p, (long)(maxcharge - charge))) : new MButton("max", "fill:max")
                ];
             return new Page()
             {
                 Text = " ",
                 RichList = new RichListConfig()
                 {
-                    Entries = [RichListEntry.Fill("заряд", (int)charge, (int)maxcharge, Enums.CrystalType.Blue, fillbuttons[0], fillbuttons[1], fillbuttons[2]),
+                    Entries = [RichListEntry.Fill("заряд", (int)charge, (int)maxcharge, CrystalType.Blue, fillbuttons[0], fillbuttons[1], fillbuttons[2]),
                         RichListEntry.Text("hp"),
                         RichListEntry.UInt32("cost", "cost", (uint)cost),
                         RichListEntry.Button($"прибыль {moneyinside}$", moneyinside == 0 ? new MButton() : new MButton("Получить", "getprofit", (args) => { using var db = new DataBase(); p.money += moneyinside; moneyinside = 0; p.SendMoney(); db.SaveChanges(); p.win?.CurrentTab.Replace(AdmnPage(p)); p.SendWindow(); })),

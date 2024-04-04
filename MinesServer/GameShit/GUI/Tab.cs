@@ -31,6 +31,12 @@ namespace MinesServer.GameShit.GUI
             History.Clear();
             Open(InitialPage!);
         }
+        public void SetInitialPage(IPage page)
+        {
+            History.Clear();
+            InitialPage = page;
+            Open(InitialPage!);
+        }
 
         public void Open(IPage page)
         {

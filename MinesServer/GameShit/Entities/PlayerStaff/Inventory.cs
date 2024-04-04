@@ -10,10 +10,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class Inventory
-    {
+    { 
         public int Id { get; set; }
         public Inventory()
         {
+            itemstobd ??= JsonConvert.SerializeObject(new Dictionary<int, int>());
             typeditems = new Dictionary<int, ItemUsage>
             {
                 {
@@ -167,7 +168,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public InventoryPacket InvToSend()
         {
-            if (miniq.Count == 0 && Lenght > 0) foreach (var i in items) AddChoose(i.Key);
+            if (miniq.Count < 4 && Lenght > 0) foreach (var i in items) AddChoose(i.Key);
             var invgrid = minv ? miniq.Select(i => new KeyValuePair<int, int>(i, this[i])).ToDictionary() : items;
             return new InventoryPacket(new InventoryShowPacket(invgrid, selected, Lenght));
         }
@@ -224,7 +225,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 return l;
             }
         }
-        public string itemstobd { get; set; }
+        public string? itemstobd { get; set; }
         private Dictionary<int, int> _items;
         [NotMapped]
         private Dictionary<int, int> items

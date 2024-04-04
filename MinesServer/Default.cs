@@ -79,8 +79,4 @@ namespace MinesServer
         public static int size = 1;
         public static MServer server { get; set; }
     }
-    public static class E
-    {
-
-    }
 }

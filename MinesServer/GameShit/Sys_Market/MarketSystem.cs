@@ -6,6 +6,7 @@ using MinesServer.GameShit.GUI.Horb.List;
 using MinesServer.GameShit.SysCraft;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Server;
+using MinesServer.Enums;
 using MoreLinq;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -64,7 +65,7 @@ namespace MinesServer.GameShit.SysMarket
                 Text = $"Покупка\nКупленно кристалов на <color=#aaeeaa>{-money}$</color>",
                 Buttons = [new MButton("buy", $"buy:{ActionMacros.CrystalSliders}", (args) => Buy(args.CrystalSliders, p, m))]
             };
-            p.win?.CurrentTab.Replace(page);
+            p.win?.CurrentTab.SetInitialPage(page);
             p.SendWindow();
         }
         public static void Sell(long[] sliders, Player p, Market m)
@@ -87,17 +88,17 @@ namespace MinesServer.GameShit.SysMarket
                 var page = new Page()
                 {
                     OnAdmin = (p.id != m.ownerid ? null : () => m.onadmn(p, m)),
-                    CrystalConfig = new CrystalConfig(" ", "цена", [new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(0)}$</color>", 0, 0, p.crys[Enums.CrystalType.Green], 0),
-                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(1)}$</color>", 0, 0, p.crys[Enums.CrystalType.Blue], 0),
-                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(2)}$</color>", 0, 0, p.crys[Enums.CrystalType.Red], 0),
-                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(3)}$</color>", 0, 0, p.crys[Enums.CrystalType.Violet], 0),
-                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(4)}$</color>", 0, 0, p.crys[Enums.CrystalType.White], 0),
-                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(5)}$</color>", 0, 0, p.crys[Enums.CrystalType.Cyan], 0)]),
+                    CrystalConfig = new CrystalConfig(" ", "цена", [new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(0)}$</color>", 0, 0, p.crys[CrystalType.Green], 0),
+                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(1)}$</color>", 0, 0, p.crys[CrystalType.Blue], 0),
+                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(2)}$</color>", 0, 0, p.crys[CrystalType.Red], 0),
+                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(3)}$</color>", 0, 0, p.crys[CrystalType.Violet], 0),
+                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(4)}$</color>", 0, 0, p.crys[CrystalType.White], 0),
+                        new CrysLine($"<color=#aaeeaa>{World.GetCrysCost(5)}$</color>", 0, 0, p.crys[CrystalType.Cyan], 0)]),
                     Text = $"Продажа кри\nПродано кристалов на <color=#aaeeaa>{money}$</color>",
                     Buttons = [new MButton("sellall", $"sellall", (args) => Sell(p.crys.cry, p, m)),
                         new MButton("sell", $"sell:{ActionMacros.CrystalSliders}", (args) => Sell(args.CrystalSliders, p, m))]
                 };
-                p.win?.CurrentTab.Replace(page);
+                p.win?.CurrentTab.SetInitialPage(page);
                 p.SendWindow();
             }
 
