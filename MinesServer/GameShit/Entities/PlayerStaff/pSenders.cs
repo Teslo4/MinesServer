@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -41,6 +42,11 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             p.money = p.money < 0 ? 0 : p.money > long.MaxValue ? long.MaxValue : p.money;
             p.creds = p.creds < 0 ? 0 : p.creds > long.MaxValue ? long.MaxValue : p.creds;
             p.connection?.SendU(new MoneyPacket(p.money, p.creds));
+        }
+        public static void SendClan(this Player p)
+        {
+            if (p.cid == 0) p.connection?.SendU(new ClanHidePacket());
+            else p.connection?.SendU(new ClanShowPacket(p.cid));
         }
         public static void SendAutoDigg(this Player p) => p.connection?.SendU(new AutoDiggPacket(p.autoDig));
         public static void SendSpeed(this Player p) => p.connection?.SendU(new SpeedPacket((int)(p.pause / 100 * 1.6), (int) (p.pause / 100 * 1.6 * 0.6), 100000));

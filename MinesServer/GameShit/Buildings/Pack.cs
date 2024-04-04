@@ -7,7 +7,7 @@ namespace MinesServer.GameShit.Buildings
 {
     public abstract class Pack
     {
-        public Pack() { }
+        public Pack() {}
         public Pack(int x, int y, int ownerid, PackType type)
         {
             this.x = x; this.y = y; this.ownerid = ownerid; this.type = type;

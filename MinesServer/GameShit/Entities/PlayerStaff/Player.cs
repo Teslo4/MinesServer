@@ -226,7 +226,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public override void Geo()
         {
             int x = (int)GetDirCord().x, y = (int)GetDirCord().y;
-            if (!World.W.ValidCoord(x, y) || World.GunRadius(x, y, this))
+            if (!World.W.ValidCoord(x, y) || !World.AccessGun(x, y, cid).access)
             {
                 return;
             }
@@ -388,6 +388,12 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 this.dir = this.x > x ? 1 : this.x < x ? 3 : this.y > y ? 2 : 0;
             else
                 this.dir = dir;
+            var packhere = World.ContainsPack(x, y, out var pack);
+            if (packhere && pack is Gate && pack.cid != cid)
+            {
+                tp(this.x, this.y);
+                return false;
+            }
             var cell = World.GetCell(x, y);
             if (!World.GetProp(cell).isEmpty)
             {
@@ -424,7 +430,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             }
             SendMyMove();
             SendMap();
-            if (World.ContainsPack(x, y, out var pack) && (pack.cid == cid || pack.cid == 0) && !programsData.ProgRunning)
+            if (packhere && (pack.cid == cid || pack.cid == 0) && !programsData.ProgRunning)
             {
                 win = pack.GUIWin(this)!;
                 SendWindow();
@@ -434,7 +440,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public void Build(string type)
         {
             int x = (int)GetDirCord().x, y = (int)GetDirCord().y;
-            if (!World.W.ValidCoord(x, y) || World.GunRadius(x, y, this) || World.PackPart(x, y))
+            if (!World.W.ValidCoord(x, y) || !World.AccessGun(x, y, cid).access || World.PackPart(x, y))
             {
                 return;
             }
@@ -622,7 +628,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 MConsole.AddConsoleLine(this);
             }
             settings.SendSettings(this);
-            SendClan();
+            this.SendClan();
             SendChat();
             SendMap(true);
             connection.starttime = ServerTime.Now;
@@ -679,14 +685,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             connection?.SendU(new TPPacket(x, y));
             SendMyMove();
         }
-        public void SendClan()
-        {
-            if (cid == 0)
-                connection?.SendU(new ClanHidePacket());
-            else
-                connection?.SendU(new ClanShowPacket(cid));
-
-        }
         #endregion
         #region renders
         public void ReSendBots()
@@ -714,27 +712,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
             }
             connection?.SendB(new HBPacket(packets.ToArray()));
-            lastPlayersend = DateTime.Now;
-        }
-        public void ReSendPacks()
-        {
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (var xxx = -2; xxx <= 2; xxx++)
-            {
-                for (var yyy = -2; yyy <= 2; yyy++)
-                {
-                    var x = ChunkX + xxx;
-                    var y = ChunkY + yyy;
-                    if (valid(x, y))
-                    {
-                        var ch = World.W.chunks[x, y];
-                        foreach (var p in ch.packs.Values)
-                        {
-                            connection?.SendB(new HBPacket([new HBPacksPacket(p.x / 32 + p.y / 32 * World.ChunksH, [new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off)])]));
-                        }
-                    }
-                }
-            }
             lastPlayersend = DateTime.Now;
         }
         public void SendMyMove()
@@ -817,7 +794,10 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                                 packetsmap.Add(new HBMapPacket(cx, cy, 32, 32, ch.cells));
                                 foreach (var p in ch.packs.Values)
                                 {
-                                    packs.Add(new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off));
+                                    if (p.type != 0)
+                                    {
+                                        packs.Add(new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off));
+                                    }
                                 }
                                 connection?.SendB(new HBPacket([new HBPacksPacket(ch.pos.Item1 + ch.pos.Item2 * World.ChunksH, packs.ToArray())]));
                                 foreach (var id in ch.bots)

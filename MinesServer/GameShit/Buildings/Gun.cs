@@ -30,10 +30,7 @@ namespace MinesServer.GameShit.Buildings
             charge = 1000;
             maxcharge = 10000;
         }
-        private Gun()
-        {
-
-        }
+        private Gun() { }
         #region affectworld
         public override void Build()
         {
@@ -70,7 +67,7 @@ namespace MinesServer.GameShit.Buildings
             if (Physics.r.Next(1, 101) < 40)
             {
                 p.connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "ШПАААК ВЫПАЛ")]));
-                p.inventory[1]++;
+                p.inventory[26]++;
             }
         }
         #endregion

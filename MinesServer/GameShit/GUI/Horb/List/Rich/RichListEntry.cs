@@ -106,6 +106,7 @@ namespace MinesServer.GameShit.GUI.Horb.List.Rich
         {
             Type = RichListEntryType.Button,
             Label = label,
+            Values = button.Label,
             Buttons = [button]
         };
 

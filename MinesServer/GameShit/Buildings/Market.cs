@@ -14,13 +14,14 @@ namespace MinesServer.GameShit.Buildings
     public class Market : Pack, IDamagable
     {
         #region fields
+        public int maxhp { get; set; }
         public int hp { get; set; }
         [NotMapped]
         public float charge { get; set; }
         public long moneyinside { get; set; }
         public DateTime brokentimer { get; set; }
         #endregion;
-        private Market() { }
+        private Market() {}
         public Market(int ownerid, int x, int y) : base(ownerid, x, y, PackType.Market)
         {
             using var db = new DataBase();

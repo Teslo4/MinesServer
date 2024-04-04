@@ -11,6 +11,7 @@ using MinesServer.Server;
 using System.ComponentModel.DataAnnotations;
 using System.IO.Pipes;
 using System.Numerics;
+using System.Security.Cryptography;
 
 namespace MinesServer.GameShit.WorldSystem
 {
@@ -130,7 +131,7 @@ namespace MinesServer.GameShit.WorldSystem
                 for (int cy = bottom; cy <= top; cy++)
                 {
                     var p = GetProp(GetCell(x + cx, y + cy));
-                    if (!ValidCoord(x + cx, y + cy) || ignoreplace && (!p.is_diggable || !p.is_destructible || GetCell(x + cx, y + cy) == 36) || PackPart(x + cx, y + cy) || (!p.can_place_over || !p.isEmpty) && !ignoreplace)
+                    if (!ValidCoord(x + cx, y + cy) || ignoreplace && (!p.is_diggable || !p.is_destructible || GetCell(x + cx, y + cy) == 36) || PackPart(x + cx, y + cy)|| ((player != null) ? !AccessGun(x,y,player.cid).access : false) || (!p.can_place_over || !p.isEmpty) && !ignoreplace)
                     {
                         if (player != null && ValidCoord(x + cx, y + cy))
                         {
@@ -186,14 +187,17 @@ namespace MinesServer.GameShit.WorldSystem
                     }
                     break;
                 case destroytype.Road:
-                    if (W.road[x, y] != 32)
+                    if (W.road[x, y] is not (32 or 37 or 36))
                     {
                         W.road[x, y] = 32;
                     }
                     break;
                 case destroytype.CellAndRoad:
                     W.cells[x, y] = 0;
-                    W.road[x, y] = 32;
+                    if (W.road[x, y] is not (32 or 37 or 36))
+                    {
+                        W.road[x, y] = 32;
+                    }
                     break;
             }
             ch.DestroyCell(x - ch.WorldX, y - ch.WorldY, t);
@@ -397,22 +401,29 @@ namespace MinesServer.GameShit.WorldSystem
                 ch.Update();
             }
         }
-        public static bool GunRadius(int x, int y, Player player)
+        public static (bool access,bool anygun) AccessGun(int x, int y, int cid)
         {
+            var ret = true;
+            var anygun = false;
             for (int chx = -21; chx <= 21; chx++)
             {
                 for (int chy = -21; chy <= 21; chy++)
                 {
                     if (Vector2.Distance(new Vector2(x, y), new Vector2(x + chx, y + chy)) <= 20f)
                     {
-                        if (W.ValidCoord(x + chx, y + chy) && ContainsPack(x + chx, y + chy, out var p) && p is Gun && (p as Gun).charge > 0 && (p as Gun).cid != player.cid)
+                        if (W.ValidCoord(x + chx, y + chy) && ContainsPack(x + chx, y + chy, out var p) && p is Gun)
                         {
-                            return true;
+                            anygun = true;
+                            var gun = p as Gun;
+                            if (gun.charge > 0)
+                            {
+                                ret = ret && gun.cid == cid;
+                            }
                         }
                     }
                 }
             }
-            return false;
+            return (ret,anygun);
         }
         private static DateTimeOffset lastpackupd = ServerTime.Now;
         private static DateTimeOffset lastpackeffect = ServerTime.Now;

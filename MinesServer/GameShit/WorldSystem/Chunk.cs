@@ -137,12 +137,18 @@ namespace MinesServer.GameShit.WorldSystem
         {
             foreach (var p in packs.Values)
             {
-                SendPack((char)p.type, p.x, p.y, p.cid, p.off);
+                if (p.type != 0)
+                {
+                    SendPack((char)p.type, p.x, p.y, p.cid, p.off);
+                }
             }
         }
         public void ResendPack(Pack p)
         {
-            SendPack((char)p.type, p.x, p.y, p.cid, p.off);
+            if (p.type != 0)
+            {
+                SendPack((char)p.type, p.x, p.y, p.cid, p.off);
+            }
         }
         public void SendPack(char type, int x, int y, int cid, int off)
         {
@@ -187,7 +193,10 @@ namespace MinesServer.GameShit.WorldSystem
         public void SetPack(int x, int y, Pack p)
         {
             packs[x + y * 32] = p;
-            SendPack((char)p.type, WorldX + x, WorldY + y, p.cid, p.off);
+            if (p.type != 0)
+            {
+                SendPack((char)p.type, WorldX + x, WorldY + y, p.cid, p.off);
+            }
         }
         public void RemovePack(int x, int y)
         {

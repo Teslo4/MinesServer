@@ -3,6 +3,8 @@ using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.Sys_Craft;
 using MinesServer.GameShit.SysCraft;
 using MinesServer.GameShit.WorldSystem;
+using MinesServer.Network.HubEvents;
+using MinesServer.Network.World;
 using MinesServer.Server;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,10 +12,7 @@ namespace MinesServer.GameShit.Buildings
 {
     public class Crafter : Pack, IDamagable
     {
-        private Crafter()
-        {
-
-        }
+        private Crafter() { }
         public Crafter(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Craft)
         {
             hp = 1000;
@@ -59,11 +58,28 @@ namespace MinesServer.GameShit.Buildings
         }
         protected override void ClearBuilding()
         {
-
+            World.SetCell(x, y, 32, false);
+            World.SetCell(x, y + 1, 32, false);
+            World.SetCell(x + 1, y, 32, false);
+            World.SetCell(x + 1, y - 1, 32, false);
+            World.SetCell(x - 1, y - 1, 32, false);
+            World.SetCell(x, y - 1, 32, false);
+            World.SetCell(x - 1, y, 32, false);
+            World.SetCell(x - 1, y + 1, 32, false);
+            World.SetCell(x + 1, y + 1, 32, false);
         }
         public void Destroy(Player p)
         {
-
+            ClearBuilding();
+            World.RemovePack(x, y);
+            using var db = new DataBase();
+            db.crafts.Remove(this);
+            db.SaveChanges();
+            if (Physics.r.Next(1, 101) < 40)
+            {
+                p.connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "ШПАААК ВЫПАЛ")]));
+                p.inventory[24]++;
+            }
         }
         #endregion
         public override Window? GUIWin(Player p)

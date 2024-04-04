@@ -37,6 +37,8 @@ namespace MinesServer.Server
         public DbSet<Gun> guns { get; set; }
         public DbSet<Storage> storages { get; set; }
         public DbSet<Crafter> crafts { get; set; }
+        public DbSet<Teleport> teleports { get; set; }
+        public DbSet<Gate> gates { get; set; }
         #endregion
         public static bool created = false;
         public DataBase()
@@ -129,6 +131,10 @@ namespace MinesServer.Server
                 {
                     World.SetCell(i.x, i.y, 90);
                 }
+                foreach (var i in db.gates)
+                {
+                    i.Build();
+                }
                 foreach (var i in db.resps)
                 {
                     i.Build();
@@ -155,6 +161,11 @@ namespace MinesServer.Server
                     World.AddPack(i.x, i.y, i);
                 }
                 foreach (var i in db.crafts)
+                {
+                    i.Build();
+                    World.AddPack(i.x, i.y, i);
+                }
+                foreach (var i in db.teleports)
                 {
                     i.Build();
                     World.AddPack(i.x, i.y, i);

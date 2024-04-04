@@ -12,6 +12,8 @@ namespace MinesServer.GameShit.WorldSystem
         public int y { get; set; }
         [NotMapped]
         public long[] bxcrys = new long[6];
+        private Box() { World.SetCell(x, y, Enums.CellType.Box); }
+        private Box(bool n) { }
         public static Box? GetBox(int x, int y)
         {
             if (!World.W.ValidCoord(x, y))
@@ -28,7 +30,7 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 return;
             }
-            var box = new Box();
+            var box = new Box(true);
             for (int i = 0; i < 6; i++)
             {
                 long remcry = cry[i];

@@ -104,6 +104,12 @@ namespace MinesServer.GameShit.Consumables
 
             }
         }
+        public static void Gate(int x,int y,Player p)
+        {
+            using var db = new DataBase();
+            db.gates.Add(new Gate(x, y, p.cid));
+            db.SaveChanges();
+        }
         public static void Poli(int x,int y,Player p)
         {
 
@@ -163,6 +169,7 @@ namespace MinesServer.GameShit.Consumables
                             {
                                 p.Hurt(50);
                             }
+                            if (World.ContainsPack(x + _x, y + _y, out var pack) && pack is Gate) (pack as Gate).Destroy();
                             var c = World.GetCell(x + _x, y + _y);
                             if (World.GetProp(c).is_destructible && !World.PackPart(x + _x, y + _y))
                             {

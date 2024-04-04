@@ -58,9 +58,7 @@ namespace MinesServer.GameShit.Buildings
             set { crysinside[5] = value; }
         }
         #endregion
-        private Storage()
-        {
-        }
+        private Storage() { }
         public Storage(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Storage)
         {
             hp = 1000;
@@ -108,6 +106,7 @@ namespace MinesServer.GameShit.Buildings
                 p.inventory[29]++;
             }
         }
+        #endregion
         private void StockTransfer(long[]? sliders, Player p)
         {
             if (sliders == null)
@@ -124,7 +123,6 @@ namespace MinesServer.GameShit.Buildings
             p.crys.SendBasket();
             p.win = GUIWin(p);
         }
-        #endregion
         public override Window? GUIWin(Player p)
         {
             var ok = new MButton("transfer", $"transfer:{ActionMacros.CrystalSliders}", (args) => StockTransfer(args.CrystalSliders, p));

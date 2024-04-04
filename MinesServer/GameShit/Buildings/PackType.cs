@@ -2,6 +2,7 @@
 {
     public enum PackType
     {
+        None = ' ',
         Teleport = 'T',
         Resp = 'R',
         Gun = 'G',

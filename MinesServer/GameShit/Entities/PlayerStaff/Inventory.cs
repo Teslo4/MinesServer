@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.Buildings;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics;
+using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Consumables;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.Constraints;
@@ -18,11 +19,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             typeditems = new Dictionary<int, ItemUsage>
             {
                 {
-                    0,
-                    (p) =>
-                    {
-                        return true;
-                    }
+                    0,(p) => {
+                        var coord = p.GetDirCord(true);
+                        if (World.W.CanBuildPack(-2, 2, -2, 1, coord.x, coord.y, p))
+                        {
+                            new Teleport(coord.x, coord.y, p.id).Build();
+                            return true;
+                        }
+                        return false;
+                     }
                 },
                 {
                     1,
@@ -74,7 +79,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     5,
                     (p) =>
                     {
-                        if (!World.GunRadius(p.GetDirCord().x, p.GetDirCord().y, p))
+                        var coord = p.GetDirCord(true);
+                        if (World.AccessGun(coord.x,coord.y,p.cid).access)
                         {
                             ShitClass.Boom(p.GetDirCord().x, p.GetDirCord().y, p);
                             return true;
@@ -86,7 +92,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     6,
                     (p) =>
                     {
-                        if (!World.GunRadius(p.GetDirCord().x, p.GetDirCord().y, p))
+                        var coord = p.GetDirCord(true);
+                        if (World.AccessGun(coord.x,coord.y,p.cid).access)
                         {
                             ShitClass.Prot(p.GetDirCord().x, p.GetDirCord().y, p);
                             return true;
@@ -124,6 +131,20 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                         if (World.W.CanBuildPack(-2, 2, -2, 2, coord.x, coord.y, p) && p.clan != null)
                         {
                             new Gun(coord.x, coord.y, p.id, p.cid).Build();
+                            return true;
+                        }
+                        return false;
+                    }
+                },
+                {
+                    27,
+                    (p) =>
+                    {
+                        var coord = p.GetDirCord();
+                        var c = World.AccessGun(coord.x,coord.y,p.cid);
+                        if (p.clan != null && c.access && c.anygun)
+                        {
+                            ShitClass.Gate(coord.x,coord.y,p);
                             return true;
                         }
                         return false;
