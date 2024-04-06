@@ -1,5 +1,7 @@
 ﻿using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
+using MinesServer.GameShit.GUI.Horb;
+using MinesServer.GameShit.GUI.Horb.Canvas;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.HubEvents;
 using MinesServer.Network.World;
@@ -80,10 +82,42 @@ namespace MinesServer.GameShit.Buildings
             }
         }
         #endregion
+        private CanvasElement[] Buttonsg()
+        {
+            var chunk = World.W.GetChunkPosByCoords(x, y);
+            var st = (chunk.Item1 - 7, chunk.Item2 - 7);
+            List<CanvasElement> n = new();
+            using var db = new DataBase();
+            foreach (var i in db.teleports.Where(tp => Math.Abs(tp.x - x) < 1000 && Math.Abs(tp.y - y) < 1000))
+            {
+                n.Add(CanvasElement.TPButton(new MButton($"tp{i.x}:{i.y}", "tp"),0,0,0,0,CanvasElementPivot.Left));
+            }
+            return n.ToArray();
+        }
 
         public override Window? GUIWin(Player p)
         {
-            return null;
+            if (true)
+            {
+                return null;
+            }
+            var chunk = World.W.GetChunkPosByCoords(x, y);
+            var start = (chunk.Item1 - 7, chunk.Item2 - 7);
+            var end = (chunk.Item1 + 7, chunk.Item2 + 7);
+            CanvasElement[] canvas = [CanvasElement.Image(ImgSpace.LocateChunks(p.id, start, end), 381, 381, CanvasElementPivot.Default, -98, 0, 0, 8)];
+            canvas = canvas.Concat(Buttonsg()).ToArray(); ;
+            return new Window() {
+                Tabs = [new Tab() {
+                    InitialPage = new Page()
+                    {
+                        Style = new Style(){Canvas = new GridStyle(){Height = 390,Width = 600 } },
+                        Canvas = canvas,
+                        Buttons = []
+                    },
+                    Action = "123",
+                    Label = "3321",
+                    Title = "ТП"}],
+                Title = "Тп" };
         }
     }
 }

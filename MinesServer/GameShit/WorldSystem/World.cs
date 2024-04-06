@@ -70,6 +70,7 @@ namespace MinesServer.GameShit.WorldSystem
             Console.WriteLine("LoadConfirmed");
             Console.WriteLine("Started");
             DataBase.Load();
+            File.WriteAllBytes("lol.m3",M3Compressor.Compress(Default.ConvertMapPart(0, 0, 125, 125)));
             cells.Commit();
             road.Commit();
             durability.Commit();
@@ -392,7 +393,7 @@ namespace MinesServer.GameShit.WorldSystem
             };
         }
         public bool ValidCoord(int x, int y) => x >= 0 && y >= 0 && x < CellsWidth && y < CellsHeight;
-        private (int, int) GetChunkPosByCoords(int x, int y) => ((int)Math.Floor((float)x / 32), (int)Math.Floor((float)y / 32));
+        public (int, int) GetChunkPosByCoords(int x, int y) => ((int)Math.Floor((float)x / 32), (int)Math.Floor((float)y / 32));
         public void UpdateChunkByCoords(int x, int y)
         {
             var ch = GetChunk(x, y);

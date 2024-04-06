@@ -5,6 +5,7 @@ using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.WorldSystem;
 using System.Drawing;
 using System.Numerics;
+using System.Security.AccessControl;
 
 namespace MinesServer.GameShit.Programmator
 {
@@ -66,10 +67,55 @@ namespace MinesServer.GameShit.Programmator
         {
             return false;
         }
+        private static Dictionary<int, (int dx, int dy)> dirz = new()
+        {
+             { 0, (0, 1) },
+             { 1, (-1, 0) },
+             { 2, (0, -1) },
+             { 3, (1, 0) }
+        };
         public object? Execute(BaseEntity p, ref bool? template)
         {
             switch (type)
             {
+                case ActionType.MacrosMine:
+                    foreach(var i in dirz)
+                    {
+                        if (World.isCry(World.GetCell(p.x + i.Value.dx, p.y + i.Value.dy)))
+                        if (p.dir == i.Key)
+                        {
+                            p.Bz();
+                            delay = 200;
+                            return true;
+                        }
+                        else
+                        {
+                            p.Move(p.x, p.y, i.Key);
+                            delay = p.pause / 100;
+                                return true;
+                        }
+                    }
+                    break;
+                case ActionType.MacrosHeal:
+                    if (p.crys is not null && p.crys[MinesServer.Enums.CrystalType.Red] > 0)
+                    {
+                        if (p.Health < p.MaxHealth)
+                        {
+                            p.Heal();
+                            delay = 200;
+                            return true;
+                        }
+                    }
+                    break;
+                case ActionType.MacrosDig:
+                    var c = p.GetDirCord();
+                    if (World.GetProp(c.x,c.y).is_diggable)
+                    {
+                        delay = 200;
+                        p.Bz();
+                        return true;
+                    }
+                    break;
                 case ActionType.MoveDown:
                     delay = p.pause / 100;
                     if (p.Move(p.x, p.y + 1))

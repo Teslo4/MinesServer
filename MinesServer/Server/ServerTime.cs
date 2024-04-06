@@ -28,10 +28,10 @@ namespace MinesServer.Server
             {
                 while (true)
                 {
-                    var d = DateTimeOffset.UtcNow;
-                    offset = (int)(Now-d).TotalMilliseconds;
+                    var d = DateTimeOffset.Now;
+                    offset = (int)(Now-d).TotalMicroseconds;
                     Now = d;
-                    Thread.Sleep(TimeSpan.FromMicroseconds(0.1));
+                    Thread.Sleep(TimeSpan.FromMilliseconds(1));
                 }
             });
         }
@@ -40,10 +40,10 @@ namespace MinesServer.Server
         {
             Task.Run(() =>
             {
-                    var lasttick = Now.ToUnixTimeMilliseconds();
+                    var lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     while (true)
                     {
-                        int ticksToProcess = (int)((Now.ToUnixTimeMilliseconds() - lasttick) / 1000f * tps);
+                        int ticksToProcess = (int)((DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - lasttick) / 1000f * tps);
                         if (ticksToProcess > 0)
                         {
                             if (ticksToProcess > 1)
@@ -51,7 +51,7 @@ namespace MinesServer.Server
                                 Console.WriteLine($"overload {ticksToProcess}");;
                             }
                             while (ticksToProcess-- > 0) body();
-                            lasttick = Now.ToUnixTimeMilliseconds();
+                            lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                         }
                     }
             });

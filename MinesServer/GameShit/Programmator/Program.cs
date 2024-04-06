@@ -67,6 +67,7 @@ namespace MinesServer.GameShit.Programmator
                         case ActionType.CreateFunction:
                             functions.Add(name, new PFunction());
                             currentFunc = name;
+                            index = 0;
                             break;
                         case ActionType.WritableState or ActionType.WritableStateLower or ActionType.WritableStateMore:
                             functions[currentFunc] += new PAction(atype, name, number);

@@ -38,6 +38,7 @@ namespace MinesServer.Server
             Console.WriteLine($"{this.ToString()} connected");
             SendU(new StatusPacket("черный хуй в твоей жопе"));
             SendU(new AUPacket(sid));
+            starttime = ServerTime.Now;
         }
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {

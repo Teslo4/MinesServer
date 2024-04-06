@@ -108,7 +108,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public bool agression { get; set; }
         public int c190stacks = 1;
         public DateTimeOffset lastc190hit = ServerTime.Now;
-        public Basket crys { get; set; }
+        public override Basket crys { get; set; }
         public Inventory inventory { get; set; }
         public Settings settings { get; set; }
         public PlayerSkills skillslist { get; set; }
@@ -631,7 +631,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             this.SendClan();
             SendChat();
             SendMap(true);
-            connection.starttime = ServerTime.Now;
             SendPing(default);
             connection?.SendU(new ConfigPacket("oldprogramformat+"));
         }
@@ -655,10 +654,12 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (connection is null)
                 return;
             var now = ServerTime.Now;
-            var localserver = (int)(now - connection.starttime).TotalMilliseconds;
+            var offset = ServerTime.offset;
+            var localserver = (int)(now -connection.starttime).Add(TimeSpan.FromMicroseconds(offset)).TotalMilliseconds;
+            //Console.WriteLine($"{localserver}:{p.CurrentTime}:{offset}");
             Task.Run(() =>
             {
-                Thread.Sleep(100);
+                Thread.Sleep(200);
                 connection?.SendU(new PingPacket(52, localserver, $"{localserver - p.CurrentTime - (int)(now - lastping).TotalMilliseconds} "));
                 lastping = now;
             });
@@ -1003,6 +1004,13 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             SendWindow();
             SendFXoBots(2, x, y);
             Health = MaxHealth;
+            if (!online && !programsData.RespawnOnProg)
+            {
+                using var db = new DataBase();
+                db.players.Attach(this);
+                db.SaveChanges();
+                DataBase.activeplayers.Remove(this);
+            }
             var r = GetCurrentResp()!;
             r.OnRespawn(this);
             r = GetCurrentResp()!;

@@ -1,7 +1,10 @@
 ﻿using MinesServer.GameShit.WorldSystem;
 using MinesServer.Server;
 using Newtonsoft.Json;
+using System.Drawing;
+using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace MinesServer
@@ -21,11 +24,7 @@ namespace MinesServer
         public static void Main(string[] args)
         {
             CellsSerializer.Load();
-#if DEBUG
-            //var t = new Thread(ShowUp);
-            //t.SetApartmentState(ApartmentState.STA);
-            //t.Start();
-#endif
+            new ImgSpace();
             var configPath = "config.json";
             if (File.Exists(configPath))
             {
@@ -67,6 +66,18 @@ namespace MinesServer
                 if (l != null && commands.Keys.Contains(l))
                     commands[l]();
             }
+        }
+        public static Bitmap ConvertMapPart(int fromx,int fromy,int tox,int toy)
+        {
+            var bitmap = new Bitmap(tox - fromx, toy - fromy);
+            for (int x = 0; fromx + x < tox; x++)
+            {
+                for (int y = 0; fromy + y < toy; y++)
+                {
+                    bitmap.SetPixel(x, y, World.GetProp(fromx + x, fromy + y).isEmpty ? Color.Green : Color.CornflowerBlue);
+                }
+            }
+            return bitmap;
         }
         public static Config cfg;
         public static Regex def = new Regex("^[а-яА-ЯёЁa-zA-Z 0-9]+$");

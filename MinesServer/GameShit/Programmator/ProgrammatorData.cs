@@ -51,7 +51,7 @@ namespace MinesServer.GameShit.Programmator
             //func logger
             foreach (var i in currentprog)
             {
-                Console.WriteLine($"{i.Key} - {string.Join(' ', i.Value.actions.Select(i => i.type))}");
+                Console.WriteLine($"{i.Key} - {string.Join(' ', i.Value.actions.Select(i => $"{i.type} {(i.label is not null ? $"({i.label})" : "")}"))}");
             }
             foreach (var i in currentprog.Values)
                 i.Close();
@@ -184,6 +184,9 @@ namespace MinesServer.GameShit.Programmator
                             }
                             current.state = state;
                             current.startoffset = (0, 0);
+                            break;
+                        case ActionType.MacrosDig or ActionType.MacrosHeal or ActionType.MacrosMine:
+                            if (state) current.current--;
                             break;
                     }
                     break;

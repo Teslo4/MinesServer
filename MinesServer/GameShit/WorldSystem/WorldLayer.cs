@@ -67,6 +67,7 @@ namespace MinesServer.GameShit.WorldSystem
                 }
             }
         }
+        
         private T[] Read(int index)
         {
             lock (_stream)
@@ -84,23 +85,20 @@ namespace MinesServer.GameShit.WorldSystem
         {
             lock (_stream)
             {
-                lock (_stream)
-                {
                     Span<byte> temp = stackalloc byte[data.Length * typesize];
                     for (int i = 0, j = 0; i < temp.Length; i += typesize, j++)
                         MemoryMarshal.Write(temp[i..(i + typesize)], in data[j]);
                     _stream.Position = index * Count * typesize;
                     _stream.Write(temp);
-                }
             }
         }
-        private T[] Read(int chunkx, int chunky)
+        public T[] Read(int chunkx, int chunky)
         {
             var chunkindex = GetChunkIndex(chunkx, chunky);
             _buffer[chunkindex] ??= Read(chunkindex);
             return _buffer[chunkindex];
         }
-        private void Write(int chunkx, int chunky, T[] data) => Write(GetChunkIndex(chunkx, chunky), data);
+        public void Write(int chunkx, int chunky, T[] data) => Write(GetChunkIndex(chunkx, chunky), data);
         private (int x, int y) GetChunkPos(int x, int y) => ((int)Math.Floor((float)x / 32), (int)Math.Floor((float)y / 32));
         private int GetChunkIndex(int chunkx, int chunky) => chunky + chunks.height * chunkx;
         private int GetCellIndex(int x, int y)

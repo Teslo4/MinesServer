@@ -1,4 +1,5 @@
-﻿using MinesServer.GameShit.Enums;
+﻿using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.Programmator;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace MinesServer.GameShit.Entities
             }
         }
         protected ProgrammatorData? _pdata { get; set; }
+        public abstract Basket? crys { get; set; }
         public virtual int Health { get; set; }
         public virtual int MaxHealth { get; set; }
         public virtual int pause { get; set; }
