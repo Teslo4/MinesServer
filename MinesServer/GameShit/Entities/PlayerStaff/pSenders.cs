@@ -1,4 +1,5 @@
 ﻿using MinesServer.GameShit.Generator;
+using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.SysCraft;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.BotInfo;
@@ -9,6 +10,7 @@ using MinesServer.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -48,6 +50,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (p.cid == 0) p.connection?.SendU(new ClanHidePacket());
             else p.connection?.SendU(new ClanShowPacket(p.cid));
         }
+        public static void UpdateProg(this Player p, Program prog) => p.connection?.SendU(new UpdateProgrammatorPacket(prog.id, prog.name, prog.data));
+        public static void OpenProg(this Player p,Program prog) => p.connection?.SendU(new OpenProgrammatorPacket(prog.id, prog.name, prog.data));
+        public static void ProgStatus(this Player p) => p.connection?.SendU(new ProgrammatorPacket(p.programsData.ProgRunning));
         public static void SendAutoDigg(this Player p) => p.connection?.SendU(new AutoDiggPacket(p.autoDig));
         public static void SendSpeed(this Player p) => p.connection?.SendU(new SpeedPacket((int)(p.pause / 100 * 1.6), (int) (p.pause / 100 * 1.6 * 0.6), 100000));
         public static void SendCrys(this Player p) => p.crys.SendBasket();

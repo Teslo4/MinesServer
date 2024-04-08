@@ -2,6 +2,7 @@
 using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
+using MinesServer.GameShit.Sys_Miss;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.HubEvents;
 using MinesServer.Network.World;
@@ -80,6 +81,11 @@ namespace MinesServer.GameShit
                     db.Dispose();
                 }
             });
+            commands.Add("addmis", (p, arg) =>
+            {
+            /*Task.Run(() =>
+            new Misson().SendMisson(p));*/
+            });
         }
         public static void AddConsoleLine(Player p)
         {
@@ -128,6 +134,7 @@ namespace MinesServer.GameShit
                                 if (commands.Keys.Contains(msg.Split(' ')[0]))
                                 {
                                     commands[msg.Split(' ')[0]](p, msg);
+                                    ShowConsole(p);
                                     return;
                                 }
                             }

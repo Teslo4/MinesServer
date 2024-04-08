@@ -47,6 +47,29 @@ namespace MinesServer
             }
             return temp.ToArray();
         }
+        public static byte[] CompressLarge(Bitmap image)
+        {
+            var temp = new byte[2 * 2 + 10 + (image.Width * image.Height) * 4];
+            Buffer.BlockCopy(BitConverter.GetBytes(Convert.ToUInt16(image.Width)), 0, temp, 0, 2);
+            Buffer.BlockCopy(BitConverter.GetBytes(Convert.ToUInt16(image.Height)), 0, temp, 2, 2);
+            byte op = 4;
+            for (int i = 0; i < 10; i++)
+            {
+                temp[(4 + i)] = op;
+                op = 0;
+            }
+            for (int y = 0; y < image.Height; y++)
+            {
+                for (int x = 0; x < image.Width; x++)
+                {
+                    var p = image.GetPixel(x, y);
+                    byte r = p.R, g = p.G, b = p.B, a = p.A;
+                    var t = (14 + (4 * (y * image.Width + x)));
+                    temp[t] = r; temp[t + 1] = g; temp[t + 2] = g; temp[t + 3] = a;
+                }
+            }
+            return temp.ToArray();
+        }
         public static byte[] CompressImageArray((byte r,byte g,byte b,byte a)[] args,int iwidth,int iheight)
         {
             Span<byte> temp = stackalloc byte[args.Length * 4];

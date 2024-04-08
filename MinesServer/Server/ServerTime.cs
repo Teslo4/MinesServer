@@ -94,10 +94,10 @@ namespace MinesServer.Server
                     /*}
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"{item.initiator.name}[{item.initiator.Id}] caused {ex}");
+                        Console.WriteLine($"{item.initiator.name}[{item.initiator.id}] caused {ex}");
                     }*/
                 }
-            }));
+            }, "base"));
             actions.Add(new(() =>
             {
                 var players = DataBase.activeplayers;
@@ -108,7 +108,7 @@ namespace MinesServer.Server
                         players[i]?.Update();
                     }
                 }
-            }));
+            }, "players"));
             actions.Add(new(() =>
             {
                 for (int x = 0; x < World.ChunksW; x++)
@@ -122,7 +122,7 @@ namespace MinesServer.Server
                 World.W.cells.Commit();
                 World.W.road.Commit();
                 World.W.durability.Commit();
-            }));
+            },"chunks"));
             AddTickRateUpdate(Update);
         }
         public void Update()

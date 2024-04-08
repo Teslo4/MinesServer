@@ -48,6 +48,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         #endregion
         #region fields
         [NotMapped]
+        public (int, int)? lastchunk { get; private set; }
+        [NotMapped]
         public Chat? currentchat { get; set; }
         [NotMapped]
         public Session? connection { get; set; }
@@ -60,7 +62,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public DateTimeOffset lastPlayersend = ServerTime.Now;
         public DateTimeOffset lastPacks = ServerTime.Now;
         public DateTimeOffset afkstarttime = ServerTime.Now;
-        private DateTimeOffset lastping;
         private DateTimeOffset lastSync = ServerTime.Now;
         public Queue<Action> playerActions = new();
         public int id { get; set; }
@@ -152,6 +153,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public override void Update()
         {
             var now = ServerTime.Now;
+            /*
             if (lastping != default)
             {
                 if (now - lastping >= TimeSpan.FromSeconds(10000))
@@ -162,7 +164,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 {
                     SendPing(default);
                 }
-            }
+            }*/
             if (now - lastSync >= TimeSpan.FromSeconds(30))
             {
                 Sync();
@@ -636,8 +638,10 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             this.SendClan();
             SendChat();
             SendMap(true);
-            SendPing(default);
             connection?.SendU(new ConfigPacket("oldprogramformat+"));
+            if (programsData.selected is not null)
+                this.UpdateProg(programsData.selected);
+            this.ProgStatus();
         }
 
         #endregion
@@ -653,21 +657,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             {
                 connection?.SendU(new ChatMessagesPacket("FED", currentchat.GetMessages()));
             }
-        }
-        public void SendPing(PongPacket p)
-        {
-            if (connection is null)
-                return;
-            var now = ServerTime.Now;
-            var offset = ServerTime.offset;
-            var localserver = (int)(now -connection.starttime).Add(TimeSpan.FromMicroseconds(offset)).TotalMilliseconds;
-            //Console.WriteLine($"{localserver}:{p.CurrentTime}:{offset}");
-            Task.Run(() =>
-            {
-                Thread.Sleep(200);
-                connection?.SendU(new PingPacket(52, localserver, $"{localserver - p.CurrentTime - (int)(now - lastping).TotalMilliseconds} "));
-                lastping = now;
-            });
         }
         public void SendWindow()
         {
@@ -770,8 +759,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
             }
         }
-        [NotMapped]
-        public (int, int)? lastchunk { get; private set; }
         public void SendMap(bool force = false)
         {
             var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;

@@ -20,8 +20,7 @@ namespace MinesServer.GameShit.Programmator
             var prog = new Program(p, name, "");
             p.programs.Add(prog);
             db.SaveChanges();
-            p.connection?.SendU(new OpenProgrammatorPacket(prog.id, name, prog.data));
-            p.connection?.SendU(new ProgrammatorPacket());
+            p.OpenProg(prog);
             p.win = null;
         }
         public static ListEntry[] LoadProgs(Player p)
@@ -35,7 +34,7 @@ namespace MinesServer.GameShit.Programmator
         public static void OpenProg(Player p, Program prog)
         {
             p.win = null;
-            p.connection?.SendU(new OpenProgrammatorPacket(prog.id, prog.name,prog.data));
+            p.OpenProg(prog);
         }
         
         public static void Rename(Player p,int id)
@@ -84,7 +83,7 @@ namespace MinesServer.GameShit.Programmator
                 programm.data = data.source;
                 db.SaveChanges();
                 p.RunProgramm(programm);
-                p.connection?.SendU(new UpdateProgrammatorPacket(programm.id,programm.name,programm.data));
+                p.UpdateProg(programm);
             }
         }
         public static void OpenCreateProg(Player p)

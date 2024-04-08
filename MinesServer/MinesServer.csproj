@@ -24,7 +24,4 @@
     <PackageReference Include="Syroot.BinaryData" Version="5.2.2" />
     <PackageReference Include="System.Memory.Data" Version="8.0.0" />
   </ItemGroup>
- <ItemGroup>
-   <Folder Include="GameShit\Sys_Miss\" />
- </ItemGroup>
 </Project>

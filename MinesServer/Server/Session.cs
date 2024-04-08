@@ -16,6 +16,7 @@ using MinesServer.Server.Network.TypicalEvents;
 using NetCoreServer;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace MinesServer.Server
 {
@@ -40,6 +41,7 @@ namespace MinesServer.Server
             SendU(new StatusPacket("черный хуй в твоей жопе"));
             SendU(new AUPacket(sid));
             starttime = ServerTime.Now;
+            Ping(default);
         }
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
@@ -150,12 +152,10 @@ namespace MinesServer.Server
         {
             var p = player.programsData.selected;
             if (p != null && !player.programsData.ProgRunning)
-            {
-                SendU(new OpenProgrammatorPacket(p.id, p.name, p.data));
-            }
+                player.OpenProg(p);
             if (player.programsData.ProgRunning)
                 player.RunProgramm();
-            SendU(new ProgrammatorPacket(false));
+            player.ProgStatus();
         }
         private void Pdel(TYPacket f,PDELPacket pdel)
         {
@@ -164,7 +164,7 @@ namespace MinesServer.Server
         private void PROG(TYPacket f, PROGPacket p)
         {
             StaticGUI.StartedProg(player, p.prog);
-            SendU(new ProgrammatorPacket(player.programsData.ProgRunning));
+            player.ProgStatus();
         }
         private void Xhea(TYPacket f,XheaPacket heal)
         {
@@ -200,7 +200,20 @@ namespace MinesServer.Server
             player.win = player.crys.OpenBoxGui();
             player.SendWindow();
         }
-        private void Ping(PongPacket p) => player.SendPing(p);
+        private void Ping(PongPacket p)
+        {
+            var now = ServerTime.Now;
+            var offset = ServerTime.offset;
+            var localserver = (int)(now - starttime).Add(TimeSpan.FromMicroseconds(offset)).TotalMilliseconds;
+            //Console.WriteLine($"{localserver}:{p.CurrentTime}:{offset}");
+            Task.Run(() =>
+            {
+                Thread.Sleep(200);
+                SendU(new PingPacket(52, localserver, $"{localserver - p.CurrentTime - (int)(now - lastping).TotalMilliseconds} "));
+                lastping = now;
+            });
+        }
+        private DateTimeOffset lastping;
         private void Inus(TYPacket f, INUSPacket inus)
         {
             player.inventory.Use(player);

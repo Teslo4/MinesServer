@@ -8,8 +8,9 @@ namespace MinesServer.Server
 {
     public class TickAction
     {
-        public TickAction(Action a) { body = a; }
+        public TickAction(Action a,string n) { body = a;name = n; }
         private Action body;
+        string name;
         public void Call()
         {
             if (completed)
@@ -17,8 +18,8 @@ namespace MinesServer.Server
                 completed = false;
                 Task.Run(() =>
                 {
-                    body();
-                    completed = true;
+                   body();
+                   completed = true;
                 });
             }
         }
