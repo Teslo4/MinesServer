@@ -3,6 +3,7 @@ using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.Programmator;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,20 +20,24 @@ namespace MinesServer.GameShit.Entities
                 return _pdata;
             }
         }
+        [NotMapped]
+        public virtual Stack<byte> geo { get; set; } = new();
         protected ProgrammatorData? _pdata { get; set; }
         public abstract Basket? crys { get; set; }
         public virtual int Health { get; set; }
         public virtual int MaxHealth { get; set; }
         public virtual int pause { get; set; }
+        public virtual double ServerPause { get; }
         public int dir { get; set; }
         public int x { get; set; }
         public int y { get; set; }
+        public abstract void Build(string type);
         public abstract void Bz();
         public abstract void Geo();
-        public abstract void Heal(int num = -1);
+        public abstract bool Heal(int num = -1);
         public abstract void Hurt(int num, DamageType type = DamageType.Pure);
         public abstract void Death();
-        public abstract bool Move(int x, int y, int dir = -1);
+        public abstract bool Move(int x, int y, int dir = -1,bool prog = false);
         public abstract void Update();
         public (int x, int y) GetDirCord(bool pack = false)
         {

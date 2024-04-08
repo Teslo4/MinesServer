@@ -30,27 +30,24 @@ namespace MinesServer.GameShit.WorldSystem
         {
             get => pos.Item2 * 32;
         }
-        private long lasttick = ServerTime.Now.ToUnixTimeMilliseconds();
-        private DateTimeOffset lastCrysupd = ServerTime.Now;
+        private DateTimeOffset lastupdalive = ServerTime.Now;
+        private DateTimeOffset sandandb = ServerTime.Now;
+        private DateTimeOffset notvisibleupd = ServerTime.Now;
         public byte[] cells => Enumerable.Range(0, World.ChunkHeight).SelectMany(y => Enumerable.Range(0, World.ChunkWidth).Select(x => this[x, y])).ToArray();
         public void Update()
         {
-            var currenttick = ServerTime.Now.ToUnixTimeMilliseconds();
+            var now = ServerTime.Now;
             if (shouldbeloaded())
             {
                 CheckBots();
                 updlasttick = false;
-                if (currenttick - lasttick > 700)
-                {
-                    UpdateCells();
-                    lasttick = currenttick;
-                }
+                UpdateCells();
                 return;
             }
-            else if (ServerTime.Now - lastCrysupd > TimeSpan.FromMinutes(5))
+            else if (now - notvisibleupd > TimeSpan.FromMinutes(5))
             {
-                UpdateCrys();
-                lastCrysupd = ServerTime.Now;
+                UpdateNotVisible();
+                notvisibleupd = now;
             }
             Dispose();
         }
@@ -63,7 +60,7 @@ namespace MinesServer.GameShit.WorldSystem
                 SendCellToBots(WorldX + x, WorldY + y, this[x, y]);
             }
         }
-        public void UpdateCrys()
+        public void UpdateNotVisible()
         {
             for (int lx = 0; lx < 32; lx++)
             {
@@ -216,7 +213,7 @@ namespace MinesServer.GameShit.WorldSystem
                 }
             }
         }
-        private void UpdateCells()
+        private void UpdateSandBoulders()
         {
             List<(int, int, byte)> cellstoupd = new();
             for (int y = 0; y < 32; y++)
@@ -224,7 +221,33 @@ namespace MinesServer.GameShit.WorldSystem
                 for (int x = 0; x < 32; x++)
                 {
                     var prop = World.GetProp(this[x, y]);
-                    if (prop.isSand || prop.isBoulder || World.isAlive(this[x, y]))
+                    if (prop.isSand || prop.isBoulder)
+                    {
+                        cellstoupd.Add((WorldX + x, WorldY + y, this[x, y]));
+                    }
+                }
+            }
+            foreach (var c in cellstoupd)
+            {
+                if (World.GetProp(c.Item3).isSand && Physics.Sand(c.Item1, c.Item2))
+                {
+                    updlasttick = true;
+                }
+                else if (World.GetProp(c.Item3).isBoulder && Physics.Boulder(c.Item1, c.Item2))
+                {
+                    updlasttick = true;
+                }
+            }
+        }
+        private void UpdateAlive()
+        {
+            List<(int, int, byte)> cellstoupd = new();
+            for (int y = 0; y < 32; y++)
+            {
+                for (int x = 0; x < 32; x++)
+                {
+                    var prop = World.GetProp(this[x, y]);
+                    if (World.isAlive(this[x, y]))
                     {
                         cellstoupd.Add((WorldX + x, WorldY + y, this[x, y]));
                     }
@@ -236,14 +259,20 @@ namespace MinesServer.GameShit.WorldSystem
                 {
                     updlasttick = true;
                 }
-                else if (World.GetProp(c.Item3).isSand && Physics.Sand(c.Item1, c.Item2))
-                {
-                    updlasttick = true;
-                }
-                else if (World.GetProp(c.Item3).isBoulder && Physics.Boulder(c.Item1, c.Item2))
-                {
-                    updlasttick = true;
-                }
+            }
+        }
+        private void UpdateCells()
+        {
+            var now = ServerTime.Now;
+            if (now - lastupdalive > TimeSpan.FromMilliseconds(5000))
+            {
+                UpdateAlive();
+                lastupdalive = now;
+            }
+            if (now - sandandb > TimeSpan.FromMilliseconds(400))    
+            {
+                UpdateSandBoulders();
+                sandandb = now;
             }
         }
         private bool updlasttick = false;

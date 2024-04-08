@@ -9,6 +9,7 @@ namespace MinesServer.GameShit.Consumables
     {
         public static void C190Shot(int x, int y, Player p)
         {
+            var valid = (byte cell) => !World.isAlive(cell) && World.GetProp(cell).is_diggable && World.GetProp(cell).is_destructible && !World.isBuildingBlock(cell);
             int shotx = 0;
             int shoty = 0;
             switch (p.dir)
@@ -29,7 +30,7 @@ namespace MinesServer.GameShit.Consumables
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
-                        if (!World.isAlive(c) && World.GetProp(c).is_diggable && World.GetProp(c).is_destructible)
+                        if (valid(c))
                         {
                             World.DamageCell(x, y, 50);
                         }
@@ -51,7 +52,7 @@ namespace MinesServer.GameShit.Consumables
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
-                        if (!World.isAlive(c) && World.GetProp(c).is_diggable && World.GetProp(c).is_destructible)
+                        if (valid(c))
                         {
                             World.DamageCell(x, y, 50);
                         }
@@ -73,7 +74,7 @@ namespace MinesServer.GameShit.Consumables
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
-                        if (!World.isAlive(c) && World.GetProp(c).is_diggable && World.GetProp(c).is_destructible)
+                        if (valid(c))
                         {
                             World.DamageCell(x, y, 50);
                         }
@@ -95,7 +96,7 @@ namespace MinesServer.GameShit.Consumables
                             player.c190stacks++;
                             player.lastc190hit = DateTime.Now;
                         }
-                        if (!World.isAlive(c) && World.GetProp(c).is_diggable && World.GetProp(c).is_destructible)
+                        if (valid(c))
                         {
                             World.DamageCell(x, y, 50);
                         }

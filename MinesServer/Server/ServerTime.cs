@@ -13,12 +13,16 @@ namespace MinesServer.Server
         public ServerTime()
         {
             StartTimeUpdate();
+            programmatorUpdate();
             gameActions = new Queue<(GameAction,Player)>();
         }
         public void AddAction(GameAction action,Player p)
         {
+            if (ServerTime.Now < directactiondelay) return;
             gameActions.Enqueue((action,p));
+            directactiondelay = Now + TimeSpan.FromMicroseconds(5);
         }
+        private static DateTimeOffset directactiondelay = ServerTime.Now;
         public static int offset;
         public static DateTimeOffset Now { get; private set; }
         public void StartTimeUpdate()
@@ -31,7 +35,7 @@ namespace MinesServer.Server
                     var d = DateTimeOffset.Now;
                     offset = (int)(Now-d).TotalMicroseconds;
                     Now = d;
-                    Thread.Sleep(TimeSpan.FromMilliseconds(1));
+                    Thread.Sleep(TimeSpan.FromMicroseconds(50));
                 }
             });
         }
@@ -53,6 +57,24 @@ namespace MinesServer.Server
                             while (ticksToProcess-- > 0) body();
                             lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                         }
+                    }
+            });
+        }
+        public void programmatorUpdate()
+        {
+            Task.Run(() =>
+            {
+                while(true)
+                { 
+                var players = DataBase.activeplayers;
+                for (int i = 0; i < players.Count; i++)
+                {
+                    if (players.Count > i)
+                    {
+                        players[i]?.ProgrammatorUpdate();
+                    }
+                }
+                Thread.Sleep(TimeSpan.FromMicroseconds(50));
                     }
             });
         }

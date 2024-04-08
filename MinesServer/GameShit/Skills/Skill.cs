@@ -32,6 +32,11 @@ namespace MinesServer.GameShit.Skills
                 {
                     p.SendSpeed();
                 }
+                if(type == SkillType.Health)
+                {
+                    p.MaxHealth = (int)Effect;
+                    p.SendHealth();
+                }
             }
         }
         public bool MeetReqs(Player p) => !GetReqs?.Select(i => p.skillslist.skills.Where(s => s.Value?.type == i.Key && s.Value?.lvl >= i.Value).Count() > 0).Contains(false) ?? true;

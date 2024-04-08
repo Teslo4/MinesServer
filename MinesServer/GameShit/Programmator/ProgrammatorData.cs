@@ -1,5 +1,7 @@
-﻿using MinesServer.GameShit.Entities;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using MinesServer.GameShit.Entities;
 using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.Server;
 using MoreLinq;
 using System.ComponentModel.Design;
 
@@ -37,7 +39,7 @@ namespace MinesServer.GameShit.Programmator
             set; 
         }
         public Dictionary<string, PFunction> currentprog { get; set; }
-        public DateTime delay;
+        public DateTimeOffset delay;
         private string cFunction;
         public Program? selected { get; set; }
         private PFunction current
@@ -55,7 +57,7 @@ namespace MinesServer.GameShit.Programmator
             }
             foreach (var i in currentprog.Values)
                 i.Close();
-            delay = DateTime.Now;
+            delay = DateTimeOffset.UtcNow;
             Drop();
             ProgRunning = true;
         }
@@ -86,11 +88,11 @@ namespace MinesServer.GameShit.Programmator
             else
                 cFunction = currentprog.First().Key;
         }
-        public void IncreaseDelay(int ms) => delay = DateTime.Now + TimeSpan.FromMilliseconds(ms);
+        public void IncreaseDelay(double ms) => delay = ServerTime.Now + TimeSpan.FromMilliseconds(ms);
         private bool? temp = null;
         public void Step()
         {
-            if (current == null || DateTime.Now < delay)
+            if (current == null || ServerTime.Now < delay)
             {
                 return;
             }
@@ -102,6 +104,7 @@ namespace MinesServer.GameShit.Programmator
                 return;
             }
             action = current.Next;
+            //Console.WriteLine(action.type + "(" + action.label + ")");
             object result = action.Execute(entity, ref temp)!;
             switch (result)
             {
@@ -117,7 +120,6 @@ namespace MinesServer.GameShit.Programmator
                                     label = startpoint.name;
                                     currentprog[label].current = startpoint.pos;
                                 }
-                                currentprog[label].calledfrom = cFunction;
                                 cFunction = label;
                             }
                             else
@@ -161,6 +163,7 @@ namespace MinesServer.GameShit.Programmator
                                     break;
                                 }
                                 current.Reset();
+                                currentprog[label].calledfrom = current.calledfrom;
                                 cFunction = label;
                             }
                             break;
@@ -202,12 +205,12 @@ namespace MinesServer.GameShit.Programmator
                             }
                                 break;
                         case ActionType.Return:
-                            current.Reset();
-                            if (current.calledfrom is not null)
-                            {
-                                cFunction = current.calledfrom;
-                            }
-                            break;
+                              current.Reset();
+                              if (current.calledfrom is not null)
+                              {
+                                    cFunction = current.calledfrom;
+                              }
+                              break;
                         case ActionType.ReturnState:
                             current.Reset();
                             if (current.calledfrom is not null)

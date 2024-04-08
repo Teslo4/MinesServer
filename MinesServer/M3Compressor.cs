@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using MinesServer.GameShit.WorldSystem;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MinesServer
 {
@@ -19,7 +21,7 @@ namespace MinesServer
             var width = Convert.ToUInt16(image.Width);
             var height = Convert.ToUInt16(image.Height);
             MemoryMarshal.Write(temp[0..2], in width);
-            MemoryMarshal.Write(temp[2..4], in width);
+            MemoryMarshal.Write(temp[2..4], in height);
             byte op = 4;
             for (int i = 0;i<10;i++)
             {
@@ -44,6 +46,66 @@ namespace MinesServer
                 }
             }
             return temp.ToArray();
+        }
+        public static byte[] CompressImageArray((byte r,byte g,byte b,byte a)[] args,int iwidth,int iheight)
+        {
+            Span<byte> temp = stackalloc byte[args.Length * 4];
+            for (int y = 0; y < iheight; y++)
+            {
+                for (int x = 0; x < iwidth; x++)
+                {
+                    byte r = 0, g = 0, b = 0, a = 0;
+                    var t = ((4 * (y * iwidth + x)));
+                    MemoryMarshal.Write(temp[t..], in r);
+                    t++;
+                    MemoryMarshal.Write(temp[t..], in g);
+                    t++;
+                    MemoryMarshal.Write(temp[t..], in b);
+                    t++;
+                    MemoryMarshal.Write(temp[t..], in a);
+                }
+            }
+            return temp.ToArray();
+        }
+        public static Bitmap ConvertMapPart(int fromx, int fromy, int tox, int toy)
+        {
+            var bitmap = new Bitmap(tox - fromx, toy - fromy);
+            for (int x = 0; fromx + x < tox; x++)
+            {
+                for (int y = 0; fromy + y < toy; y++)
+                {
+                    bitmap.SetPixel(x, y, World.GetProp(fromx + x, fromy + y).isEmpty ? Color.Green : Color.CornflowerBlue);
+                }
+            }
+            return bitmap;
+        }
+        public static byte[] splitbitmap(Bitmap b)
+        {
+            byte[] temp = new byte[2 * 2 + 10 + (b.Width * b.Height) * 4];
+            var width = BitConverter.GetBytes(Convert.ToUInt16(b.Width));
+            var height = BitConverter.GetBytes(Convert.ToUInt16(b.Height));
+            Buffer.BlockCopy(width, 0, temp, 0, width.Length);
+            Buffer.BlockCopy(height, 0, temp, 2, height.Length);
+            byte op = 4;
+            for (int i = 0; i < 10; i++)
+            {
+
+                temp[4 + i] = op;
+                op = 0;
+            }
+            for(int y = 0;y < b.Height;y++)
+            {
+                for(int x = 0;x < b.Width;x++)
+                {
+                    var t = (14 + (4 * (y * b.Width + x)));
+                    var p = b.GetPixel(x, y);
+                    temp[t] = p.R;
+                    temp[t + 1] = p.G;
+                    temp[t + 2] = p.B;
+                    temp[t + 3] = p.A;
+                }
+            }
+            return temp;
         }
     }
 }

@@ -12,6 +12,7 @@ using MinesServer.Network.HubEvents;
 using MinesServer.Network.Programmator;
 using MinesServer.Network.TypicalEvents;
 using MinesServer.Network.World;
+using MinesServer.Server.Network.TypicalEvents;
 using NetCoreServer;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -115,10 +116,15 @@ namespace MinesServer.Server
                 case INVNPacket invn: Invn(packet, invn); break;
                 case XheaPacket xhea: Xhea(packet, xhea); break;
                 case ChinPacket chin: Chin(packet, chin);break;
+                case TAURPacket taur: Taur(packet, taur);break;
                 default:
                     // Invalid event type
                     break;
             }
+        }
+        private void Taur(TYPacket f,TAURPacket t)
+        {
+
         }
         private void Chin(TYPacket f,ChinPacket chin)
         {
@@ -220,10 +226,10 @@ namespace MinesServer.Server
             {
                 if (player != null && player.win == null)
                 {
-                    player.dir = packet.Direction;
+                    player.Move(player.x, player.y, packet.Direction);
                     player.Bz();
                 }
-            }, 20000);
+            }, 200);
         }
         private void GeoHandler(TYPacket parent, XgeoPacket packet)
         {
@@ -233,7 +239,7 @@ namespace MinesServer.Server
                 {
                     player.Geo();
                 }
-            }, 20000);
+            }, 200);
         }
         private void BuildHandler(TYPacket parent, XbldPacket packet)
         {
@@ -241,9 +247,8 @@ namespace MinesServer.Server
             {
                 player.TryAct(() =>
                 {
-                    player.dir = packet.Direction;
                     player.Build(packet.BlockType);
-                }, 20000);
+                }, 200);
             }
         }
         private void AutoDiggHandler(TYPacket parent, TADGPacket packet)
@@ -258,7 +263,7 @@ namespace MinesServer.Server
                 player.TryAct(() =>
                 {
                     player.Move((int)parent.X, (int)parent.Y, packet.Direction);
-                }, player.OnRoad ? (player.pause * 5) * 0.65 : player.pause * 5);
+                }, player.ServerPause);
             }
         }
         private void WhoisHandler(TYPacket parent, WhoiPacket packet)

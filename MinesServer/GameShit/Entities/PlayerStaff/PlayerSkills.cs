@@ -209,7 +209,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 {
                     requirements = null,
                     costfunc = (x) => 1f,
-                    effectfunc = (x) => x * 3f,
+                    effectfunc = (x) => 100 + x * 3f,
                     expfunc = (x) => 1f,
                     type = SkillType.Health, // хп
                     effecttype = SkillEffectType.OnHealth
@@ -299,8 +299,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 {
                     requirements = null,
                     costfunc = (x) =>1f,
-                    effectfunc = (x) =>  52,
-                    expfunc = (x) => 0,
+                    effectfunc = (x) =>  x * 1f,
+                    expfunc = (x) => 1f,
                     type = SkillType.Repair, // хил
                     effecttype = SkillEffectType.OnHealth
                 }

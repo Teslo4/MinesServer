@@ -363,6 +363,14 @@ namespace MinesServer.GameShit.WorldSystem
             }
             return true;
         }
+        public static bool isBuildingBlock(byte cell)
+        {
+            return (CellType)cell switch
+            {
+                CellType.GreenBlock or CellType.YellowBlock or CellType.RedBlock or CellType.MilitaryBlockFrame or CellType.MilitaryBlock or CellType.Support or CellType.QuadBlock => true,
+                _ => false
+            };
+        }
         public static bool isAlive(byte cell)
         {
             return (CellType)cell switch

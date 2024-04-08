@@ -16,11 +16,11 @@ namespace MinesServer
     {
         public ImgSpace() { _serverspace.Start(); }
         static HttpListener _serverspace = new HttpListener();
-        public static string UrlForPlayer(int id) => $"http://localhost/{id}/";
-        public static string LocateChunks(int id,(int x, int y)start,(int x, int y) end)
+        public static string UrlB(string urlend) => $"http://localhost/{urlend}/";
+        public static string LocateChunks(string urlend,(int x, int y)start,(int x, int y) end)
         {
-            var url = UrlForPlayer(id);
-            LocateArray(url, GetArrayFromChunks(start, end));
+            var url = UrlB(urlend);
+            LocateArray(url, M3Compressor.splitbitmap(Default.ConvertMapPart(start.x * 32, start.y * 32, end.x * 32, end.y * 32)));
             return url;
         }
         private static byte[] GetArrayFromChunks((int x,int y)start,(int x,int y)end) => M3Compressor.Compress(Default.ConvertMapPart(start.x * 32, start.y * 32, end.x * 32, end.y * 32));
@@ -34,13 +34,13 @@ namespace MinesServer
                 var startime = ServerTime.Now;
                 Task.Run(() =>
                 {
-                    while (ServerTime.Now - startime < TimeSpan.FromSeconds(1))
+                    while (ServerTime.Now - startime < TimeSpan.FromSeconds(5))
                     {
-                        _serverspace.GetContextAsync().ContinueWith((r) =>
+                        var context = _serverspace.GetContextAsync().ContinueWith((a) =>
                         {
                             try
                             {
-                                var context = r.Result;
+                                var context = a.Result;
                                 byte[] _responseArray = array;
                                 context.Request.Headers.Add("Content-Disposition", "attachment; filename=mappart.m3");
                                 context.Response.OutputStream.WriteAsync(_responseArray, 0, _responseArray.Length);
@@ -48,11 +48,17 @@ namespace MinesServer
                                 context.Response.Close();
                                 _serverspace.Prefixes.Remove(url);
                             }
-                            catch(Exception ex) {
+                            catch (Exception ex)
+                            {
                                 Console.WriteLine(ex);
                             }
+
                         });
                         Thread.Sleep(1);
+                    }
+                    if (_serverspace.Prefixes.Contains(url))
+                    {
+                        _serverspace.Prefixes.Remove(url);
                     }
                 });
         }

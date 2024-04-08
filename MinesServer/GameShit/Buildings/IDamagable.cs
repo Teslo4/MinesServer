@@ -9,13 +9,16 @@ namespace MinesServer.GameShit.Buildings
         {
             if (ownerid == 0)
                 return;
-            if (charge - 100 > 0)
+            if (i > 10)
             {
-                charge -= 100;
-            }
-            else
-            {
-                charge = 0;
+                if (charge - 100 > 0)
+                {
+                    charge -= 100;
+                }
+                else
+                {
+                    charge = 0;
+                }
             }
             if (hp == 0)
                 return;

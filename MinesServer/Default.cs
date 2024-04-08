@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace MinesServer
 {
-    // <image src="a.jpg"/>
+
     public static class Default
     {
         static public bool HasProperty(this Type type, string name)

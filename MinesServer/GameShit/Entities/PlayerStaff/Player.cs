@@ -35,6 +35,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         #region forprogs
         public void RunProgramm(Program p = null)
         {
+            win = null;
+            SendWindow();
             if (p == null)
             {
                 programsData.Run();
@@ -112,7 +114,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public Inventory inventory { get; set; }
         public Settings settings { get; set; }
         public PlayerSkills skillslist { get; set; }
-        public Stack<byte> geo = new Stack<byte>();
         public Queue<Line> console = new Queue<Line>();
         [NotMapped]
         public Window? win;
@@ -129,9 +130,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         {
             get => (int)Math.Floor((float)y / 32);
         }
-        public double Pause
+        public override double ServerPause
         {
-            get => World.GetCell(x, y) == 35 ? 2 : 2;
+            get => (OnRoad ? (pause * 5) * 0.65 : pause * 5) * 1.4 / 1000;
         }
         private void Sync()
         {
@@ -141,6 +142,11 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 db.SaveChanges();
             }
         }
+        public void ProgrammatorUpdate()
+        {
+            if (programsData.ProgRunning)
+                programsData.Step();
+        }
         #endregion
         #region actions
         public override void Update()
@@ -148,7 +154,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             var now = ServerTime.Now;
             if (lastping != default)
             {
-                if (now - lastping >= TimeSpan.FromSeconds(30))
+                if (now - lastping >= TimeSpan.FromSeconds(10000))
                 {
                     connection?.Disconnect();
                 }
@@ -195,19 +201,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     World.Destroy(x, y);
                 }
             }
-            if (programsData.ProgRunning)
-            {
-                programsData.Step();
-                return;
-            }
         }
         public void SetResp(Resp r) => resp = r;
         public void TryAct(Action a, double delay)
         {
+            if (programsData.ProgRunning) return;
             if (Delay < ServerTime.Now)
             {
                 a();
-                Delay = ServerTime.Now + TimeSpan.FromMicroseconds(delay * 1.4);
+                Delay = ServerTime.Now + TimeSpan.FromMilliseconds(delay);
             }
         }
         private int ParseCryType(CellType cell)
@@ -377,13 +379,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
             }
         }
-        public override bool Move(int x, int y, int dir = -1)
+        public override bool Move(int x, int y, int dir = -1, bool prog = false)
         {
-            if (!World.W.ValidCoord(x, y) || win != null)
+            if (!World.W.ValidCoord(x, y) || (win != null && !prog))
             {
                 tp(this.x, this.y);
                 return false;
             }
+            if (dir > 9)
+                dir -= 10;
             if (dir == -1 || this.x != x || this.y != y)
                 this.dir = this.x > x ? 1 : this.x < x ? 3 : this.y > y ? 2 : 0;
             else
@@ -437,20 +441,21 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             }
             return false;
         }
-        public void Build(string type)
+        public override void Build(string type)
         {
             int x = (int)GetDirCord().x, y = (int)GetDirCord().y;
             if (!World.W.ValidCoord(x, y) || !World.AccessGun(x, y, cid).access || World.PackPart(x, y))
             {
                 return;
             }
+            var prop = World.GetProp(x, y);
             var buildskills = skillslist.skills.Values.Where(c => c.EffectType() == SkillEffectType.OnBld);
             switch (type)
             {
                 case "G":
                     foreach (var c in buildskills)
                     {
-                        if (c.type == SkillType.BuildGreen && World.GetProp(x, y).isEmpty)
+                        if (c.type == SkillType.BuildGreen && (prop.isEmpty || prop.isSand))
                         {
                             c.AddExp(this);
                             if (crys.RemoveCrys(0, (long)c.Effect))
@@ -524,7 +529,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                         if (c.type == SkillType.BuildStructure)
                         {
                             c.AddExp(this);
-                            if (crys.RemoveCrys(0, (long)c.Effect) && World.GetProp(x, y).isEmpty)
+                            if (crys.RemoveCrys(0, (long)c.Effect) && (prop.isEmpty || prop.isSand))
                             {
                                 World.SetCell(x, y, CellType.Support);
                             }
@@ -587,6 +592,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             {
                 DataBase.activeplayers.Add(this);
             }
+            skillslist.LoadSkills();
             MaxHealth = 100;
             foreach (var c in skillslist.skills.Values)
             {
@@ -594,14 +600,13 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 {
                     if (c.type == SkillType.Health)
                     {
-                        MaxHealth += (int)c.Effect;
+                        MaxHealth = (int)c.Effect;
                     }
                 }
             }
             Health = Health <= 0 ? MaxHealth : Health;
             connection.auth = null;
             crys.player = this;
-            skillslist.LoadSkills();
             connection?.SendWorldInfo();
             this.SendAutoDigg();
             this.SendGeo();
@@ -901,14 +906,14 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             win.ProcessButton(text);
         }
         #region health
-        public override void Heal(int num = -1)
+        public override bool Heal(int num = -1)
         {
             var heal = skillslist.skills.Values.FirstOrDefault(i => i.type == SkillType.Repair);
             if (Health == MaxHealth || heal == default)
-                return;
+                return false;
             num = (int)heal.Effect;
             if (num == -1)
-                return;
+                return false;
             if (crys.RemoveCrys(2, 1))
             {
                 heal.AddExp(this);
@@ -917,7 +922,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     Health = MaxHealth;
                 SendDFToBots(5, 0, 0, id, 0);
                 this.SendHealth();
+                return true;
             }
+            return false;
         }
 
         public override void Hurt(int num, DamageType t = DamageType.Pure)

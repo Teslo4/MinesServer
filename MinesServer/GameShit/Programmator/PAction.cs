@@ -24,7 +24,7 @@ namespace MinesServer.GameShit.Programmator
         {
             this.label = label; type = t;this.num = number;
         }
-        public int delay = 0;
+        public double delay = 0;
         public string label;
         public int num;
         public ActionType type;
@@ -63,8 +63,21 @@ namespace MinesServer.GameShit.Programmator
             CellType.AcidRock or CellType.CorrosiveActiveAcid or CellType.GrayAcid or CellType.GrayAcid or CellType.LivingActiveAcid or CellType.PassiveAcid or CellType.PurpleAcid => true,
             _ => false
         };
-        private bool? CallWSAction()
+        private bool? CallWSAction(BaseEntity p)
         {
+            switch(label.ToLower())
+            {
+                case "geo":
+                    return type switch
+                    {
+                        ActionType.WritableState => p.geo.Count == num,
+                        ActionType.WritableStateLower => p.geo.Count < num,
+                        ActionType.WritableStateMore => p.geo.Count > num
+                    };
+                case "del":
+                    delay = num;
+                    return null;
+            }
             return false;
         }
         private static Dictionary<int, (int dx, int dy)> dirz = new()
@@ -91,7 +104,7 @@ namespace MinesServer.GameShit.Programmator
                         else
                         {
                             p.Move(p.x, p.y, i.Key);
-                            delay = p.pause / 100;
+                            delay = p.ServerPause;
                                 return true;
                         }
                     }
@@ -99,9 +112,8 @@ namespace MinesServer.GameShit.Programmator
                 case ActionType.MacrosHeal:
                     if (p.crys is not null && p.crys[MinesServer.Enums.CrystalType.Red] > 0)
                     {
-                        if (p.Health < p.MaxHealth)
+                        if (p.Health < p.MaxHealth && p.Heal())
                         {
-                            p.Heal();
                             delay = 200;
                             return true;
                         }
@@ -117,58 +129,58 @@ namespace MinesServer.GameShit.Programmator
                     }
                     break;
                 case ActionType.MoveDown:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     if (p.Move(p.x, p.y + 1))
                     {
                         delay += 200;
                     }
                     break;
                 case ActionType.MoveUp:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     if (p.Move(p.x, p.y - 1))
                     {
                         delay += 200;
                     }
                     break;
                 case ActionType.MoveRight:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     if (p.Move(p.x + 1, p.y))
                     {
                         delay += 200;
                     }
                     break;
                 case ActionType.MoveLeft:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     if (p.Move(p.x - 1, p.y))
                     {
                         delay += 200;
                     }
                     break;
                 case ActionType.MoveForward:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     if (p.Move((int)p.GetDirCord().x, (int)p.GetDirCord().y))
                     {
                         delay += 200;
                     }
                     break;
                 case ActionType.RotateDown:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     p.Move(p.x, p.y, 0);
                     break;
                 case ActionType.RotateUp:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     p.Move(p.x, p.y, 2);
                     break;
                 case ActionType.RotateLeft:
-                    delay = p.pause / 100;
-                    p.Move(p.x, p.y, 3);
-                    break;
-                case ActionType.RotateRight:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     p.Move(p.x, p.y, 1);
                     break;
+                case ActionType.RotateRight:
+                    delay = p.ServerPause;
+                    p.Move(p.x, p.y, 3);
+                    break;
                 case ActionType.RotateLeftRelative:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     var dirl = p.dir switch
                     {
                         0 => 3,
@@ -179,7 +191,7 @@ namespace MinesServer.GameShit.Programmator
                     p.Move(p.x, p.y, dirl);
                     break;
                 case ActionType.RotateRightRelative:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     var dirr = p.dir switch
                     {
                         0 => 1,
@@ -190,24 +202,32 @@ namespace MinesServer.GameShit.Programmator
                     p.Move(p.x, p.y, dirr);
                     break;
                 case ActionType.RotateRandom:
-                    delay = p.pause / 100;
+                    delay = p.ServerPause;
                     var rand = new Random(Guid.NewGuid().GetHashCode());
                     p.Move(p.x, p.y, rand.Next(4));
                     break;
                 case ActionType.Dig:
-                    delay = 250;
+                    delay = 100;
                     p.Bz();
                     break;
                 case ActionType.BuildBlock:
+                    delay = 100;
+                    p.Build("G");
                     break;
                 case ActionType.BuildPillar:
+                    delay = 100;
+                    p.Build("O");
                     break;
                 case ActionType.BuildRoad:
+                    delay = 100;
+                    p.Build("R");
                     break;
                 case ActionType.BuildMilitaryBlock:
+                    delay = 100;
+                    p.Build("V");
                     break;
                 case ActionType.Geology:
-                    delay = 250;
+                    delay = 100;
                     p.Geo();
                     break;
                 case ActionType.Heal:
@@ -401,9 +421,12 @@ namespace MinesServer.GameShit.Programmator
                 case ActionType.GoTo:
                     return label;
                 case ActionType.WritableState or ActionType.WritableStateLower or ActionType.WritableStateMore:
-                    var res = CallWSAction();
+                    var res = CallWSAction(p);
                     if (res is not null)
+                    {
+                        Check(p, (x, y) => { return (bool)res; });
                         return res;
+                    }
                     break;
                 case 0 or _:
                     break;
