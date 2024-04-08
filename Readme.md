@@ -13,12 +13,17 @@ thx Darkar25 for help with Network, GUI, etc...
 5.Basic thougts about howtf game by м€кининг works
 
 ### Directly
-#### First Step
+#### Х First Step
+
 1.Clone Repo
+
 <img src=LaunchHelp/1.png>
+
 2.LAUNCH IT
+
 <img src=LaunchHelp/2.png>
-#### Second Step
+
+#### Х Second Step
 ##### Connection
 <details>
 <summary>True Way</summary>
