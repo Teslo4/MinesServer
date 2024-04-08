@@ -21,7 +21,7 @@ namespace MinesServer.GameShit.Buildings
             db.SaveChanges();
         }
         public CraftEntry? currentcraft { get; set; }
-        public DateTime brokentimer { get; set; }
+        public DateTimeOffset brokentimer { get; set; }
         [NotMapped]
         public override int off
         {

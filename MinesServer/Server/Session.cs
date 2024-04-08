@@ -40,11 +40,12 @@ namespace MinesServer.Server
             Console.WriteLine($"{this.ToString()} connected");
             SendU(new StatusPacket("черный хуй в твоей жопе"));
             SendU(new AUPacket(sid));
-            starttime = ServerTime.Now;
-            Ping(default);
+            SendU(new PingPacket(0, 0, ""));
         }
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
+            if (starttime == default)
+                starttime = ServerTime.Now;
             Packet p = default;
             try
             {
@@ -118,6 +119,8 @@ namespace MinesServer.Server
                 case INVNPacket invn: Invn(packet, invn); break;
                 case XheaPacket xhea: Xhea(packet, xhea); break;
                 case ChinPacket chin: Chin(packet, chin);break;
+
+                    /////FIX THIS SH
                 case TAURPacket taur: Taur(packet, taur);break;
                 default:
                     // Invalid event type
@@ -205,15 +208,12 @@ namespace MinesServer.Server
             var now = ServerTime.Now;
             var offset = ServerTime.offset;
             var localserver = (int)(now - starttime).Add(TimeSpan.FromMicroseconds(offset)).TotalMilliseconds;
-            //Console.WriteLine($"{localserver}:{p.CurrentTime}:{offset}");
             Task.Run(() =>
             {
                 Thread.Sleep(200);
-                SendU(new PingPacket(52, localserver, $"{localserver - p.CurrentTime - (int)(now - lastping).TotalMilliseconds} "));
-                lastping = now;
+                SendU(new PingPacket(52, localserver, $"{localserver - p.CurrentTime} "));
             });
         }
-        private DateTimeOffset lastping;
         private void Inus(TYPacket f, INUSPacket inus)
         {
             player.inventory.Use(player);

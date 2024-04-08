@@ -31,15 +31,15 @@ namespace MinesServer.GameShit.Generator
             var dick = new Dictionary<CellType, (float, float)>();
             foreach (var d in args)
             {
-                double start = rand.NextDouble();
-                double end = start + rand.NextDouble();
+                float start = (float)rand.NextDouble();
+                float end = start + (float)rand.NextDouble();
                 while (dick.Values.Any(segment => segment.Item1 <= end && segment.Item2 >= start))
                 {
-                    start = rand.NextDouble();
-                    end = start + rand.NextDouble();
+                    start = (float)rand.NextDouble();
+                    end = start + (float)rand.NextDouble();
                     continue;
                 }
-                dick[d] = ((float)start, (float)end);
+                dick[d] = (start, end);
             }
             return dick;
         }
@@ -95,11 +95,11 @@ namespace MinesServer.GameShit.Generator
         }
         public void CreateFillForCells(Sector s, bool gig = false, params CellType[] args)
         {
+            Console.WriteLine("");
             var segmentsmall = 0;
             var notenouthparts = 0;
             var empty = 0;
             restart:
-            Console.WriteLine("");
             var parts = RandomSizedParts(args);
             while(parts.Count < args.Length)
             {
@@ -108,16 +108,17 @@ namespace MinesServer.GameShit.Generator
         refillnoise:
             var data = FillNoiseToSector(s);
             var result = SampleAndFindTypes(s, parts, data);
+            Console.Write("\r                                                                                  ");
             if (result.Count < parts.Count)
             {
                 notenouthparts++;
                 if (notenouthparts > 2)
                 {
                     notenouthparts = 0;
-                    Console.WriteLine("\rrestarted");
+                    Console.Write("\rrestarted");
                     goto restart;
                 }
-                Console.WriteLine("\rto small result");
+                Console.Write("\rto small result");
                 goto refillnoise;
             }
             if (result.ContainsKey(CellType.Empty) && s.seccells.Count * 0.4 < result[CellType.Empty])
@@ -125,7 +126,7 @@ namespace MinesServer.GameShit.Generator
                 empty++;
                 if (empty > 4)
                 {
-                    Console.WriteLine("\rtoo empty");
+                    Console.Write("\rtoo empty");
                     empty = 0;
                     goto restart;
                 }
@@ -140,10 +141,10 @@ namespace MinesServer.GameShit.Generator
                     if (segmentsmall > 2)
                     {
                         segmentsmall = 0;
-                        Console.WriteLine("\rOneOfsegmentstosmall restart");
+                        Console.Write("\rOneOfsegmentstosmall restart");
                         goto restart;
                     }
-                    Console.WriteLine($"\rOneOfsegmentstosmall resample {segmentsmall}");
+                    Console.Write($"\rOneOfsegmentstosmall resample {segmentsmall}");
                     goto refillnoise;
                 }
             }

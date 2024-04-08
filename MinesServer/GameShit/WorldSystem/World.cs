@@ -17,8 +17,8 @@ namespace MinesServer.GameShit.WorldSystem
 {
     public class World
     {
-        public const int ChunksW = 20;
-        public const int ChunksH = 20;
+        public const int ChunksW = 100;
+        public const int ChunksH = 100;
         public const int CellsWidth = ChunksW * ChunkWidth;
         public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;

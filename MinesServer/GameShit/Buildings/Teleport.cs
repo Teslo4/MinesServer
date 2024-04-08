@@ -18,7 +18,7 @@ namespace MinesServer.GameShit.Buildings
 {
     public class Teleport : Pack, IDamagable
     {
-        public DateTime brokentimer { get; set; }
+        public DateTimeOffset brokentimer { get; set; }
         public float charge { get; set; }
         public float maxcharge { get; set; }
         public int hp { get; set; }

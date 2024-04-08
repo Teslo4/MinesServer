@@ -19,7 +19,7 @@ namespace MinesServer.GameShit.Buildings
         [NotMapped]
         public float charge { get; set; }
         public long moneyinside { get; set; }
-        public DateTime brokentimer { get; set; }
+        public DateTimeOffset brokentimer { get; set; }
         #endregion;
         private Market() {}
         public Market(int ownerid, int x, int y) : base(ownerid, x, y, PackType.Market)

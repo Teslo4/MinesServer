@@ -16,7 +16,7 @@ namespace MinesServer.GameShit.Buildings
         [NotMapped]
         public float charge { get; set; }
         public int hp { get; set; }
-        public DateTime brokentimer { get; set; }
+        public DateTimeOffset brokentimer { get; set; }
         public long moneyinside { get; set; }
         #endregion
         public Up(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Up)

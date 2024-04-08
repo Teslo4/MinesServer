@@ -24,6 +24,7 @@ namespace MinesServer.GameShit.Generator
             var v = bool (int x, int y) => x < size.Item1 && x >= 0 && y < size.Item2 && y >= 0;
             var ce = new List<SectorCell>();
             var que = new Queue<SectorCell>();
+            int secnum = 0;
             for (int y = 0; y < size.Item2; y++)
             {
                 for (int x = 0; x < size.Item1; x++)
@@ -57,10 +58,13 @@ namespace MinesServer.GameShit.Generator
                             }
                         }
                         var s = new Sector() { seccells = ce, width = swidth, height = sheight, depth = depth };
+                        
                         if (s.seccells.Count < 50)
                         {
                             continue;
                         }
+                        Console.WriteLine($"{secnum} sector filling");
+                        secnum++;
                         var inside = new SectorFiller();
                         if (s.seccells.Count > 40000)
                         {

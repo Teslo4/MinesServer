@@ -20,7 +20,7 @@ namespace MinesServer.GameShit.Buildings
         public long moneyinside { get; set; }
         public int hp { get; set; }
         public int maxhp { get; set; }
-        public DateTime brokentimer { get; set; }
+        public DateTimeOffset brokentimer { get; set; }
         #endregion
         private Resp(){ }
         public Resp(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Resp)

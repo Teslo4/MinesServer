@@ -18,7 +18,7 @@ namespace MinesServer.GameShit.Buildings
         }
         [NotMapped]
         public float charge { get; set; }
-        public DateTime brokentimer { get; set; }
+        public DateTimeOffset brokentimer { get; set; }
         public int hp { get; set; }
         #region crysshit
         public long[] crysinside = new long[6];
