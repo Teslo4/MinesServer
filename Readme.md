@@ -10,10 +10,10 @@ thx Darkar25 for help with Network, GUI, etc...
 2.Build tools for C#(...)
 3.Localdb(Really need)
 4.Understanding of shit ur gonna do
-5.Basic thougts about howtf game by мякининг works
+5.Basic thougts about howtf game by РњСЏРєРёРЅРёРЅРє works
 
 ### Directly
-#### • First Step
+#### вЂў First Step
 
 1.Clone Repo
 
@@ -23,7 +23,7 @@ thx Darkar25 for help with Network, GUI, etc...
 
 <img src=LaunchHelp/2.png>
 
-#### • Second Step
+#### вЂў Second Step
 ##### Connection
 <details>
 <summary>True Way</summary>
@@ -32,6 +32,6 @@ Write an extension for server choosing
 <details>
 <summary>Easy Way</summary>
 Goto ur hosts file and write something like:
-(Read text inside file please don't be like "Салих")
+(Read text inside file please don't be like "РЎР°Р»РёС…")
 <img src=LaunchHelp/3.png>
 </details>
