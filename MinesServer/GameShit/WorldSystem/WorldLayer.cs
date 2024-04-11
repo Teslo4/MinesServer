@@ -95,7 +95,8 @@ namespace MinesServer.GameShit.WorldSystem
         public T[] Read(int chunkx, int chunky)
         {
             var chunkindex = GetChunkIndex(chunkx, chunky);
-            _buffer[chunkindex] ??= Read(chunkindex);
+            while (_buffer[chunkindex] is null)
+                _buffer[chunkindex] ??= Read(chunkindex);
             return _buffer[chunkindex];
         }
         public void Write(int chunkx, int chunky, T[] data) => Write(GetChunkIndex(chunkx, chunky), data);

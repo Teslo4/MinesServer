@@ -34,7 +34,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public void InstallSkill(string type, int slot, Player p)
         {
-            if (skills.ContainsKey(slot) && skills[slot] != null || slot > slots || slot < 0 || !skillz.First(i => i.type.GetCode() == type).MeetReqs(p))
+            if (skills.ContainsKey(slot) && skills[slot] != null || slot > slots || slot < 0 || !skillz.First(i => i.type.GetCode() == type).Visible(p,out var meet) || !meet)
             {
                 return;
             }
@@ -55,9 +55,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             Dictionary<SkillType, bool> d = new();
             foreach (var sk in skillz)
             {
-                if (skills.FirstOrDefault(skill => skill.Value?.type == sk.type).Value == null && sk.MeetReqs(p))
+                if (skills.FirstOrDefault(skill => skill.Value?.type == sk.type).Value == null && sk.Visible(p,out var meet))
                 {
-                    d.Add(sk.type, true);
+                    d.Add(sk.type, meet);
                 }
             }
             return d;
@@ -93,7 +93,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 },
                 new Skill()
                 {
-                    requirements = new() { {SkillType.Digging,1} },
+                    requirements = new() { {SkillType.Digging,5} },
                     costfunc = (x) => 1f,
                     effectfunc = (x) => 5f - x * 0.2f < 0 ? 1f : 5f - x * 0.2f,
                     expfunc = (x) => 1f,

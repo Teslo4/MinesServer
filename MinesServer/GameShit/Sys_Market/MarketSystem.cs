@@ -252,7 +252,7 @@ namespace MinesServer.GameShit.SysMarket
                 OnInventory = oninventory,
                 Inventory = Items(),
                 Title = "МАРКЕТ",
-                Buttons = [new MButton("Продать кри", "sell", (args) => { Console.WriteLine("sell"); })],
+                Buttons = [],
             };
         }
     }

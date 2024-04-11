@@ -133,7 +133,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public override double ServerPause
         {
-            get => (OnRoad ? (pause * 5) * 0.65 : pause * 5) * 1.4 / 1000;
+            get => (OnRoad ? (pause * 5) * 0.80 : pause * 5) * 1.4 / 1000;
         }
         private void Sync()
         {
@@ -457,11 +457,11 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 case "G":
                     foreach (var c in buildskills)
                     {
-                        if (c.type == SkillType.BuildGreen && (prop.isEmpty || prop.isSand))
+                        if (c.type == SkillType.BuildGreen && (World.TrueEmpty(x, y) || prop.isSand))
                         {
-                            c.AddExp(this);
                             if (crys.RemoveCrys(0, (long)c.Effect))
                             {
+                                c.AddExp(this);
                                 World.SetCell(x, y, CellType.GreenBlock);
                                 World.SetDurability(x, y, c.AdditionalEffect);
                             }
@@ -469,9 +469,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                         }
                         else if (c.type == SkillType.BuildYellow && World.GetCell(x, y) == (byte)CellType.GreenBlock)
                         {
-                            c.AddExp(this);
                             if (crys.RemoveCrys(4, (long)c.Effect))
                             {
+                                c.AddExp(this);
                                 World.SetCell(x, y, CellType.YellowBlock);
                                 World.SetDurability(x, y, World.GetDurability(x, y) + c.AdditionalEffect);
                             }
@@ -479,9 +479,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                         }
                         else if (c.type == SkillType.BuildRed && World.GetCell(x, y) == (byte)CellType.YellowBlock)
                         {
-                            c.AddExp(this);
                             if (crys.RemoveCrys(2, (long)c.Effect))
                             {
+                                c.AddExp(this);
                                 World.SetCell(x, y, CellType.RedBlock);
                                 World.SetDurability(x, y, World.GetDurability(x, y) + c.AdditionalEffect);
                             }
@@ -494,14 +494,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     {
                         if (c.type == SkillType.BuildWar)
                         {
-                            c.AddExp(this);
-                            if (crys.RemoveCrys(5, (long)c.Effect) && World.GetProp(x, y).isEmpty)
+                            if (crys.RemoveCrys(5, (long)c.Effect) && World.TrueEmpty(x, y))
                             {
+                                c.AddExp(this);
                                 World.SetCell(x, y, CellType.MilitaryBlockFrame);
-                                World.W.AsyncAction(50, () =>
+                                World.W.StupidAction(10, x, y, () =>
                                 {
                                     if (World.GetCell(x, y) == (byte)CellType.MilitaryBlockFrame)
                                     {
+                                        c.AddExp(this);
                                         World.SetCell(x, y, CellType.MilitaryBlock);
                                         World.SetDurability(x, y, c.AdditionalEffect);
                                     }
@@ -516,9 +517,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     {
                         if (c.type == SkillType.BuildRoad)
                         {
-                            c.AddExp(this);
-                            if (crys.RemoveCrys(0, (long)c.Effect) && World.GetProp(x, y).isEmpty)
+                            if (crys.RemoveCrys(0, (long)c.Effect) && World.TrueEmpty(x,y))
                             {
+                                c.AddExp(this);
                                 World.SetCell(x, y, CellType.Road);
                             }
                             return;
@@ -530,9 +531,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     {
                         if (c.type == SkillType.BuildStructure)
                         {
-                            c.AddExp(this);
-                            if (crys.RemoveCrys(0, (long)c.Effect) && (prop.isEmpty || prop.isSand))
+                            if (crys.RemoveCrys(0, (long)c.Effect) && (World.TrueEmpty(x, y) || prop.isSand))
                             {
+                                c.AddExp(this);
                                 World.SetCell(x, y, CellType.Support);
                             }
                             return;
@@ -787,7 +788,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                                 packetsmap.Add(new HBMapPacket(cx, cy, 32, 32, ch.cells));
                                 foreach (var p in ch.packs.Values)
                                 {
-                                    if (p.type != 0)
+                                    if (p.type != PackType.None)
                                     {
                                         packs.Add(new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off));
                                     }

@@ -7,9 +7,12 @@ namespace MinesServer.GameShit.Buildings
 {
     public abstract class Pack
     {
-        public Pack() {}
+        public Pack() {
+        }
         public Pack(int x, int y, int ownerid, PackType type)
         {
+            if (x == 0 && y == 0)
+                throw new Exception("ЕБАТЬ ЧЕ ЭТО НАХУЙ");
             this.x = x; this.y = y; this.ownerid = ownerid; this.type = type;
         }
         public virtual int id { get; set; }

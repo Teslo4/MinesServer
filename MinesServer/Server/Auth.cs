@@ -8,13 +8,14 @@ using MinesServer.Network.BotInfo;
 using MinesServer.Network.GUI;
 using MinesServer.Network.HubEvents;
 using MinesServer.Network.World;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 
 
 namespace MinesServer.Server
 {
-    public class Auth
+    public class Auth(Session initiator)
     {
         public Window authwin;
         public bool complited = false;
@@ -22,13 +23,17 @@ namespace MinesServer.Server
         public string passwd = "";
         public void CallAction(string text)
         {
+            if (text.StartsWith("exit"))
+            {
+                temp = null;
+                nick = "";
+                passwd = "";
+                authwin = def;
+                initiator.SendWin(authwin.ToString());
+                return;
+            }
             authwin?.ProcessButton(text);
-        }
-        public void exit()
-        {
-            temp = null;
-            nick = "";
-            passwd = "";
+            initiator.SendWin(authwin.ToString());
         }
         public void NickNotA(Session initiator)
         {
@@ -40,10 +45,33 @@ namespace MinesServer.Server
                     IsConsole = true,
                     Placeholder = " "
                 },
-                Buttons = [new("OK", "%I%", (args) => TryToAuthByPlayer(args.Input, initiator))]
+                Buttons = [new("OK", "%I%", (args) => TryToAuthByPlayer(args.Input))]
             });
         }
-        public void TryToAuth(AUPacket p, string sid, Session initiator)
+        private Window def => new Window()
+        {
+            Title = "ВХОД",
+            Tabs = [new Tab()
+                    {
+                        Label = "Ник",
+                        Action = "auth",
+                        InitialPage = new Page()
+                        {
+                            Text = "Авторизация",
+                            Buttons = [
+                                new MButton("Новый акк", "newakk", (args) => CreateNew()),
+                                new MButton("ok", $"nick:{ActionMacros.Input}", (args) => TryToFindByNick(args.Input!))
+                            ],
+                            Input = new InputConfig()
+                            {
+                                IsConsole = true,
+                                Placeholder = " "
+                            }
+                        }
+                    }],
+            ShowTabs = false
+        };
+        public void TryToAuth(AUPacket p, string sid)
         {
             Console.WriteLine("auth?");
             int res;
@@ -55,29 +83,9 @@ namespace MinesServer.Server
             if (player == null)
             {
                 initiator.SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 0, "COCK", "http://pi.door/", "ok"));
-                authwin = new Window()
-                {
-                    Title = "ВХОД",
-                    Tabs = [new Tab()
-                    {
-                        Label = "Ник",
-                        Action = "auth",
-                        InitialPage = new Page()
-                        {
-                            Text = "Авторизация",
-                            Buttons = [
-                                new MButton("Новый акк", "newakk", (args) => CreateNew(initiator)),
-                                new MButton("ok", $"nick:{ActionMacros.Input}", (args) => TryToFindByNick(args.Input!, initiator))
-                            ],
-                            Input = new InputConfig()
-                            {
-                                IsConsole = true,
-                                Placeholder = " "
-                            }
-                        }
-                    }],
-                    ShowTabs = false
-                };
+                initiator.SendU(new BotInfoPacket("pidor", 0, 0, -1));
+                initiator.SendU(new HBPacket([new HBMapPacket(0, 0, 32, 32, World.W.GetChunk(0,0).cells)]));
+                authwin = def;
                 initiator.SendWin(authwin.ToString());
                 return;
             }
@@ -86,6 +94,7 @@ namespace MinesServer.Server
                 player.connection = null;
                 player.connection = initiator;
                 initiator.player = player;
+                initiator.SendU(new GuPacket());
                 player.Init();
                 return;
             }
@@ -109,7 +118,7 @@ namespace MinesServer.Server
                 return false;
             }
         }
-        public void CreateNew(Session initiator)
+        public void CreateNew()
         {
             temp = new Player();
             authwin.CurrentTab.Open(new Page
@@ -121,11 +130,11 @@ namespace MinesServer.Server
                     IsConsole = true,
                     Placeholder = " "
                 },
-                Buttons = [new("OK", $"newnick:{ActionMacros.Input}", (args) => { using var db = new DataBase(); if (db.players.FirstOrDefault(i => i.name == args.Input) == null) { SetPasswdForNew(args.Input!, initiator); } else { initiator.SendU(new OKPacket("auth", "Ник занят")); CreateNew(initiator); } })]
+                Buttons = [new("OK", $"newnick:{ActionMacros.Input}", (args) => { using var db = new DataBase(); if (db.players.FirstOrDefault(i => i.name == args.Input) == null) { SetPasswdForNew(args.Input!); } else { initiator.SendU(new OKPacket("auth", "Ник занят")); CreateNew(); } })]
             });
             initiator.SendWin(authwin.ToString());
         }
-        public void SetPasswdForNew(string nick, Session initiator)
+        public void SetPasswdForNew(string nick)
         {
             this.nick = nick;
             authwin.CurrentTab.Open(new Page
@@ -137,11 +146,11 @@ namespace MinesServer.Server
                     IsConsole = true,
                     Placeholder = " "
                 },
-                Buttons = [new("OK", $"passwd:{ActionMacros.Input}", (args) => EndCreateAndInit(args.Input!, initiator))]
+                Buttons = [new("OK", $"passwd:{ActionMacros.Input}", (args) => EndCreateAndInit(args.Input!))]
             });
             initiator.SendWin(authwin.ToString());
         }
-        public void EndCreateAndInit(string passwd, Session initiator)
+        public void EndCreateAndInit(string passwd)
         {
             using var db = new DataBase();
             temp.CreatePlayer();
@@ -156,7 +165,7 @@ namespace MinesServer.Server
             initiator.player.Init();
             initiator.auth = null;
         }
-        public void TryToFindByNick(string name, Session initiator)
+        public void TryToFindByNick(string name)
         {
             using var db = new DataBase();
             Player player = DataBase.GetPlayer(name);
@@ -172,7 +181,7 @@ namespace MinesServer.Server
                         IsConsole = true,
                         Placeholder = " "
                     },
-                    Buttons = [new("OK", $"passwd:{ActionMacros.Input}", (args) => TryToAuthByPlayer(args.Input!, initiator))]
+                    Buttons = [new("OK", $"passwd:{ActionMacros.Input}", (args) => TryToAuthByPlayer(args.Input!))]
                 });
                 initiator.SendWin(authwin.ToString());
                 return;
@@ -182,7 +191,7 @@ namespace MinesServer.Server
             initiator.SendWorldInfo();
             initiator.SendWin(authwin.ToString());
         }
-        public void TryToAuthByPlayer(string passwd, Session initiator)
+        public void TryToAuthByPlayer(string passwd)
         {
             if (temp.passwd == passwd)
             {

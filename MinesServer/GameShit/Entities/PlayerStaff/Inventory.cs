@@ -8,6 +8,7 @@ using MinesServer.Server;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.Design;
 namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class Inventory
@@ -175,6 +176,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         {
             get
             {
+                if (!items.ContainsKey(index))
+                    items[index] = 0;
                 return items[index];
             }
             set

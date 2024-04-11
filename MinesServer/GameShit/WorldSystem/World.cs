@@ -17,8 +17,8 @@ namespace MinesServer.GameShit.WorldSystem
 {
     public class World
     {
-        public const int ChunksW = 100;
-        public const int ChunksH = 100;
+        public const int ChunksW = 10;
+        public const int ChunksH = 10;
         public const int CellsWidth = ChunksW * ChunkWidth;
         public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;
@@ -34,6 +34,7 @@ namespace MinesServer.GameShit.WorldSystem
         public Chunk[,] chunks;
         public static World W;
         public Gen gen;
+        private Dictionary<(int, int), CancellationTokenSource?> shit = new();
         public World(string name)
         {
 
@@ -147,7 +148,7 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 if (packets.Count > 0)
                 {
-                    player.connection?.SendB(new HBPacket(packets.ToArray()));
+                    player?.connection?.SendB(new HBPacket(packets.ToArray()));
                 }
                 return false;
             }
@@ -247,6 +248,7 @@ namespace MinesServer.GameShit.WorldSystem
         {
             return GetProp(x, y).isEmpty && !PackPart(x, y);
         }
+        public static bool TrueEmpty(int x,int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x,y) is not (36 or 37);
         public static Cell GetProp(int x, int y)
         {
             return CellsSerializer.cells[GetCell(x, y)];
@@ -281,6 +283,8 @@ namespace MinesServer.GameShit.WorldSystem
                 W.cells[x, y] = cell;
                 W.durability[x, y] = GetProp(cell).durability;
             }
+            if (W.shit.ContainsKey((x, y)))
+                W.shit[(x, y)]?.Cancel();
             ch.SetCell(x - ch.WorldX, y - ch.WorldY, cell, packmesh);
         }
         public static bool PackPart(int x, int y)
@@ -325,9 +329,22 @@ namespace MinesServer.GameShit.WorldSystem
         {
             await Task.Run(delegate ()
             {
-                Thread.Sleep(secdelay * 100);
+                Thread.Sleep(secdelay * 1000);
                 act();
             });
+        }
+        public async void StupidAction(double delay, int x, int y, Action a)
+        {
+            CancellationTokenSource s = new();
+            shit[(x, y)] = s;
+            await Task.Run(() =>
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(delay));
+                if (!s.Token.IsCancellationRequested)
+                    a();
+                shit.Remove((x, y));
+                s.Dispose();
+            }, s.Token);
         }
         public Stack<Player> GetPlayersFromPos(int x, int y)
         {

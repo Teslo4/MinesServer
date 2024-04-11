@@ -1,4 +1,5 @@
-﻿using MinesServer.Enums;
+﻿using Microsoft.EntityFrameworkCore;
+using MinesServer.Enums;
 using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.Network.GUI;
 
@@ -39,7 +40,26 @@ namespace MinesServer.GameShit.Skills
                 }
             }
         }
-        public bool MeetReqs(Player p) => !GetReqs?.Select(i => p.skillslist.skills.Where(s => s.Value?.type == i.Key && s.Value?.lvl >= i.Value).Count() > 0).Contains(false) ?? true;
+        public bool Visible(Player p,out bool meet)
+        {
+            bool visible = true; meet = true;
+            if (GetReqs is not null)
+            {
+                foreach (var req in GetReqs)
+                {
+                    var skill = p.skillslist.skills.FirstOrDefault(skill => skill.Value?.type == req.Key).Value;
+                    if (skill == default)
+                    {
+                        visible = false;
+                    }
+                    else if (skill.lvl - 3 < req.Value)
+                    {
+                        meet = false;
+                    }
+                }
+            }
+            return visible;
+        }
         public void AddExp(Player p, float expv = 1)
         {
             Dictionary<string, int> v = new();

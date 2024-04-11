@@ -25,10 +25,9 @@ namespace MinesServer.Server
         #region fields
 
         MServer father;
-        public Player player;
+        public Player? player;
         public Auth auth;
         public Session(TcpServer server) : base(server) { father = server as MServer; }
-        public DateTimeOffset starttime;
         public string sid { get; set; }
         #endregion
 
@@ -37,15 +36,13 @@ namespace MinesServer.Server
         protected override void OnConnected()
         {
             sid = Auth.GenerateSessionId();
-            Console.WriteLine($"{this.ToString()} connected");
+            Console.WriteLine($"{Socket.RemoteEndPoint} connected");
             SendU(new StatusPacket("черный хуй в твоей жопе"));
             SendU(new AUPacket(sid));
             SendU(new PingPacket(0, 0, ""));
         }
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            if (starttime == default)
-                starttime = ServerTime.Now;
             Packet p = default;
             try
             {
@@ -75,7 +72,7 @@ namespace MinesServer.Server
             using var db = new DataBase();
             db.players.Update(player);
             db.SaveChanges();
-            player.afkstarttime = DateTime.Now;
+            player.afkstarttime = ServerTime.Now;
             player.connection = null;
             player = null;
             Dispose();
@@ -88,8 +85,8 @@ namespace MinesServer.Server
 
         private void AU(AUPacket p)
         {
-            auth = new Auth();
-            auth.TryToAuth(p, sid, this);
+            auth = new Auth(this);
+            auth.TryToAuth(p, sid);
         }
         private void TY(TYPacket packet)
         {
@@ -144,7 +141,7 @@ namespace MinesServer.Server
         {
             if (Default.def.IsMatch(chat.message.Replace("\n", "")))
             {
-                player.currentchat?.AddMessage(player, chat.message.Replace("\n", ""));
+                player?.currentchat?.AddMessage(player, chat.message.Replace("\n", ""));
             }
         }
         private void Pren(TYPacket f,PRENPacket pren)
@@ -167,24 +164,15 @@ namespace MinesServer.Server
         private void PROG(TYPacket f, PROGPacket p)
         {
             StaticGUI.StartedProg(player, p.prog);
-            player.ProgStatus();
+            player?.ProgStatus();
         }
-        private void Xhea(TYPacket f,XheaPacket heal)
-        {
-            player.Heal();
-        }
+        private void Xhea(TYPacket f,XheaPacket heal) => player?.Heal();
         private void Pope(TYPacket f, PopePacket p)
         {
             StaticGUI.OpenGui(player);
         }
-        private void Clan(TYPacket f, ClanPacket p)
-        {
-            player.OpenClan();
-        }
-        private void Res(TYPacket f, RESPPacket p)
-        {
-            player.Death();
-        }
+        private void Clan(TYPacket f, ClanPacket p) => player?.OpenClan();
+        private void Res(TYPacket f, RESPPacket p) => player?.Death();
         private void ADMN(TYPacket f, ADMNPacket p)
         {
             if (player.win != null)
@@ -194,10 +182,7 @@ namespace MinesServer.Server
             }
             player.SendWindow();
         }
-        private void Sett(TYPacket f, SettPacket p)
-        {
-            player.settings.SendSettingsGUI(player);
-        }
+        private void Sett(TYPacket f, SettPacket p) => player?.settings.SendSettingsGUI(player);
         private void Dpbx(TYPacket f, DPBXPacket p)
         {
             player.win = player.crys.OpenBoxGui();
@@ -205,19 +190,17 @@ namespace MinesServer.Server
         }
         private void Ping(PongPacket p)
         {
-            var now = ServerTime.Now;
-            var offset = ServerTime.offset;
-            var localserver = (int)(now - starttime).Add(TimeSpan.FromMicroseconds(offset)).TotalMilliseconds;
+            if (nextexpected == 0)
+                nextexpected = p.CurrentTime;
             Task.Run(() =>
-            {
+            { 
                 Thread.Sleep(200);
-                SendU(new PingPacket(52, localserver, $"{localserver - p.CurrentTime} "));
+                SendU(new PingPacket(52, p.CurrentTime + 1, $"{p.CurrentTime - (nextexpected - 201)} "));
             });
+            nextexpected = p.CurrentTime + 201;
         }
-        private void Inus(TYPacket f, INUSPacket inus)
-        {
-            player.inventory.Use(player);
-        }
+        private int nextexpected;
+        private void Inus(TYPacket f, INUSPacket inus) => player?.inventory.Use(player);
         private void Incl(TYPacket f, INCLPacket incl)
         {
             if (incl.selection.HasValue)
@@ -233,52 +216,21 @@ namespace MinesServer.Server
                 }
             }
         }
-        private void DigHandler(TYPacket parent, XdigPacket packet)
-        {
-            player.TryAct(() =>
-            {
-                if (player != null && player.win == null)
-                {
+        private void DigHandler(TYPacket parent, XdigPacket packet) => player?.TryAct(() =>{
                     player.Move(player.x, player.y, packet.Direction);
                     player.Bz();
-                }
             }, 200);
-        }
-        private void GeoHandler(TYPacket parent, XgeoPacket packet)
-        {
-            player.TryAct(() =>
-            {
-                if (player != null && player.win == null)
-                {
-                    player.Geo();
-                }
-            }, 200);
-        }
-        private void BuildHandler(TYPacket parent, XbldPacket packet)
-        {
-            if (player != null && player.win == null)
-            {
-                player.TryAct(() =>
-                {
-                    player.Build(packet.BlockType);
-                }, 200);
-            }
-        }
+        
+        private void GeoHandler(TYPacket parent, XgeoPacket packet) => player?.TryAct(player.Geo , 200);
+        private void BuildHandler(TYPacket parent, XbldPacket packet) => player?.TryAct(() => player.Build(packet.BlockType), 200);
+        
         private void AutoDiggHandler(TYPacket parent, TADGPacket packet)
         {
             if (player != null)
                 SendU(new AutoDiggPacket(player.autoDig = !player.autoDig));
         }
-        private void MoveHandler(TYPacket parent, XmovPacket packet)
-        {
-            if (player != null)
-            {
-                player.TryAct(() =>
-                {
-                    player.Move((int)parent.X, (int)parent.Y, packet.Direction);
-                }, player.ServerPause);
-            }
-        }
+        private void MoveHandler(TYPacket parent, XmovPacket packet) => player?.TryAct(() => player.Move((int)parent.X, (int)parent.Y, packet.Direction), player.ServerPause);
+        
         private void WhoisHandler(TYPacket parent, WhoiPacket packet)
         {
             SendU(new NickListPacket(packet.BotIds.ToDictionary(x => x, x => DataBase.GetPlayer(x)?.name)));
@@ -311,11 +263,6 @@ namespace MinesServer.Server
             }
             if ((auth != null && !auth.complited))
             {
-                if (button.ToString() == "exit")
-                {
-                    auth.exit();
-                    return;
-                }
                 auth.CallAction(button);
                 return;
             }
