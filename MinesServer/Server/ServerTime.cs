@@ -109,15 +109,16 @@ namespace MinesServer.Server
                     this.players.Enqueue(player.id, () => player.Update());
                 }
             }
-            for (int x = 0; x < World.ChunksW - 1; x++)
+            for (int x = 0; x < World.ChunksW; x++)
             {
-                for (int y = 0; y < World.ChunksH - 1; y++)
+                for (int y = 0; y < World.ChunksH; y++)
                 {
-                    chunks.Enqueue(y + World.ChunksH * x,() => World.W.chunks[x, y].Update());
+                    var lx = x;var ly = y;
+                    chunks.Enqueue(ly + World.ChunksH * lx, () => World.W.chunks[lx, ly].Update());
                 }
             }
             chunks.Enqueue(-1, World.Update);
-            chunks.Enqueue(-5, () => {
+            chunks.Enqueue(-2, () => {
                 World.W.cells.Commit();
                 World.W.road.Commit();
                 World.W.durability.Commit();

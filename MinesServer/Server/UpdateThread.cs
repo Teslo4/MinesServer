@@ -24,7 +24,10 @@ namespace MinesServer.Server
                 if (Count == 0)
                     Thread.Sleep(1);
                 while (Count > 0)
-                 Dequeue().body();
+                    lock (qlock)
+                    {
+                        Dequeue().body();
+                    }
             }
         }
         public void Enqueue(T key,Action body)
@@ -35,15 +38,11 @@ namespace MinesServer.Server
                     Add(key, body);
             }
         }
-        public (T key, Action body) Dequeue()
+        private (T key, Action body) Dequeue()
         {
-            (T key, Action body) result = default;
-            lock (qlock)
-            {
-                var key = Keys.First();
-                result = (key, this[key]);
-                Remove(key);
-            }
+            var key = Keys.First();
+            var result = (key, this[key]);
+            Remove(key);
             return result;
         }
         readonly object qlock = new();
