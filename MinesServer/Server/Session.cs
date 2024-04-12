@@ -72,7 +72,7 @@ namespace MinesServer.Server
             }
             Console.WriteLine(player.name + " disconnected");
             using var db = new DataBase();
-            db.players.Attach(player);
+            db.players.Update(player);
             db.SaveChanges();
             player.afkstarttime = ServerTime.Now;
             player.connection = null;
@@ -118,6 +118,7 @@ namespace MinesServer.Server
                 case INVNPacket invn: Invn(packet, invn); break;
                 case XheaPacket xhea: Xhea(packet, xhea); break;
                 case ChinPacket chin: Chin(packet, chin);break;
+                case BldsPacket blds: Blds(packet, blds);break;
                 case TAGRPacket agr:Agr(packet, agr);break;
 
                     /////FIX THIS SH
@@ -127,6 +128,7 @@ namespace MinesServer.Server
                     break;
             }
         }
+        private void Blds(TYPacket f, BldsPacket blds) => Task.Run(() => player?.OpenMyBuildings());
         private void Agr(TYPacket f,TAGRPacket agr)
         {
             //changeAgr

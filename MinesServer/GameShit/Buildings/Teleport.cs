@@ -124,30 +124,34 @@ namespace MinesServer.GameShit.Buildings
 
         public override Window? GUIWin(Player p)
         {
-            CanvasElement[] canvas = [];
-            if (false)
+            return Task.Run(() =>
             {
+                CanvasElement[] canvas = [];
                 var chunk = World.W.GetChunkPosByCoords(x, y);
-                var start = (chunk.Item1 - 40, chunk.Item2 - 40);
+                var start = (chunk.Item1 - 10, chunk.Item2 - 10);
                 var end = (chunk.Item1 + 10, chunk.Item2 + 10);
                 var url = ImgSpace.LocateChunks($"{this.x}-{this.y}", start, end);
                 canvas = [CanvasElement.Image(url, 381, 381, CanvasElementPivot.Default, -98, 0, 0, 8)];
 
                 canvas = canvas.Concat(Buttonsg()).ToArray(); ;
-            }
 
-            return new Window() {
-                Tabs = [new Tab() {
+
+                return new Window()
+                {
+                    Tabs = [new Tab() {
                     InitialPage = new Page()
                     {
+                        Canvas = canvas,
                         Style = new Style(){Canvas = new GridStyle(){Height = 390,Width = 600 } },
-                        List = BuildTpList(p),
+                        List = null,//BuildTpList(p),
                         Buttons = []
                     },
                     Action = "123",
                     Label = "3321",
                     Title = "ТП"}],
-                Title = "Тп" };
+                    Title = "Тп"
+                };
+            }).Result;
         }
     }
 }

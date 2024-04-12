@@ -15,24 +15,27 @@ using Azure;
 using System.Net.Mime;
 using System.Drawing.Imaging;
 using System.Net.Http.Headers;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MinesServer
 {
     public class ImgSpace
     {
-        public ImgSpace() { _serverspace.Start(); }
+        public ImgSpace() { Updater(); _serverspace.Start(); }
         static HttpListener _serverspace = new HttpListener();
         public static string UrlB(string urlend) => $"http://localhost/{urlend}/";
         public static string LocateChunks(string urlend,(int x, int y)start,(int x, int y) end)
         {
             var url = UrlB(urlend);
-            LocateArray(url, M3Compressor.splitbitmap(Default.ConvertMapPart(start.x * 32, start.y * 32, end.x * 32, end.y * 32)));
+            var array = M3Compressor.CompressLarge((Bitmap)resizeImage(381, 381, Default.ConvertMapPart(start.x * 32, start.y * 32, end.x * 32, end.y * 32)));
+            AddHandler(url, array);
             return url;
         }
         public static string LocateImg(string urlend,string url)
         {
             var result = UrlB(urlend);
-            LocateArray(result,M3Compressor.CompressLarge(Load(url)));
+            var array = M3Compressor.CompressLarge(Load(url));
+            AddHandler(result, array);
             return result;
         }
         private static Bitmap Load(string url)
@@ -98,47 +101,47 @@ namespace MinesServer
             imgPhoto.Dispose();
             return bmPhoto;
         }
-        private static byte[] GetArrayFromChunks((int x,int y)start,(int x,int y)end) => M3Compressor.Compress(Default.ConvertMapPart(start.x * 32, start.y * 32, end.x * 32, end.y * 32));
-        public static void LocateArray(string url, byte[] array)
+        private void Updater()
         {
-                if (_serverspace.Prefixes.Contains(url))
+            Task.Run(() =>
+            {
+                while(true)
                 {
-                    return;
-                }
-                _serverspace.Prefixes.Add(url);
-                var startime = ServerTime.Now;
-                Task.Run(() =>
-                {
-                    while (ServerTime.Now - startime < TimeSpan.FromSeconds(10))
-                    {
-                        var context = _serverspace.GetContextAsync().ContinueWith((a) =>
+                    if (handlers.Count > 0)
+                        _serverspace.GetContextAsync().ContinueWith(i =>
                         {
-                            try
+                            var context = i.Result; var url = context.Request.Url.ToString();
+                            Task.Run(() =>
                             {
-                                var context = a.Result;
-                                context.Response.ContentLength64 = array.Length;
-                                context.Response.OutputStream.Write(array, 0, array.Length);
-                                Thread.Sleep(500);
-                                context.Response.Close();
-                                _serverspace.Prefixes.Remove(url);
-                            }
-                            catch (Exception ex)
-                            {
-                                if (_serverspace.Prefixes.Contains(url))
-                                {
-                                    _serverspace.Prefixes.Remove(url);
-                                }
-                                Console.WriteLine(ex);
-                            }
-
+                                //Thread.Sleep(200);
+                                Emit(url, context);
+                            });
                         });
-                        Thread.Sleep(1);
-                    }
-                    if (_serverspace.Prefixes.Contains(url))
-                    {
-                        _serverspace.Prefixes.Remove(url);
-                    }
-                });
+                    Thread.Sleep(1);
+                }
+            });
         }
+        private static void Emit(string url,HttpListenerContext context)
+        {
+            lock (dlock)
+            {
+                if (!handlers.ContainsKey(url) || !_serverspace.Prefixes.Contains(url)) return;
+                var array = handlers[url];
+                context.Response.KeepAlive = true;
+                context.Response.ContentLength64 = array.Length;
+                context.Response.OutputStream.WriteAsync(array, 0, array.Length).ContinueWith((a) => { context?.Response.Close(); _serverspace.Prefixes.Remove(url); handlers.Remove(url); });
+            }
+        }
+        private static void AddHandler(string url,byte[] action)
+        {
+            lock(dlock)
+            {
+                handlers[url] = action;
+                if (!_serverspace.Prefixes.Contains(url)) _serverspace.Prefixes.Add(url);
+            }
+        }
+        readonly static object dlock = new();
+        static Dictionary<string, byte[]> handlers = new();
+        private static byte[] GetArrayFromChunks((int x,int y)start,(int x,int y)end) => M3Compressor.Compress(Default.ConvertMapPart(start.x * 32, start.y * 32, end.x * 32, end.y * 32));
     }
 }

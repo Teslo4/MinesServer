@@ -5,6 +5,8 @@ using MinesServer.GameShit.ClanSystem;
 using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.GChat;
 using MinesServer.GameShit.GUI;
+using MinesServer.GameShit.GUI.Horb;
+using MinesServer.GameShit.GUI.Horb.List;
 using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.Skills;
 using MinesServer.GameShit.WorldSystem;
@@ -160,11 +162,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         private void Sync()
         {
-            using (var db = new DataBase())
-            {
-                db.players.Attach(this);
-                db.SaveChanges();
-            }
+            using var db = new DataBase();
+            db.players.Update(this);
+            db.SaveChanges();
         }
         public void ProgrammatorUpdate()
         {
@@ -176,7 +176,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public override void Update()
         {
             var now = ServerTime.Now;
-            if (now - lastSync >= TimeSpan.FromSeconds(30))
+            if (now - lastSync >= TimeSpan.FromSeconds(10))
             {
                 Sync();
                 lastSync = now;
@@ -225,6 +225,48 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 Delay = ServerTime.Now + TimeSpan.FromMilliseconds(delay);
             }
         }
+        #region mybuildings
+        private Window MyBuildings => new Window()
+        {
+            Title = "мои здания да",
+            Tabs = [new Tab()
+            {
+                Action = "amy",
+                Label = "amyl",
+                InitialPage = new Page()
+                {
+                    List = MyBuildingsList(),
+                    Buttons = [new MButton("собратьб","четатам")]
+                }
+            }]
+        };
+        public void OpenMyBuildings()
+        {
+            win = MyBuildings;SendWindow();
+        }
+        private ListEntry[] MyBuildingsList()
+        {
+            using var db = new DataBase();
+            var l = new List<ListEntry>();
+            foreach (var i in db.teleports.Where(r => r.ownerid == id))
+            {
+                l.Add(new ListEntry($"tp {i.x}:{i.y}", null));
+            }
+            foreach (var i in db.resps.Where(r => r.ownerid == id))
+            {
+                l.Add(new ListEntry($"resp {i.x}:{i.y}", null));
+            }
+            foreach (var i in db.ups.Where(r => r.ownerid == id))
+            {
+                l.Add(new ListEntry($"up {i.x}:{i.y}", null));
+            }
+            foreach (var i in db.guns.Where(r => r.ownerid == id))
+            {
+                l.Add(new ListEntry($"gun {i.x}:{i.y}", null));
+            }
+            return l.ToArray();
+        }
+        #endregion
         private int ParseCryType(CellType cell)
         {
             return cell switch

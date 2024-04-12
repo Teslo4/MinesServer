@@ -83,8 +83,8 @@ namespace MinesServer.GameShit
             });
             commands.Add("addmis", (p, arg) =>
             {
-            /*Task.Run(() =>
-            new Misson().SendMisson(p));*/
+            Task.Run(() =>
+            new MissonDestroy("123").SendMisson(p));
             });
         }
         public static void AddConsoleLine(Player p)

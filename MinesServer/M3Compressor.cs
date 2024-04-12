@@ -102,33 +102,5 @@ namespace MinesServer
             }
             return bitmap;
         }
-        public static byte[] splitbitmap(Bitmap b)
-        {
-            byte[] temp = new byte[2 * 2 + 10 + (b.Width * b.Height) * 4];
-            var width = BitConverter.GetBytes(Convert.ToUInt16(b.Width));
-            var height = BitConverter.GetBytes(Convert.ToUInt16(b.Height));
-            Buffer.BlockCopy(width, 0, temp, 0, width.Length);
-            Buffer.BlockCopy(height, 0, temp, 2, height.Length);
-            byte op = 4;
-            for (int i = 0; i < 10; i++)
-            {
-
-                temp[4 + i] = op;
-                op = 0;
-            }
-            for(int y = 0;y < b.Height;y++)
-            {
-                for(int x = 0;x < b.Width;x++)
-                {
-                    var t = (14 + (4 * (y * b.Width + x)));
-                    var p = b.GetPixel(x, y);
-                    temp[t] = p.R;
-                    temp[t + 1] = p.G;
-                    temp[t + 2] = p.B;
-                    temp[t + 3] = p.A;
-                }
-            }
-            return temp;
-        }
     }
 }

@@ -16,20 +16,7 @@ namespace MinesServer.Server
 {
     public class UpdateThread<T> : Dictionary<T, Action> where T : notnull
     {
-        public UpdateThread() => new Thread(Update).Start();
-        private void Update()
-        {
-            while(true)
-            {
-                if (Count == 0)
-                    Thread.Sleep(1);
-                while (Count > 0)
-                    lock (qlock)
-                    {
-                        Dequeue().body();
-                    }
-            }
-        }
+        public void processAll() => Task.Run(() => { lock (qlock) while (Count > 0) Dequeue().body();});
         public void Enqueue(T key,Action body)
         {
             lock (qlock)

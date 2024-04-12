@@ -12,7 +12,7 @@ namespace MinesServer.GameShit.WorldSystem
         public int y { get; set; }
         [NotMapped]
         public long[] bxcrys = new long[6];
-        private Box() { World.SetCell(x, y, Enums.CellType.Box); }
+        private Box() { }
         private Box(bool n) { }
         public static Box? GetBox(int x, int y)
         {

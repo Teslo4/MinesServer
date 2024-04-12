@@ -109,6 +109,7 @@ namespace MinesServer.Server
                     this.players.Enqueue(player.id, () => player.Update());
                 }
             }
+            this.players.processAll();
             for (int x = 0; x < World.ChunksW; x++)
             {
                 for (int y = 0; y < World.ChunksH; y++)
@@ -123,6 +124,7 @@ namespace MinesServer.Server
                 World.W.road.Commit();
                 World.W.durability.Commit();
             });
+            chunks.processAll();
             using var db = new DataBase();
             foreach (var order in db.orders)
             {
