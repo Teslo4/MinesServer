@@ -43,23 +43,25 @@ namespace MinesServer.Server
         }
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            Packet p = default;
-            try
+            if (Packet.TryDecode(buffer, out var result))
             {
-                p = Packet.Decode(buffer);
-                switch (p.data)
+                try
                 {
-                    case AUPacket au: AU(au); break;
-                    case TYPacket ty: father.time.AddAction(() => TY(ty),player); break;
-                    case PongPacket ping: Ping(ping);break;
-                    default:
-                        // Invalid packet
-                        break;
+
+                    switch (result.data)
+                    {
+                        case AUPacket au: AU(au); break;
+                        case TYPacket ty: father.time.AddAction(() => TY(ty), player); break;
+                        case PongPacket ping: Ping(ping); break;
+                        default:
+                            // Invalid packet
+                            break;
+                    }
                 }
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"invalid packet from {player?.id} {ex}");
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"invalid packet from {player?.id} {ex}");
+                }
             }
         }
         protected override void OnDisconnected()
@@ -116,6 +118,7 @@ namespace MinesServer.Server
                 case INVNPacket invn: Invn(packet, invn); break;
                 case XheaPacket xhea: Xhea(packet, xhea); break;
                 case ChinPacket chin: Chin(packet, chin);break;
+                case TAGRPacket agr:Agr(packet, agr);break;
 
                     /////FIX THIS SH
                 case TAURPacket taur: Taur(packet, taur);break;
@@ -123,6 +126,10 @@ namespace MinesServer.Server
                     // Invalid event type
                     break;
             }
+        }
+        private void Agr(TYPacket f,TAGRPacket agr)
+        {
+            //changeAgr
         }
         private void Taur(TYPacket f,TAURPacket t)
         {

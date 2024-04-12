@@ -21,6 +21,7 @@ namespace MinesServer.GameShit.WorldSystem
         private BinaryStream _stream = new BinaryStream(new FileStream(filename, FileMode.OpenOrCreate));
         private readonly int amount = chunks.width * chunks.height;
         private T[]?[] _buffer = new T[chunks.width * chunks.height][];
+        private readonly object streamlock = new();
         protected readonly HashSet<(int chunkx, int chunky)> _updatedChunks = [];
         /// <summary>
         /// <see cref='this[int, int]'/> writes and reades Cells by original pos in world
@@ -70,7 +71,7 @@ namespace MinesServer.GameShit.WorldSystem
         
         private T[] Read(int index)
         {
-            lock (_stream)
+            lock (streamlock)
             {
                 var chunk = new T[Count];
                 Span<byte> temp = stackalloc byte[Count * typesize];
@@ -83,7 +84,7 @@ namespace MinesServer.GameShit.WorldSystem
         }
         private void Write(int index, T[] data)
         {
-            lock (_stream)
+            lock (streamlock)
             {
                     Span<byte> temp = stackalloc byte[data.Length * typesize];
                     for (int i = 0, j = 0; i < temp.Length; i += typesize, j++)

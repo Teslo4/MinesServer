@@ -15,7 +15,7 @@ namespace MinesServer.GameShit.WorldSystem
         public bool[] packsprop;
         public bool active = false;
         public Chunk((int, int) pos) => this.pos = pos;
-        public bool ContainsAlive = false;
+        bool ContainsAlive = false;
         public Dictionary<int, Pack> packs = new();
         private byte this[int x, int y]
         {
@@ -33,11 +33,12 @@ namespace MinesServer.GameShit.WorldSystem
         private DateTimeOffset lastupdalive = ServerTime.Now;
         private DateTimeOffset sandandb = ServerTime.Now;
         private DateTimeOffset notvisibleupd = ServerTime.Now;
+        bool shouldbeloaded => active && (ShouldBeLoadedBots() || ContainsAlive || updlasttick);
         public byte[] cells => Enumerable.Range(0, World.ChunkHeight).SelectMany(y => Enumerable.Range(0, World.ChunkWidth).Select(x => this[x, y])).ToArray();
         public void Update()
         {
             var now = ServerTime.Now;
-            if (shouldbeloaded())
+            if (shouldbeloaded)
             {
                 CheckBots();
                 updlasttick = false;
@@ -282,10 +283,6 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 bots[player.id] = player;
             }
-        }
-        public bool shouldbeloaded()
-        {
-            return active && (ShouldBeLoadedBots() || ContainsAlive || updlasttick);
         }
         public void Dispose()
         {

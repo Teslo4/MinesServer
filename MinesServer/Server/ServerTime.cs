@@ -22,6 +22,8 @@ namespace MinesServer.Server
             gameActions.Enqueue((action,p));
             directactiondelay = Now + TimeSpan.FromMicroseconds(5);
         }
+        private UpdateThread<int> players = new();
+        private UpdateThread<int> chunks = new();
         private static DateTimeOffset directactiondelay = ServerTime.Now;
         public static int offset;
         public static DateTimeOffset Now { get; private set; }
@@ -78,59 +80,48 @@ namespace MinesServer.Server
                     }
             });
         }
-        public void Start()
-        {
-            actions.Add(new(() =>
-            {
-                for (int i = 0; i < gameActions.Count; i++)
-                {
-                    var item = gameActions.Dequeue();
-                    /*try
-                    {*/
-                    if (item.action != null)
-                    {
-                        item.action();
-                    }
-                    /*}
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"{item.initiator.name}[{item.initiator.id}] caused {ex}");
-                    }*/
-                }
-            }, "base"));
-            actions.Add(new(() =>
-            {
-                var players = DataBase.activeplayers;
-                for (int i = 0; i < players.Count; i++)
-                {
-                    if (players.Count > i)
-                    {
-                        players[i]?.Update();
-                    }
-                }
-            }, "players"));
-            actions.Add(new(() =>
-            {
-                for (int x = 0; x < World.ChunksW; x++)
-                {
-                    for (int y = 0; y < World.ChunksH; y++)
-                    {
-                        World.W.chunks[x, y].Update();
-                    }
-                }
-                World.Update();
-                World.W.cells.Commit();
-                World.W.road.Commit();
-                World.W.durability.Commit();
-            },"chunks"));
-            AddTickRateUpdate(Update);
-        }
+        public void Start() => AddTickRateUpdate(Update);
         public void Update()
         {
             if (!MServer.started)
                 return;
-            foreach (var i in actions)
-                i.Call();
+            for (int i = 0; i < gameActions.Count; i++)
+            {
+                var item = gameActions.Dequeue();
+                /*try
+                {*/
+                if (item.action != null)
+                {
+                    item.action();
+                }
+                /*}
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"{item.initiator.name}[{item.initiator.id}] caused {ex}");
+                }*/
+            }
+            var players = DataBase.activeplayers;
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
+                if (player is not null)
+                {
+                    this.players.Enqueue(player.id, () => player.Update());
+                }
+            }
+            for (int x = 0; x < World.ChunksW - 1; x++)
+            {
+                for (int y = 0; y < World.ChunksH - 1; y++)
+                {
+                    chunks.Enqueue(y + World.ChunksH * x,() => World.W.chunks[x, y].Update());
+                }
+            }
+            chunks.Enqueue(-1, World.Update);
+            chunks.Enqueue(-5, () => {
+                World.W.cells.Commit();
+                World.W.road.Commit();
+                World.W.durability.Commit();
+            });
             using var db = new DataBase();
             foreach (var order in db.orders)
             {

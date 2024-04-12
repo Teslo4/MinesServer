@@ -99,12 +99,25 @@ namespace MinesServer.Network
         public static Packet Decode(ReadOnlySpan<byte> input)
         {
             int packetLength = MemoryMarshal.Read<int>(input);
-            //if (packetLength != input.Length) throw new InvalidPayloadException($"Invalid packet length: Expected {packetLength} but got {input.Length}");
+            if (packetLength != input.Length) throw new InvalidPayloadException($"Invalid packet length: Expected {packetLength} but got {input.Length}");
             var caret = lengthLength;
             var dataType = Encoding.UTF8.GetString(input[caret..(caret += dataTypeLength)]);
             var eventType = Encoding.UTF8.GetString(input[caret..(caret += eventTypeLength)]);
             var decoder = GetDecoder(eventType) ?? throw new InvalidPayloadException($"Invalid event type: {eventType}");
             return new(dataType, (ITopLevelPacket)decoder(input[caret..packetLength]));
+        }
+        public static bool TryDecode(ReadOnlySpan<byte> input,out Packet result)
+        {
+            result = default;
+            int packetLength = MemoryMarshal.Read<int>(input);
+            //if (packetLength != input.Length) return false;
+            var caret = lengthLength;
+            var dataType = Encoding.UTF8.GetString(input[caret..(caret += dataTypeLength)]);
+            var eventType = Encoding.UTF8.GetString(input[caret..(caret += eventTypeLength)]);
+            var decoder = GetDecoder(eventType);
+            if (decoder is null) return false;
+            result = new(dataType, (ITopLevelPacket)decoder(input[caret..packetLength]));
+            return true;
         }
 
         public int Length => lengthLength + dataTypeLength + eventTypeLength + data.Length;

@@ -153,18 +153,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public override void Update()
         {
             var now = ServerTime.Now;
-            /*
-            if (lastping != default)
-            {
-                if (now - lastping >= TimeSpan.FromSeconds(10000))
-                {
-                    connection?.Disconnect();
-                }
-                else if (now - lastping >= TimeSpan.FromSeconds(10))
-                {
-                    SendPing(default);
-                }
-            }*/
             if (now - lastSync >= TimeSpan.FromSeconds(30))
             {
                 Sync();
