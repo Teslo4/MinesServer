@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace MinesServer.Server
 {
-    public class UpdateThread<T> : Dictionary<T,Action>
+    public class UpdateThread<T> : Dictionary<T, Action> where T : notnull
     {
         public UpdateThread() => new Thread(Update).Start();
         private void Update()

@@ -72,7 +72,7 @@ namespace MinesServer.Server
             }
             Console.WriteLine(player.name + " disconnected");
             using var db = new DataBase();
-            db.players.Update(player);
+            db.players.Attach(player);
             db.SaveChanges();
             player.afkstarttime = ServerTime.Now;
             player.connection = null;

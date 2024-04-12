@@ -87,9 +87,32 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             }
         }
         public List<Program> programs { get; set; }
+        public Resp? resp
+        {
+            get
+            {
+                if (_resp is null)
+                {
+                    using var db = new DataBase();
+                    db.Attach(this);
+                    var re = db.resps.Where(i => i.ownerid == 0);
+                    var rp = Physics.r.Next(0, re.Count());
+                    _resp = re.ElementAt(rp);
+                    db.SaveChanges();
+                }
+                return _resp;
+            }
+            set
+            {
+                using var db = new DataBase();
+                db.Attach(this);
+                _resp = value;
+                db.SaveChanges();
+            }
+        }
+        private Resp? _resp;
         [NotMapped]
         public int cid { get => clan == null ? 0 : clan.id; }
-        public Resp resp { get; set; }
         public long money { get; set; }
         public long creds { get; set; }
         public string hash { get; set; }
@@ -550,24 +573,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             dir = 0;
             clan = null;
             skin = 0;
-            RandomResp();
-        }
-        public void RandomResp()
-        {
-            using var db = new DataBase();
-            var re = db.resps.Where(i => i.ownerid == 0);
-            var rp = Physics.r.Next(0, re.Count());
-            var resp = re.ElementAt(rp);
-            var pos = resp.GetRandompoint();
-            x = pos.x; y = pos.y;
-            SetResp(resp);
-            db.SaveChanges();
-        }
-        public Resp? GetCurrentResp()
-        {
-            using var db = new DataBase();
-            World.ContainsPack(resp.x, resp.y, out var p);
-            return p as Resp;
         }
         private void AddBasicSkills()
         {
@@ -994,10 +999,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 db.SaveChanges();
                 DataBase.activeplayers.Remove(this);
             }
-            var r = GetCurrentResp()!;
-            r.OnRespawn(this);
-            r = GetCurrentResp()!;
-            var newpos = r.GetRandompoint();
+            resp.OnRespawn(this);
+            var newpos = resp.GetRandompoint();
             x = newpos.Item1; y = newpos.Item2;
             tp(x, y);
             ReSendBots();

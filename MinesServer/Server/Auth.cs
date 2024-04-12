@@ -157,7 +157,7 @@ namespace MinesServer.Server
             db.players.Add(temp);
             temp.passwd = passwd;
             temp.name = nick;
-            db.Attach(temp.resp); db.Attach(temp.skillslist);
+            db.Attach(temp.skillslist);
             db.SaveChanges();
             initiator.SendU(new AHPacket(temp.id, temp.hash));
             initiator.player = DataBase.GetPlayer(temp.name);

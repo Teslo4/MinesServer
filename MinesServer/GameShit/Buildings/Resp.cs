@@ -8,6 +8,7 @@ using MinesServer.Network.World;
 using MinesServer.Server;
 using MinesServer.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Entity;
 namespace MinesServer.GameShit.Buildings
 {
     public class Resp : Pack, IDamagable
@@ -47,14 +48,14 @@ namespace MinesServer.GameShit.Buildings
                 }
                 else
                 {
-                    p.RandomResp();
-                    p.GetCurrentResp()?.OnRespawn(p);
+                    p.resp = null;
+                    p.resp.OnRespawn(p);
                 }
                 if (charge > 0) charge--;
                 else
                 {
-                    p.RandomResp();
-                    p.GetCurrentResp()?.OnRespawn(p);
+                    p.resp = null;
+                    p.resp.OnRespawn(p);
                 }
                 p.SendMoney();
                 World.W.GetChunk(x, y).ResendPacks();
@@ -138,6 +139,11 @@ namespace MinesServer.GameShit.Buildings
             ClearBuilding();
             World.RemovePack(x, y);
             using var db = new DataBase();
+            foreach (var i in db.players.Include(p => p.resp))
+            {
+                var player = DataBase.GetPlayer(i.id);
+                player.resp = null;
+            }
             db.resps.Remove(this);
             db.SaveChanges();
             if (Physics.r.Next(1, 101) < 40)

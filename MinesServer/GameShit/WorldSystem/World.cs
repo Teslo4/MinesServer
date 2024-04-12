@@ -71,7 +71,6 @@ namespace MinesServer.GameShit.WorldSystem
             Console.WriteLine("LoadConfirmed");
             Console.WriteLine("Started");
             DataBase.Load();
-            File.WriteAllBytes("lol.m3",M3Compressor.Compress(Default.ConvertMapPart(0, 0, 125, 125)));
             cells.Commit();
             road.Commit();
             durability.Commit();

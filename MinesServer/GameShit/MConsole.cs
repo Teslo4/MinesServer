@@ -25,7 +25,7 @@ namespace MinesServer.GameShit
             });
             commands.Add("fedresp", (p, arg) =>
             {
-                p.RandomResp();
+                p.resp = null;
             });
             commands.Add("clans", (p, arg) =>
             {
