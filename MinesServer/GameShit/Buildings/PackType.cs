@@ -9,6 +9,7 @@
         Market = 'M',
         Up = 'U',
         Storage = 'L',
-        Craft = 'F'
+        Craft = 'F',
+        Vulkan = 'Q'
     }
 }

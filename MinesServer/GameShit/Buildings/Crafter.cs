@@ -13,7 +13,7 @@ namespace MinesServer.GameShit.Buildings
     public class Crafter : Pack, IDamagable
     {
         private Crafter() { }
-        public Crafter(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Craft)
+        public Crafter(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             hp = 1000;
             using var db = new DataBase();
@@ -39,6 +39,7 @@ namespace MinesServer.GameShit.Buildings
                 return 0;
             }
         }
+        public override PackType type => PackType.Craft;
         [NotMapped]
         public float charge { get; set; }
         public int hp { get; set; }

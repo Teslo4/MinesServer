@@ -37,7 +37,6 @@ namespace MinesServer.GameShit.Buildings
         }
         public bool CanDestroy()
         {
-            return true;
             if (ServerTime.Now - brokentimer < TimeSpan.FromHours(8))
             {
                 return false;

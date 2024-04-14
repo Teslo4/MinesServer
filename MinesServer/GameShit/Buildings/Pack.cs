@@ -9,11 +9,11 @@ namespace MinesServer.GameShit.Buildings
     {
         public Pack() {
         }
-        public Pack(int x, int y, int ownerid, PackType type)
+        public Pack(int x, int y, int ownerid)
         {
             if (x == 0 && y == 0)
                 throw new Exception("ЕБАТЬ ЧЕ ЭТО НАХУЙ");
-            this.x = x; this.y = y; this.ownerid = ownerid; this.type = type;
+            this.x = x; this.y = y; this.ownerid = ownerid;
         }
         public virtual int id { get; set; }
         public virtual int x { get; set; }
@@ -21,7 +21,7 @@ namespace MinesServer.GameShit.Buildings
         public virtual int cid { get; set; }
         [NotMapped]
         public virtual int off { get; set; }
-        public PackType type { get; set; }
+        public abstract PackType type { get; }
         public int ownerid { get; set; }
         public abstract Window? GUIWin(Player p);
         public virtual void Build()

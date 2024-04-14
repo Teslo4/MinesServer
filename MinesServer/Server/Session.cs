@@ -197,8 +197,15 @@ namespace MinesServer.Server
             player.win = player.crys.OpenBoxGui();
             player.SendWindow();
         }
+        private DateTimeOffset lastpong = ServerTime.Now;
+        public void CheckDisconnected()
+        {
+            if (ServerTime.Now - lastpong > TimeSpan.FromSeconds(30)) Disconnect();
+            else if (ServerTime.Now - lastpong > TimeSpan.FromSeconds(10)) Ping(new PongPacket(52, nextexpected));
+        }
         private void Ping(PongPacket p)
         {
+            lastpong = ServerTime.Now;
             if (nextexpected == 0)
                 nextexpected = p.CurrentTime;
             Task.Run(() =>

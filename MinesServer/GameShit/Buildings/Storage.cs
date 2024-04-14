@@ -16,6 +16,7 @@ namespace MinesServer.GameShit.Buildings
             get => crysinside[index];
             set => crysinside[index] = value;
         }
+        public override PackType type => PackType.Storage;
         [NotMapped]
         public float charge { get; set; }
         public DateTimeOffset brokentimer { get; set; }
@@ -59,7 +60,7 @@ namespace MinesServer.GameShit.Buildings
         }
         #endregion
         private Storage() { }
-        public Storage(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Storage)
+        public Storage(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             hp = 1000;
             using var db = new DataBase();

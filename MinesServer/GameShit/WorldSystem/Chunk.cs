@@ -1,5 +1,6 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.VulkSystem;
 using MinesServer.Network.HubEvents.FX;
 using MinesServer.Network.HubEvents.Packs;
 using MinesServer.Network.World;
@@ -63,6 +64,7 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public void UpdateNotVisible()
         {
+            
             for (int lx = 0; lx < 32; lx++)
             {
                 for (int ly = 0; ly < 32; ly++)
@@ -72,6 +74,11 @@ namespace MinesServer.GameShit.WorldSystem
                     {
                         World.SetDurability(d.x, d.y, World.GetDurability(d.x, d.y) + 1);
                     }
+                        /*StaticVulkan.CheckSpace(d.x, d.y).ContinueWith(i =>
+                        {
+                            if (i.Result > 500)
+                                new Vulkan(d.x, d.y).Build();
+                        });*/
                 }
             }
         }

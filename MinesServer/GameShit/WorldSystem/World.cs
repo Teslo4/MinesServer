@@ -51,6 +51,13 @@ namespace MinesServer.GameShit.WorldSystem
                 Console.WriteLine($"Creating World Preset {CellsWidth} x {CellsHeight}({ChunksW} x {ChunksH} chunks)");
                 Console.WriteLine("EmptyMapGeneration");
                 gen.StartGeneration();
+                /*for(int x = 0;x < CellsWidth;x++)
+                {
+                    for (int y = 0; y < CellsHeight; y++)
+                    {
+                        SetCell(x, y, 32);
+                    }
+                }*/
                 Console.WriteLine("Generation End");
             }
             if (cells == null)
@@ -67,10 +74,10 @@ namespace MinesServer.GameShit.WorldSystem
                 db.chats.Add(new GChat.Chat("DNO", "Дно"));
                 db.SaveChanges();
             }
+            DataBase.Load();
             Console.WriteLine("Creating chunkmesh");
             Console.WriteLine("LoadConfirmed");
             Console.WriteLine("Started");
-            DataBase.Load();
             cells.Commit();
             road.Commit();
             durability.Commit();
@@ -247,7 +254,7 @@ namespace MinesServer.GameShit.WorldSystem
         {
             return GetProp(x, y).isEmpty && !PackPart(x, y);
         }
-        public static bool TrueEmpty(int x,int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x,y) is not (36 or 37);
+        public static bool TrueEmpty(int x,int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x,y) is not (36 or 37 or 0);
         public static Cell GetProp(int x, int y)
         {
             return CellsSerializer.cells[GetCell(x, y)];

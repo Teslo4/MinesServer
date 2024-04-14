@@ -18,6 +18,7 @@ namespace MinesServer.GameShit.Buildings
 {
     public class Teleport : Pack, IDamagable
     {
+        public override PackType type => PackType.Teleport;
         public DateTimeOffset brokentimer { get; set; }
         public float charge { get; set; }
         public float maxcharge { get; set; }
@@ -27,7 +28,7 @@ namespace MinesServer.GameShit.Buildings
         [NotMapped]
         public override int off => charge > 0 ? 1 : 0;
         private Teleport() {}
-        public Teleport(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Teleport)
+        public Teleport(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             cost = 10;
             charge = 1000;

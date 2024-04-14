@@ -11,6 +11,7 @@ namespace MinesServer.Server
         public ServerTime time { get; private set; }
         public static MServer? Instance;
         public static bool started = false;
+
         public int online
         {
             get => DataBase.activeplayers.Count;
@@ -20,15 +21,27 @@ namespace MinesServer.Server
             Instance = this;
             MConsole.InitCommands();
             GameShit.SysCraft.RDes.Init();
-            time = new ServerTime();
             new World(Default.cfg.WorldName);
-            time.Start();
-            OptionKeepAlive = true;
+            time = new ServerTime();
+            SessionsCheck();
+            Authmk2.Start();
         }
         protected override TcpSession CreateSession()
         {
             var s = new Session(this);
             return s;
+        }
+        private void SessionsCheck()
+        {
+            var lastcheck = ServerTime.Now;
+            Task.Run(() =>
+            {
+                if (ServerTime.Now - lastcheck > TimeSpan.FromSeconds(30))
+                {
+                    foreach (Session i in Instance.Sessions.Values) i.CheckDisconnected();
+                        
+                }
+            });
         }
         protected override void OnError(SocketError error)
         {

@@ -16,6 +16,7 @@ namespace MinesServer.GameShit.Buildings
     public class Gun : Pack, IDamagable
     {
         #region fields
+        public override PackType type => PackType.Gun;
         public int hp { get; set; }
         public float charge { get; set; }
         public float maxcharge { get; set; }
@@ -23,7 +24,7 @@ namespace MinesServer.GameShit.Buildings
         public override int off { get { return charge > 0 ? 1 : 0; } }
         public DateTimeOffset brokentimer { get; set; }
         #endregion
-        public Gun(int x, int y, int ownerid, int cid) : base(x, y, ownerid, PackType.Gun)
+        public Gun(int x, int y, int ownerid, int cid) : base(x, y, ownerid)
         {
             this.cid = cid;
             hp = 1000;

@@ -12,9 +12,10 @@ namespace MinesServer.GameShit.Buildings
 {
     public class Gate : Pack
     {
+        public override PackType type => PackType.None;
         private Gate() { }
 
-        public Gate(int x, int y, int cid, PackType type = PackType.None) : base(x, y, 0, type)
+        public Gate(int x, int y, int cid) : base(x, y, 0)
         {
             this.x = x; this.y = y; this.cid = cid;
             World.SetCell(x, y, 30);

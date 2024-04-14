@@ -6,6 +6,7 @@ using MinesServer.GameShit.GChat;
 using MinesServer.GameShit.Programmator;
 using MinesServer.GameShit.Sys_Craft;
 using MinesServer.GameShit.SysMarket;
+using MinesServer.GameShit.VulkSystem;
 using MinesServer.GameShit.WorldSystem;
 
 namespace MinesServer.Server
@@ -31,6 +32,7 @@ namespace MinesServer.Server
         public DbSet<CraftEntry> craftentries { get; set; }
         #endregion
         #region packs
+        public DbSet<Vulkan> vulkans { get; set; }
         public DbSet<Resp> resps { get; set; }
         public DbSet<Market> markets { get; set; }
         public DbSet<Up> ups { get; set; }
@@ -134,6 +136,11 @@ namespace MinesServer.Server
                 foreach (var i in db.gates)
                 {
                     i.Build();
+                }
+                foreach (var i in db.vulkans)
+                {
+                    i.Build();
+                    World.AddPack(i.x, i.y, i);
                 }
                 foreach (var i in db.resps)
                 {

@@ -14,9 +14,10 @@ using System.Threading.Tasks;
 
 namespace MinesServer.Server
 {
+    //fix this and think about threads
     public class UpdateThread<T> : Dictionary<T, Action> where T : notnull
     {
-        public void processAll() => Task.Run(() => { lock (qlock) while (Count > 0) Dequeue().body();});
+        public async Task processAll() => await Task.Run(() => { lock (qlock) while (Count > 0) Dequeue().body();});
         public void Enqueue(T key,Action body)
         {
             lock (qlock)

@@ -32,7 +32,9 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 if (x < 0 || x >= chunks.width * chunksize || y < 0 || y >= chunks.height * chunksize) return null;
                 var pos = GetChunkPos(x, y);
-                return Read(pos.x, pos.y)[GetCellIndex(x, y)];
+                T[] lol = null;
+                while (lol is null) lol = Read(pos.x, pos.y);
+                return lol[GetCellIndex(x, y)];
             }
             set
             {

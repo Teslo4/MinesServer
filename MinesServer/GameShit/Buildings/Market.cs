@@ -14,6 +14,7 @@ namespace MinesServer.GameShit.Buildings
     public class Market : Pack, IDamagable
     {
         #region fields
+        public override PackType type => PackType.Market;
         public int maxhp { get; set; }
         public int hp { get; set; }
         [NotMapped]
@@ -22,7 +23,7 @@ namespace MinesServer.GameShit.Buildings
         public DateTimeOffset brokentimer { get; set; }
         #endregion;
         private Market() {}
-        public Market(int ownerid, int x, int y) : base(ownerid, x, y, PackType.Market)
+        public Market(int ownerid, int x, int y) : base(ownerid, x, y)
         {
             using var db = new DataBase();
             hp = 100;

@@ -13,13 +13,14 @@ namespace MinesServer.GameShit.Buildings
     public class Up : Pack, IDamagable
     {
         #region fields
+        public override PackType type => PackType.Up;
         [NotMapped]
         public float charge { get; set; }
         public int hp { get; set; }
         public DateTimeOffset brokentimer { get; set; }
         public long moneyinside { get; set; }
         #endregion
-        public Up(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Up)
+        public Up(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             using var db = new DataBase();
             hp = 100;

@@ -12,9 +12,27 @@ namespace MinesServer.Server
         private List<TickAction> actions = new();
         public ServerTime()
         {
-            StartTimeUpdate();
+            ChunksUpdateSlised();
             programmatorUpdate();
             gameActions = new Queue<(GameAction,Player)>();
+            StartTimeUpdate();
+            Task.Run(() =>
+            {
+                var lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                while (true)
+                {
+                    int ticksToProcess = (int)((DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - lasttick) / 1000f * tps);
+                    if (ticksToProcess > 0)
+                    {
+                        if (ticksToProcess > 1)
+                        {
+                            Console.WriteLine($"overload {ticksToProcess}"); ;
+                        }
+                        while (ticksToProcess-- > 0) Update();
+                        lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    }
+                }
+            });
         }
         public void AddAction(GameAction action,Player p)
         {
@@ -22,8 +40,6 @@ namespace MinesServer.Server
             gameActions.Enqueue((action,p));
             directactiondelay = Now + TimeSpan.FromMicroseconds(5);
         }
-        private UpdateThread<int> players = new();
-        private UpdateThread<int> chunks = new();
         private static DateTimeOffset directactiondelay = ServerTime.Now;
         public static int offset;
         public static DateTimeOffset Now { get; private set; }
@@ -42,26 +58,6 @@ namespace MinesServer.Server
             });
         }
         const int tps = 128;
-        public void AddTickRateUpdate(Action body)
-        {
-            Task.Run(() =>
-            {
-                    var lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    while (true)
-                    {
-                        int ticksToProcess = (int)((DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - lasttick) / 1000f * tps);
-                        if (ticksToProcess > 0)
-                        {
-                            if (ticksToProcess > 1)
-                            {
-                                Console.WriteLine($"overload {ticksToProcess}");;
-                            }
-                            while (ticksToProcess-- > 0) body();
-                            lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                        }
-                    }
-            });
-        }
         public void programmatorUpdate()
         {
             Task.Run(() =>
@@ -80,7 +76,41 @@ namespace MinesServer.Server
                     }
             });
         }
-        public void Start() => AddTickRateUpdate(Update);
+        public void ChunksUpdateSlised()
+        {
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    var first = Task.Run(() =>
+                    {
+                        for (int y = 0; y < World.ChunksH; y++)
+                        {
+                            for (int x = 0; x < World.ChunksW; x++)
+                            {
+                               if (x % 2 == 0) World.W.chunks[x, y].Update(); 
+                            }
+                        }
+                    });
+                    var second = Task.Run(() =>
+                    {
+                        for (int y = 0; y < World.ChunksH; y++)
+                        {
+                            for (int x = 0; x < World.ChunksW; x++)
+                            {
+                                if (x % 2 == 1) World.W.chunks[x, y].Update();
+                            }
+                        }
+                    });
+
+                    Task.WaitAll(first, second);
+                    World.Update();
+                    World.W.cells.Commit();
+                    World.W.road.Commit();
+                    World.W.durability.Commit();
+                }
+            });
+        }
         public void Update()
         {
             if (!MServer.started)
@@ -103,28 +133,8 @@ namespace MinesServer.Server
             var players = DataBase.activeplayers;
             for (int i = 0; i < players.Count; i++)
             {
-                var player = players[i];
-                if (player is not null)
-                {
-                    this.players.Enqueue(player.id, () => player.Update());
-                }
+                players[i]?.Update();
             }
-            this.players.processAll();
-            for (int x = 0; x < World.ChunksW; x++)
-            {
-                for (int y = 0; y < World.ChunksH; y++)
-                {
-                    var lx = x;var ly = y;
-                    chunks.Enqueue(ly + World.ChunksH * lx, () => World.W.chunks[lx, ly].Update());
-                }
-            }
-            chunks.Enqueue(-1, World.Update);
-            chunks.Enqueue(-2, () => {
-                World.W.cells.Commit();
-                World.W.road.Commit();
-                World.W.durability.Commit();
-            });
-            chunks.processAll();
             using var db = new DataBase();
             foreach (var order in db.orders)
             {

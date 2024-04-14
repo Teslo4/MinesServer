@@ -14,6 +14,7 @@ namespace MinesServer.GameShit.Buildings
     public class Resp : Pack, IDamagable
     {
         #region fields
+        public override PackType type => PackType.Resp;
         public float charge { get; set; }
         public float maxcharge { get; set; }
         public int cost { get; set; }
@@ -24,7 +25,7 @@ namespace MinesServer.GameShit.Buildings
         public DateTimeOffset brokentimer { get; set; }
         #endregion
         private Resp(){ }
-        public Resp(int x, int y, int ownerid) : base(x, y, ownerid, PackType.Resp)
+        public Resp(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             cost = 10;
             charge = 100;
