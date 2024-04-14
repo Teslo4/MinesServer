@@ -34,8 +34,8 @@ namespace MinesServer.GameShit.Programmator
             Dictionary<string, PFunction> functions = new();
             functions[""] = new PFunction();
             string currentFunc = "";
-            try
-            {
+            /*try
+            {*/
                 byte[] array = SevenZipHelper.Decompress(Convert.FromBase64String(data));
                 int num = BitConverter.ToInt32(array, 0);
                 var array2 = Encoding.UTF8.GetString(array, num + 4, array.Length - num - 4).Split(':');
@@ -84,17 +84,17 @@ namespace MinesServer.GameShit.Programmator
                     }
                     if (index > 0 && index % 15 == 0)
                     {
-                        if (functions[currentFunc].actions.Last().type is not (ActionType.GoTo or ActionType.NextRow) && !containsnextrow)
+                        if (functions[currentFunc].actions.Count > 0 && functions[currentFunc].actions.Last().type is not ActionType.GoTo && !containsnextrow)
                             functions[currentFunc].actions.Add(new PAction(ActionType.GoTo, ""));
                         index = 0;
                         containsnextrow = false;
                     }
                     index++;
                 }
-            }catch(Exception ex)
+            /*}catch(Exception ex)
             {
-                Console.WriteLine("parse exception");
-            }
+                Console.WriteLine(ex);
+            }*/
             return functions;
         }
         private static ActionType GetActionType(int id)
