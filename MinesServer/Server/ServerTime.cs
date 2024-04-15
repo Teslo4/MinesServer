@@ -1,6 +1,7 @@
 ﻿using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.WorldSystem;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 
 namespace MinesServer.Server
@@ -12,25 +13,58 @@ namespace MinesServer.Server
         private List<TickAction> actions = new();
         public ServerTime()
         {
-            ChunksUpdateSlised();
-            programmatorUpdate();
+            Now = DateTime.Now;
             gameActions = new Queue<(GameAction,Player)>();
             StartTimeUpdate();
+            StupidUpdate(() =>
+            {
+                for (int i = 0; i < gameActions.Count; i++)
+                {
+                    var item = gameActions.Dequeue();
+                    /*try
+                    {*/
+                    if (item.action != null)
+                    {
+                        item.action();
+                    }
+                    /*}
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"{item.initiator.name}[{item.initiator.id}] caused {ex}");
+                    }*/
+                }
+            },10);
+            StupidUpdate(() =>
+            {
+                var players = DataBase.activeplayers;
+                for (int i = 0; i < players.Count; i++)
+                {
+                    players[i]?.Update();
+                }
+            },10);
+            StupidUpdate(() =>
+            {
+                using var db = new DataBase();
+                foreach (var order in db.orders)
+                {
+                    order.CheckReady();
+                }
+                db.SaveChanges();
+            },1000);
+            ChunksUpdateSlised();
+            programmatorUpdate();
+        }
+        private void StupidUpdate(Action a,double delay)
+        {
+            Stopwatch m = Stopwatch.StartNew();
             Task.Run(() =>
             {
-                var lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 while (true)
                 {
-                    int ticksToProcess = (int)((DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - lasttick) / 1000f * tps);
-                    if (ticksToProcess > 0)
-                    {
-                        if (ticksToProcess > 1)
-                        {
-                            Console.WriteLine($"overload {ticksToProcess}"); ;
-                        }
-                        while (ticksToProcess-- > 0) Update();
-                        lasttick = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    }
+                    m.Restart();
+                    a();
+                    m.Stop();
+                    Thread.Sleep(TimeSpan.FromMilliseconds(delay));
                 }
             });
         }
@@ -57,23 +91,19 @@ namespace MinesServer.Server
                 }
             });
         }
-        const int tps = 128;
         public void programmatorUpdate()
         {
             Task.Run(() =>
             {
                 while(true)
                 { 
-                var players = DataBase.activeplayers;
-                for (int i = 0; i < players.Count; i++)
-                {
-                    if (players.Count > i)
+                    var players = DataBase.activeplayers.Where(i => i.programsData.ProgRunning);
+                    for (int i = 0; i < players.Count(); i++)
                     {
-                        players[i]?.ProgrammatorUpdate();
+                        players.ElementAt(i)?.ProgrammatorUpdate();
                     }
+                    Thread.Sleep(1);
                 }
-                Thread.Sleep(TimeSpan.FromMicroseconds(50));
-                    }
             });
         }
         public void ChunksUpdateSlised()
@@ -108,6 +138,7 @@ namespace MinesServer.Server
                     World.W.cells.Commit();
                     World.W.road.Commit();
                     World.W.durability.Commit();
+                    Thread.Sleep(1);
                 }
             });
         }
@@ -141,6 +172,7 @@ namespace MinesServer.Server
                 order.CheckReady();
             }
             db.SaveChanges();
+            Thread.Sleep(1);
         }
     }
 }

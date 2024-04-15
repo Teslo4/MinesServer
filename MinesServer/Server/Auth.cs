@@ -162,6 +162,7 @@ namespace MinesServer.Server
             initiator.SendU(new AHPacket(temp.id, temp.hash));
             initiator.player = DataBase.GetPlayer(temp.name);
             initiator.player.connection = initiator;
+            initiator.player.Death();
             initiator.player.Init();
             initiator.auth = null;
         }

@@ -42,6 +42,7 @@ namespace MinesServer.GameShit.WorldSystem
                 var pos = GetChunkPos(x, y);
                 var buffer = Read(pos.x, pos.y);
                 buffer[GetCellIndex(x, y)] = value!.Value;
+                lock (_updatedChunks)
                 _updatedChunks.Add(pos);
             }
         }

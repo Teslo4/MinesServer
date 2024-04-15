@@ -25,6 +25,7 @@ namespace MinesServer.Server
             time = new ServerTime();
             SessionsCheck();
             Authmk2.Start();
+            OptionKeepAlive = true;
         }
         protected override TcpSession CreateSession()
         {
