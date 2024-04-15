@@ -18,7 +18,7 @@ namespace MinesServer.GameShit.Buildings
         #region fields
         public override PackType type => PackType.Gun;
         public int hp { get; set; }
-        public float charge { get; set; }
+        public override float charge { get => base.charge; set => base.charge = value; }
         public float maxcharge { get; set; }
         public override int cid { get; set; }
         public override int off { get { return charge > 0 ? 1 : 0; } }

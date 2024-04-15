@@ -10,7 +10,7 @@ namespace MinesServer.GameShit.Buildings
         {
             if (ownerid == 0)
                 return;
-            if (i > 10)
+            if (i > 5)
             {
                 if (charge - 100 > 0)
                 {
@@ -48,7 +48,7 @@ namespace MinesServer.GameShit.Buildings
             if (hp == 0)
             {
                 var value = Math.Round((((brokentimer.AddHours(8) - brokentimer) - (brokentimer.AddHours(8) - ServerTime.Now)) / (brokentimer.AddHours(8) - brokentimer)) * 100, 2);
-                var r = new Random(Guid.NewGuid().GetHashCode()).Next(0, 101);
+                var r = Physics.r.Next(0, 101);
                 if (r > value)
                     return hp == 0;
             }

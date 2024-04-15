@@ -20,6 +20,9 @@ namespace MinesServer.GameShit.Buildings
             db.crafts.Add(this);
             db.SaveChanges();
         }
+        [NotMapped]
+        public override float charge { get; set; }
+        public bool ready = false;
         public CraftEntry? currentcraft { get; set; }
         public DateTimeOffset brokentimer { get; set; }
         [NotMapped]
@@ -40,8 +43,6 @@ namespace MinesServer.GameShit.Buildings
             }
         }
         public override PackType type => PackType.Craft;
-        [NotMapped]
-        public float charge { get; set; }
         public int hp { get; set; }
         #region affectworld
         public override void Build()
@@ -83,6 +84,14 @@ namespace MinesServer.GameShit.Buildings
             }
         }
         #endregion
+        public override void Update()
+        {
+            if (currentcraft?.progress >= 100 && !ready)
+            {
+                base.Update();
+                ready = true;
+            }
+        }
         public override Window? GUIWin(Player p)
         {
             if (p.id != ownerid)

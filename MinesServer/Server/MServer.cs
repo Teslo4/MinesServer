@@ -37,10 +37,14 @@ namespace MinesServer.Server
             var lastcheck = ServerTime.Now;
             Task.Run(() =>
             {
-                if (ServerTime.Now - lastcheck > TimeSpan.FromSeconds(30))
+                while (true)
                 {
-                    foreach (Session i in Instance.Sessions.Values) i.CheckDisconnected();
-                        
+                    if (ServerTime.Now - lastcheck > TimeSpan.FromSeconds(30))
+                    {
+                        foreach (Session i in Instance.Sessions.Values) i.CheckDisconnected();
+
+                    }
+                    Thread.Sleep(5);
                 }
             });
         }

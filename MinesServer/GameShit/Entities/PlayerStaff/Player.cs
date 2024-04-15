@@ -678,6 +678,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (programsData.selected is not null)
                 this.UpdateProg(programsData.selected);
             this.ProgStatus();
+            win = null;
         }
 
         #endregion
@@ -775,6 +776,13 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
             }
         }
+
+        public void PackUpdater()
+        {
+            //visible add some packs
+            //every move from chunk to chunk check visible packs
+        }
+        private List<Pack> visible = new();
         public void MoveToChunk(int x, int y)
         {
             if (lastchunk != null && World.W.chunks[lastchunk.Value.Item1, lastchunk.Value.Item2] != null)
@@ -821,8 +829,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                             {
                                 cx *= 32; cy *= 32;
                                 packetsmap.Add(new HBMapPacket(cx, cy, 32, 32, ch.cells));
-                                foreach (var p in ch.packs.Values)
+                                foreach (var pack in ch.packs)
                                 {
+                                    var p = pack.Value;
                                     if (p.type != PackType.None)
                                     {
                                         packs.Add(new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off));

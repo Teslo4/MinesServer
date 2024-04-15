@@ -64,6 +64,7 @@ namespace MinesServer.GameShit.Sys_Craft
             p.inventory[recipie.result.id] += c.currentcraft.num * recipie.result.num;
             db.craftentries.Remove(c.currentcraft);
             c.currentcraft = null;
+            c.ready = false;
             db.SaveChanges();
             p.SendInventory();
             World.W.GetChunk(c.x, c.y).ResendPack(c);

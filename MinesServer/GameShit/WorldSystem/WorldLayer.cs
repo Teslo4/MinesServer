@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32.SafeHandles;
+using MinesServer.Utils;
 using Newtonsoft.Json.Linq;
 using Syroot.BinaryData;
 using System;
@@ -22,7 +23,7 @@ namespace MinesServer.GameShit.WorldSystem
         private readonly int amount = chunks.width * chunks.height;
         private T[]?[] _buffer = new T[chunks.width * chunks.height][];
         private readonly object streamlock = new();
-        protected readonly HashSet<(int chunkx, int chunky)> _updatedChunks = [];
+        protected readonly ConcurrentHashSet<(int chunkx, int chunky)> _updatedChunks = new();
         /// <summary>
         /// <see cref='this[int, int]'/> writes and reades Cells by original pos in world
         /// </summary>
@@ -42,7 +43,6 @@ namespace MinesServer.GameShit.WorldSystem
                 var pos = GetChunkPos(x, y);
                 var buffer = Read(pos.x, pos.y);
                 buffer[GetCellIndex(x, y)] = value!.Value;
-                lock (_updatedChunks)
                 _updatedChunks.Add(pos);
             }
         }
@@ -60,16 +60,16 @@ namespace MinesServer.GameShit.WorldSystem
         /// </summary>
         public void Commit()
         {
-            var localch = new HashSet<(int chunkx, int chunky)>(_updatedChunks);
-            _updatedChunks.Clear();
-            foreach (var pos in localch)
+            for(int i = 0;i < _updatedChunks.Count;i++)
             {
+                var pos = _updatedChunks[i];
                 var chunkindex = GetChunkIndex(pos.chunkx, pos.chunky);
                 if (_buffer[chunkindex] is not null)
                 {
                     Write(pos.chunkx, pos.chunky, _buffer[chunkindex]!);
                 }
             }
+            _updatedChunks.Clear();
         }
         
         private T[] Read(int index)

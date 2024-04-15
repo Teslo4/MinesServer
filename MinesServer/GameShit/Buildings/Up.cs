@@ -13,9 +13,9 @@ namespace MinesServer.GameShit.Buildings
     public class Up : Pack, IDamagable
     {
         #region fields
-        public override PackType type => PackType.Up;
         [NotMapped]
-        public float charge { get; set; }
+        public override float charge { get; set; }
+        public override PackType type => PackType.Up;
         public int hp { get; set; }
         public DateTimeOffset brokentimer { get; set; }
         public long moneyinside { get; set; }

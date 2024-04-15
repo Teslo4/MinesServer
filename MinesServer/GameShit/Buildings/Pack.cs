@@ -23,6 +23,7 @@ namespace MinesServer.GameShit.Buildings
         public virtual int off { get; set; }
         public abstract PackType type { get; }
         public int ownerid { get; set; }
+        public virtual float charge { get; set; }
         public abstract Window? GUIWin(Player p);
         public virtual void Build()
         {

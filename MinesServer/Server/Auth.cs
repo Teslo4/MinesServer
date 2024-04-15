@@ -157,13 +157,14 @@ namespace MinesServer.Server
             db.players.Add(temp);
             temp.passwd = passwd;
             temp.name = nick;
-            db.Attach(temp.skillslist);
+            db.skills.Attach(temp.skillslist);
             db.SaveChanges();
             initiator.SendU(new AHPacket(temp.id, temp.hash));
             initiator.player = DataBase.GetPlayer(temp.name);
             initiator.player.connection = initiator;
             initiator.player.Death();
             initiator.player.Init();
+            db.SaveChanges();
             initiator.auth = null;
         }
         public void TryToFindByNick(string name)

@@ -20,7 +20,6 @@ namespace MinesServer.GameShit.Buildings
     {
         public override PackType type => PackType.Teleport;
         public DateTimeOffset brokentimer { get; set; }
-        public float charge { get; set; }
         public float maxcharge { get; set; }
         public int hp { get; set; }
         public int maxhp { get; set; }

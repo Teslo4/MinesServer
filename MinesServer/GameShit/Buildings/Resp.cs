@@ -15,7 +15,6 @@ namespace MinesServer.GameShit.Buildings
     {
         #region fields
         public override PackType type => PackType.Resp;
-        public float charge { get; set; }
         public float maxcharge { get; set; }
         public int cost { get; set; }
         public override int cid { get; set; }

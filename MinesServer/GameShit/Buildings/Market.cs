@@ -14,11 +14,11 @@ namespace MinesServer.GameShit.Buildings
     public class Market : Pack, IDamagable
     {
         #region fields
+        [NotMapped]
+        public override float charge { get; set; }
         public override PackType type => PackType.Market;
         public int maxhp { get; set; }
         public int hp { get; set; }
-        [NotMapped]
-        public float charge { get; set; }
         public long moneyinside { get; set; }
         public DateTimeOffset brokentimer { get; set; }
         #endregion;

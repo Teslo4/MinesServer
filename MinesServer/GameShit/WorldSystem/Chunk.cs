@@ -84,21 +84,16 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public void LoadPackProps()
         {
-            if (packsprop == null)
+            if (packsprop is null)
             {
                 packsprop = new bool[1024];
-                foreach (var p in packs.Values)
-                {
-                    p.Build();
-                }
+                foreach (var p in packs.Values) p.Build();
             }
         }
         public void DestroyCell(int x, int y, World.destroytype t)
         {
             if (active)
-            {
                 SendCellToBots(WorldX + x, WorldY + y, this[x, y]);
-            }
         }
         public void SendDirectedFx(int fx, int x, int y, int dir, int bid = 0, int color = 0)
         {

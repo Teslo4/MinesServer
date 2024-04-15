@@ -209,6 +209,10 @@ namespace MinesServer.GameShit.Consumables
                                 {
                                     damagable.Damage(10);
                                 }
+                                if (pack.charge == 0)
+                                {
+                                    World.W.GetChunk(pack.x, pack.y).ResendPack(pack);
+                                }
                             }
                             foreach (var player in World.W.GetPlayersFromPos(x + _x, y + _y))
                             {
