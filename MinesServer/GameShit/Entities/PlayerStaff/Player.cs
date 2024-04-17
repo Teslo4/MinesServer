@@ -67,8 +67,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public Player() => Delay = ServerTime.Now;
         private DateTimeOffset lBotsUpdate = ServerTime.Now;
-        public DateTimeOffset lastPlayersend = ServerTime.Now;
-        public DateTimeOffset lastPacks = ServerTime.Now;
         public DateTimeOffset afkstarttime = ServerTime.Now;
         private DateTimeOffset lastSync = ServerTime.Now;
         public int id { get; set; }
@@ -200,9 +198,10 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
                 return;
             }
-            if (now - lastPlayersend > TimeSpan.FromSeconds(4))
+            if (now - lBotsUpdate > TimeSpan.FromSeconds(4))
             {
-                ReSendBots();
+                BotsRender();
+                lBotsUpdate = ServerTime.Now;
             }
             var cell = World.GetCell(x, y);
             var cellprop = World.GetProp(cell);
@@ -738,7 +737,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             foreach (var chunk in vChunksAround())
                 bots = bots.Concat(GetBotsInChunk(chunk.x, chunk.y));
             connection?.SendB(new HBPacket(bots.ToArray()));
-            lBotsUpdate = ServerTime.Now;
         }
         private IHubPacket[] GetBotsInChunk(int chunky,int chunkx)
         {
@@ -759,7 +757,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             List<IHubPacket> result = new();
             var chunk = World.W.chunks[chunkx, chunky];
             result.Add(new HBMapPacket(chunk.WorldX, chunk.WorldY, 32, 32, chunk.cells));
-            if (!alreadyvisible.Contains((chunkx, chunky))) return result.Concat(chunk.pPakcs()).ToArray();
+            if (!alreadyvisible.Contains((chunkx, chunky))) return result.Concat(chunk.pPakcs(this)).ToArray();
             return result.ToArray();
         }
         private IHubPacket[] fChunkInfo(int chunkx, int chunky) => ChunkInfo(chunkx, chunky).Concat(GetBotsInChunk(chunkx, chunky)).ToArray();
@@ -805,43 +803,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     packets.Add(new HBPacksPacket(chunk.PACKPOS(pack.x,pack.y), []));
                 }
             }
-            foreach (var i in rofl)
-            {
-                alreadyvisible.Remove(i);
-                var chunk = World.W.chunks[i.x,i.y];
-                foreach (var pack in chunk.packs.Values)
-                {
-                    packets.Add(new HBPacksPacket(chunk.PACKPOS(pack.x, pack.y), []));
-                }
-            }
             connection?.SendB(new HBPacket(packets.ToArray()));
-        }
-        public void ReSendBots()
-        {
-            List<IHubPacket> packets = new();
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (var xxx = -2; xxx <= 2; xxx++)
-            {
-                for (var yyy = -2; yyy <= 2; yyy++)
-                {
-                    var x = ChunkX + xxx;
-                    var y = ChunkY + yyy;
-                    if (valid(x, y))
-                    {
-                        var ch = World.W.chunks[x, y];
-                        foreach (var id in ch.bots)
-                        {
-                            var player = DataBase.GetPlayer(id.Key);
-                            if (player != null)
-                            {
-                                packets.Add(new HBBotPacket(player.id, player.x, player.y, player.dir, player.skin, player.cid, player.tail));
-                            }
-                        }
-                    }
-                }
-            }
-            connection?.SendB(new HBPacket(packets.ToArray()));
-            lastPlayersend = DateTime.Now;
         }
         public void SendMyMove()
         {
@@ -1050,7 +1012,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             var newpos = resp.GetRandompoint();
             x = newpos.Item1; y = newpos.Item2;
             tp(x, y);
-            ReSendBots();
+            BotsRender();
             CheckChunkChanged();
             this.SendHealth();
             if (programsData.ProgRunning)

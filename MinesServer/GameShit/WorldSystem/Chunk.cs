@@ -151,7 +151,22 @@ namespace MinesServer.GameShit.WorldSystem
                 {
                     ClearPack(x, y);
                     if (type != (char)PackType.None)
-                    DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [new HBPack(type, x, y, (byte)cid, (byte)off)])]));
+                    {
+                        var player = DataBase.GetPlayer(id.Key);
+                        player?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [new HBPack(type, x, y, (byte)cid, (byte)off)])]));
+                    }
+                }
+            }
+        }
+        public void ClearDelay(int x, int y)
+        {
+            foreach (var i in vChunksAround())
+            {
+                var ch = World.W.chunks[i.x, i.y];
+                foreach (var id in ch.bots)
+                {
+                    var player = DataBase.GetPlayer(id.Key);
+                    player?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS( x, y), [])]));
                 }
             }
         }
@@ -162,11 +177,12 @@ namespace MinesServer.GameShit.WorldSystem
                 var ch = World.W.chunks[i.x, i.y];
                 foreach (var id in ch.bots)
                 {
-                    DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [])]));
+                    var player = DataBase.GetPlayer(id.Key);
+                    player?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [])]));
                 }
             }
         }
-        public int PACKPOS(int x, int y) => (x + y * World.ChunksW) / 32 + ((x - WorldX) + (WorldY - y));
+        public int PACKPOS(int x, int y) => x + y * 32;
         IEnumerable<(int x,int y)> vChunksAround()
         {
             for (var xxx = -2; xxx <= 2; xxx++)
@@ -180,7 +196,7 @@ namespace MinesServer.GameShit.WorldSystem
             }
             yield break;
         }
-        public IHubPacket[] pPakcs()
+        public IHubPacket[] pPakcs(Player player)
         {
             Dictionary<int, List<HBPack>> l = new();
             foreach (var p in packs.Values)
