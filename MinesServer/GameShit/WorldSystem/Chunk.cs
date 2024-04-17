@@ -1,18 +1,20 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.VulkSystem;
+using MinesServer.Network.Constraints;
 using MinesServer.Network.HubEvents.FX;
 using MinesServer.Network.HubEvents.Packs;
 using MinesServer.Network.World;
 using MinesServer.Server;
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 
 namespace MinesServer.GameShit.WorldSystem
 {
     public class Chunk
     {
         public ConcurrentDictionary<int, Player> bots = new();
-        public (int, int) pos;
+        public (int x, int y) pos;
         public bool[] packsprop;
         public bool active = false;
         public Chunk((int, int) pos) => this.pos = pos;
@@ -25,11 +27,11 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public int WorldX
         {
-            get => pos.Item1 * 32;
+            get => pos.x * 32;
         }
         public int WorldY
         {
-            get => pos.Item2 * 32;
+            get => pos.y * 32;
         }
         private DateTimeOffset lastupdalive = ServerTime.Now;
         private DateTimeOffset sandandb = ServerTime.Now;
@@ -101,8 +103,8 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = pos.Item1 + xxx;
-                    var cy = pos.Item2 + yyy;
+                    var cx = pos.x + xxx;
+                    var cy = pos.y + yyy;
                     if (valid(cx, cy))
                     {
                         var ch = World.W.chunks[cx, cy];
@@ -133,16 +135,6 @@ namespace MinesServer.GameShit.WorldSystem
                 }
             }
         }
-        public void ResendPacks()
-        {
-            foreach (var p in packs.Values)
-            {
-                if (p.type != PackType.None)
-                {
-                    SendPack((char)p.type, p.x, p.y, p.cid, p.off);
-                }
-            }
-        }
         public void ResendPack(Pack p)
         {
             if (p.type != PackType.None)
@@ -152,42 +144,53 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public void SendPack(char type, int x, int y, int cid, int off)
         {
-            for (var xxx = -2; xxx <= 2; xxx++)
+            foreach (var i in vChunksAround())
             {
-                for (var yyy = -2; yyy <= 2; yyy++)
+                var ch = World.W.chunks[i.x, i.y];
+                foreach (var id in ch.bots)
                 {
-                    var cx = pos.Item1 + xxx;
-                    var cy = pos.Item2 + yyy;
-                    if (valid(cx, cy))
-                    {
-                        var ch = World.W.chunks[cx, cy];
-                        foreach (var id in ch.bots)
-                        {
-                            ClearPack(x, y);
-                            DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBPacksPacket(x + y * World.CellsHeight, [new HBPack(type, x, y, (byte)cid, (byte)off)])]));
-                        }
-                    }
+                    ClearPack(x, y);
+                    if (type != (char)PackType.None)
+                    DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [new HBPack(type, x, y, (byte)cid, (byte)off)])]));
                 }
             }
         }
-        public void ClearPack(int x, int y)
+        public void ClearPack(int x,int y)
+        {
+            foreach (var i in vChunksAround())
+            {
+                var ch = World.W.chunks[i.x, i.y];
+                foreach (var id in ch.bots)
+                {
+                    DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [])]));
+                }
+            }
+        }
+        public int PACKPOS(int x, int y) => (x + y * World.ChunksW) / 32 + ((x - WorldX) + (WorldY - y));
+        IEnumerable<(int x,int y)> vChunksAround()
         {
             for (var xxx = -2; xxx <= 2; xxx++)
             {
                 for (var yyy = -2; yyy <= 2; yyy++)
                 {
-                    var cx = pos.Item1 + xxx;
-                    var cy = pos.Item2 + yyy;
-                    if (valid(cx, cy))
-                    {
-                        var ch = World.W.chunks[cx, cy];
-                        foreach (var id in ch.bots)
-                        {
-                            DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBPacksPacket(x + y * World.CellsHeight, [])]));
-                        }
-                    }
+                    var cx = pos.x + xxx;
+                    var cy = pos.y + yyy;
+                    if (valid(cx, cy)) yield return (cx, cy);
                 }
             }
+            yield break;
+        }
+        public IHubPacket[] pPakcs()
+        {
+            Dictionary<int, List<HBPack>> l = new();
+            foreach (var p in packs.Values)
+                if (p.type != PackType.None)
+                {
+                    var pos = PACKPOS(p.x, p.y);
+                    if (!l.ContainsKey(pos)) l.Add(pos, new List<HBPack>());
+                        l[pos].Add(new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off));
+                };
+            return l.Select(i => (IHubPacket)new HBPacksPacket(i.Key, i.Value.ToArray())).ToArray();
         }
         public Pack? GetPack(int x, int y) => packs.ContainsKey(x + y * 32) ? packs[x + y * 32] : null;
         public void SetPack(int x, int y, Pack p)
@@ -210,7 +213,7 @@ namespace MinesServer.GameShit.WorldSystem
         {
             foreach (var i in bots)
             {
-                if (i.Value.ChunkX != pos.Item1 || i.Value.ChunkY != pos.Item2 || !DataBase.activeplayers.Contains(i.Value))
+                if (i.Value.ChunkX != pos.x || i.Value.ChunkY != pos.y || !DataBase.activeplayers.Contains(i.Value))
                 {
                     bots.Remove(i.Value.id, out var p);
                 }

@@ -106,7 +106,7 @@ namespace MinesServer.GameShit.Buildings
             p.SendWindow();
             p.x = x;p.y = y + 3;
             p.tp(p.x, p.y);
-            p.SendMap();
+            p.CheckChunkChanged();
         }
         private ListEntry[] BuildTpList(Player p)
         {

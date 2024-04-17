@@ -58,7 +58,7 @@ namespace MinesServer.GameShit.Buildings
                     p.resp.OnRespawn(p);
                 }
                 p.SendMoney();
-                World.W.GetChunk(x, y).ResendPacks();
+                World.W.GetChunk(x, y).ResendPack(this);
             }
             db.SaveChanges();
         }

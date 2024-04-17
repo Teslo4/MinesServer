@@ -36,7 +36,7 @@ namespace MinesServer.Server
         protected override void OnConnected()
         {
             sid = Auth.GenerateSessionId();
-            Console.WriteLine($"{Socket.RemoteEndPoint} connected");
+            Console.WriteLine($"Connected__\npoint:{Socket.RemoteEndPoint}");
             SendU(new StatusPacket("черный хуй в твоей жопе"));
             SendU(new AUPacket(sid));
             SendU(new PingPacket(0, 0, ""));
@@ -66,16 +66,9 @@ namespace MinesServer.Server
         }
         protected override void OnDisconnected()
         {
-            if (player == null)
-            {
-                return;
-            }
-            Console.WriteLine(player.name + " disconnected");
-            using var db = new DataBase();
-            db.players.Update(player);
-            db.SaveChanges();
-            player.afkstarttime = ServerTime.Now;
-            player.connection = null;
+            if (player is null) return;
+            Console.WriteLine($"Disconnected__\nid:{player.id}\nname:{player.name}");
+            player.dOnDisconnect();
             player = null;
             Dispose();
         }

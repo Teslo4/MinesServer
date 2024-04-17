@@ -158,11 +158,13 @@ namespace MinesServer.GameShit.Programmator
                         case ActionType.RunIfTrue or ActionType.RunIfFalse:
                             if (currentprog.TryGetValue(label, out var _))
                             {
+                                current.Reset();
                                 if (label == "")
                                 {
+                                    cFunction = startpoint.name;
+                                    current.current = startpoint.pos;
                                     break;
                                 }
-                                current.Reset();
                                 currentprog[label].calledfrom = current.calledfrom;
                                 cFunction = label;
                             }

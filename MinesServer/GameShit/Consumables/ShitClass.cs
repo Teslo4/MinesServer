@@ -201,18 +201,10 @@ namespace MinesServer.GameShit.Consumables
                                 var damagable = pack as IDamagable;
                                 db.Attach(pack);
 
-                                if (damagable.CanDestroy())
-                                {
-                                    damagable.Destroy(p);
-                                }
-                                else
-                                {
-                                    damagable.Damage(10);
-                                }
+                                if (damagable.CanDestroy()) damagable.Destroy(p);
+                                else damagable.Damage(10);
                                 if (pack.charge == 0)
-                                {
                                     World.W.GetChunk(pack.x, pack.y).ResendPack(pack);
-                                }
                             }
                             foreach (var player in World.W.GetPlayersFromPos(x + _x, y + _y))
                             {

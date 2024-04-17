@@ -139,7 +139,7 @@ namespace MinesServer.GameShit.WorldSystem
                 for (int cy = bottom; cy <= top; cy++)
                 {
                     var p = GetProp(GetCell(x + cx, y + cy));
-                    if (!ValidCoord(x + cx, y + cy) || ignoreplace && (!p.is_diggable || !p.is_destructible || GetCell(x + cx, y + cy) == 36) || PackPart(x + cx, y + cy)|| ((player != null) ? !AccessGun(x,y,player.cid).access : false) || (!p.can_place_over || !p.isEmpty) && !ignoreplace)
+                    if (!ValidCoord(x + cx, y + cy) || ignoreplace && (!p.is_diggable || !p.is_destructible || GetCell(x + cx, y + cy) == 36) || PackPart(x + cx, y + cy) || ((player != null) ? !AccessGun(x, y, player.cid).access : false) || (!p.can_place_over || !p.isEmpty) && !ignoreplace)
                     {
                         if (player != null && ValidCoord(x + cx, y + cy))
                         {
@@ -246,19 +246,16 @@ namespace MinesServer.GameShit.WorldSystem
             Console.Write($"\r{cells}/{TotalVolume}");
             Console.WriteLine("");
         }
-        public static Cell GetProp(byte type)
-        {
-            return CellsSerializer.cells[type];
-        }
+        public static Cell GetProp(byte type) => CellsSerializer.cells[type];
         public static bool IsEmpty(int x, int y)
         {
             return GetProp(x, y).isEmpty && !PackPart(x, y);
         }
-        public static bool TrueEmpty(int x,int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x,y) is not (36 or 37 or 0);
+        public static bool TrueEmpty(int x, int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x, y) is not (36 or 37 or 0);
         public static Cell GetProp(int x, int y)
         {
-            return CellsSerializer.cells[GetCell(x, y)];
-        }
+            return W.ValidCoord(x,y) ? GetProp(GetCell(x, y)) : GetProp(0);
+         }
         public static void MoveCell(int x, int y, int plusx, int plusy)
         {
             if (!W.ValidCoord(x + plusx, y + plusy))

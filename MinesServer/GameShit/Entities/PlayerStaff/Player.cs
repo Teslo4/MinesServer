@@ -1,4 +1,6 @@
-﻿using Microsoft.Identity.Client;
+﻿using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
+using Microsoft.EntityFrameworkCore.Update.Internal;
+using Microsoft.Identity.Client;
 using MinesServer.Enums;
 using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.ClanSystem;
@@ -25,10 +27,13 @@ using MinesServer.Network.Programmator;
 using MinesServer.Network.World;
 using MinesServer.Server;
 using MinesServer.Server.Network;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Net.WebSockets;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices.Marshalling;
 
 namespace MinesServer.GameShit.Entities.PlayerStaff
 {
@@ -50,7 +55,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         #endregion
         #region fields
         [NotMapped]
-        public (int, int)? lastchunk { get; private set; }
+        private (int, int)? lastchunk { get; set; }
         [NotMapped]
         public Chat? currentchat { get; set; }
         [NotMapped]
@@ -61,11 +66,11 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             get => connection != null;
         }
         public Player() => Delay = ServerTime.Now;
+        private DateTimeOffset lBotsUpdate = ServerTime.Now;
         public DateTimeOffset lastPlayersend = ServerTime.Now;
         public DateTimeOffset lastPacks = ServerTime.Now;
         public DateTimeOffset afkstarttime = ServerTime.Now;
         private DateTimeOffset lastSync = ServerTime.Now;
-        public Queue<Action> playerActions = new();
         public int id { get; set; }
         public string name { get; set; }
         public Clan? clan { get; set; }
@@ -488,7 +493,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 return false;
             }
             SendMyMove();
-            SendMap();
+            CheckChunkChanged();
             if (packhere && (pack.cid == cid || pack.cid == 0) && !programsData.ProgRunning)
             {
                 win = pack.GUIWin(this)!;
@@ -624,6 +629,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             skillslist.InstallSkill(SkillType.Movement.GetCode(), 2, this);
             skillslist.InstallSkill(SkillType.Health.GetCode(), 3, this);
         }
+        public void dOnDisconnect()
+        {
+            using var db = new DataBase();
+            db.players.Update(this);
+            db.SaveChanges();
+            afkstarttime = ServerTime.Now;
+            connection = null;
+            alreadyvisible.Clear();
+        }
         public void Init()
         {
             if (DataBase.activeplayers.FirstOrDefault(p => p.id == id) == default)
@@ -655,8 +669,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             this.SendMoney();
             this.SendLvl();
             this.SendInventory();
+            CheckChunkChanged(true);
             tp(x, y);
-            SendMap();
             console.Enqueue(new Line { text = "@@> Добро пожаловать в консоль!" });
             for (var i = 0; i < 4; i++)
             {
@@ -673,7 +687,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             settings.SendSettings(this);
             this.SendClan();
             SendChat();
-            SendMap(true);
             connection?.SendU(new ConfigPacket("oldprogramformat+"));
             if (programsData.selected is not null)
                 this.UpdateProg(programsData.selected);
@@ -719,6 +732,90 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         #endregion
         #region renders
+        public void BotsRender()
+        {
+            IEnumerable<IHubPacket> bots = new List<IHubPacket>();
+            foreach (var chunk in vChunksAround())
+                bots = bots.Concat(GetBotsInChunk(chunk.x, chunk.y));
+            connection?.SendB(new HBPacket(bots.ToArray()));
+            lBotsUpdate = ServerTime.Now;
+        }
+        private IHubPacket[] GetBotsInChunk(int chunky,int chunkx)
+        {
+            List<IHubPacket> bots = new();
+            var ch = World.W.chunks[chunkx, chunky];
+            foreach (var id in ch.bots)
+            {
+                var player = DataBase.GetPlayer(id.Key);
+                if (player is not null)
+                {
+                    bots.Add(new HBBotPacket(player.id, player.x, player.y, player.dir, player.skin, player.cid, player.tail));
+                }
+            }
+            return bots.ToArray();
+        }
+        private IHubPacket[] ChunkInfo(int chunkx,int chunky)
+        {
+            List<IHubPacket> result = new();
+            var chunk = World.W.chunks[chunkx, chunky];
+            result.Add(new HBMapPacket(chunk.WorldX, chunk.WorldY, 32, 32, chunk.cells));
+            if (!alreadyvisible.Contains((chunkx, chunky))) return result.Concat(chunk.pPakcs()).ToArray();
+            return result.ToArray();
+        }
+        private IHubPacket[] fChunkInfo(int chunkx, int chunky) => ChunkInfo(chunkx, chunky).Concat(GetBotsInChunk(chunkx, chunky)).ToArray();
+        private IEnumerable<(int x,int y)> vChunksAround()
+        {
+            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
+            for (int y = -2; y <= 2; y++)
+            {
+                for (int x = -2; x <= 2; x++)
+                {
+                    var lchunkx = ChunkX + x;
+                    var lchunky = ChunkY + y;
+                    if (valid(lchunkx, lchunky))
+                    {
+                        yield return (lchunkx, lchunky);
+                    }
+                }
+            }
+            yield break;
+        }
+        private void StupidVisabilityUpdate()
+        {
+            List<IHubPacket> packets = new();
+            List<(int x,int y)> rofl = new List<(int x, int y)>(alreadyvisible);
+            foreach (var chunk in vChunksAround())
+            {
+                var pos = chunk.x + chunk.y * World.ChunksH;
+                var turple = (chunk.x, chunk.y);
+                if (rofl.Contains(turple)) rofl.Remove(turple);
+                else
+                {
+                    packets = packets.Concat(fChunkInfo(chunk.x,chunk.y)).ToList();
+                }
+                if (!alreadyvisible.Contains(turple))
+                    alreadyvisible.Add(turple);
+            }
+            foreach(var i in rofl)
+            {
+                alreadyvisible.Remove(i);
+                var chunk = World.W.chunks[i.x, i.y];
+                foreach (var pack in chunk.packs.Values)
+                {
+                    packets.Add(new HBPacksPacket(chunk.PACKPOS(pack.x,pack.y), []));
+                }
+            }
+            foreach (var i in rofl)
+            {
+                alreadyvisible.Remove(i);
+                var chunk = World.W.chunks[i.x,i.y];
+                foreach (var pack in chunk.packs.Values)
+                {
+                    packets.Add(new HBPacksPacket(chunk.PACKPOS(pack.x, pack.y), []));
+                }
+            }
+            connection?.SendB(new HBPacket(packets.ToArray()));
+        }
         public void ReSendBots()
         {
             List<IHubPacket> packets = new();
@@ -748,43 +845,26 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public void SendMyMove()
         {
-            if (connection == null)
-            {
-                return;
-            }
+            if (connection is null) return;
             var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (int x = -2; x <= 2; x++)
+            foreach (var ch in vChunksAround())
             {
-                for (int y = -2; y <= 2; y++)
-                {
-                    var cx = ChunkX + x;
-                    var cy = ChunkY + y;
-                    if (valid(cx, cy))
-                    {
-                        var ch = World.W.chunks[cx, cy];
-                        ch.active = true;
-                        if (ch != null)
-                        {
-
-                            cx *= 32; cy *= 32;
-                            foreach (var id in ch.bots)
-                            {
-                                DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBBotPacket(this.id, this.x, this.y, dir, skin, cid, tail)]));
-                            }
-                        }
-                    }
-                }
+                var chunk = World.W.chunks[ch.x,ch.y];
+                chunk.active = true;
+                foreach (var id in chunk.bots)
+                    DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBBotPacket(this.id, x, y, dir, skin, cid, tail)]));
             }
         }
-
-        public void PackUpdater()
+        List<(int,int)> alreadyvisible = new();
+        public void CheckChunkChanged(bool force = false)
         {
-            //visible add some packs
-            //every move from chunk to chunk check visible packs
+            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
+            if (!valid(ChunkX, ChunkY)) return;
+            if (lastchunk != (ChunkX, ChunkY) || force) MoveToChunk(ChunkX, ChunkY);
         }
-        private List<Pack> visible = new();
-        public void MoveToChunk(int x, int y)
+        void MoveToChunk(int x, int y)
         {
+            StupidVisabilityUpdate();
             if (lastchunk != null && World.W.chunks[lastchunk.Value.Item1, lastchunk.Value.Item2] != null)
             {
                 var chtoremove = World.W.chunks[lastchunk.Value.Item1, lastchunk.Value.Item2];
@@ -803,120 +883,36 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
             }
         }
-        public void SendMap(bool force = false)
-        {
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            if (!valid(ChunkX, ChunkY))
-            {
-                return;
-            }
-            if (lastchunk != (ChunkX, ChunkY) || force)
-            {
-                MoveToChunk(ChunkX, ChunkY);
-                List<IHubPacket> packetsmap = new();
-                for (int x = -2; x <= 2; x++)
-                {
-                    for (int y = -2; y <= 2; y++)
-                    {
-                        var cx = ChunkX + x;
-                        var cy = ChunkY + y;
-                        if (valid(cx, cy))
-                        {
-                            var ch = World.W.chunks[cx, cy];
-                            ch.active = true;
-                            List<HBPack> packs = new();
-                            if (ch != null)
-                            {
-                                cx *= 32; cy *= 32;
-                                packetsmap.Add(new HBMapPacket(cx, cy, 32, 32, ch.cells));
-                                foreach (var pack in ch.packs)
-                                {
-                                    var p = pack.Value;
-                                    if (p.type != PackType.None)
-                                    {
-                                        packs.Add(new HBPack((char)p.type, p.x, p.y, (byte)p.cid, (byte)p.off));
-                                    }
-                                }
-                                connection?.SendB(new HBPacket([new HBPacksPacket(ch.pos.Item1 + ch.pos.Item2 * World.ChunksH, packs.ToArray())]));
-                                foreach (var id in ch.bots)
-                                {
-                                    var player = DataBase.GetPlayer(id.Key);
-                                    if (player != null)
-                                    {
-                                        packetsmap.Add(new HBBotPacket(player.id, player.x, player.y, player.dir, player.skin, player.cid, player.tail));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                connection?.SendB(new HBPacket(packetsmap.ToArray()));
-                lastPlayersend = DateTime.Now;
-            }
-        }
         public void SendDFToBots(int fx, int fxx, int fxy, int bid, int dir, int col = 0)
         {
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (var xxx = -2; xxx <= 2; xxx++)
+            foreach (var ch in vChunksAround())
             {
-                for (var yyy = -2; yyy <= 2; yyy++)
+                var chunk = World.W.chunks[ch.x, ch.y];
+                foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
                 {
-                    if (valid(ChunkX + xxx, ChunkY + yyy))
-                    {
-                        var x = ChunkX + xxx;
-                        var y = ChunkY + yyy;
-                        var ch = World.W.chunks[x, y];
-
-                        foreach (var player in ch.bots.Select(id => DataBase.GetPlayer(id.Key)))
-                        {
-                            player?.connection?.SendB(new HBPacket([new HBDirectedFXPacket(id, fxx, fxy, fx, dir, col)]));
-                        }
-                    }
+                    player?.connection?.SendB(new HBPacket([new HBDirectedFXPacket(id, fxx, fxy, fx, dir, col)]));
                 }
             }
         }
         public void SendFXoBots(int fx, int fxx, int fxy)
         {
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (var xxx = -2; xxx <= 2; xxx++)
+            foreach (var ch in vChunksAround())
             {
-                for (var yyy = -2; yyy <= 2; yyy++)
+                var chunk = World.W.chunks[ch.x, ch.y];
+                foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
                 {
-                    if (valid(ChunkX + xxx, ChunkY + yyy))
-                    {
-                        var x = ChunkX + xxx;
-                        var y = ChunkY + yyy;
-                        var ch = World.W.chunks[x, y];
-
-                        foreach (var player in ch.bots.Select(id => DataBase.GetPlayer(id.Key)))
-                        {
-                            player?.connection?.SendB(new HBPacket([new HBFXPacket(fxx, fxy, fx)]));
-                        }
-                    }
+                    player?.connection?.SendB(new HBPacket([new HBFXPacket(fxx, fxy, fx)]));
                 }
             }
         }
         public void SendLocalMsg(string msg)
         {
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (var xxx = -2; xxx <= 2; xxx++)
+            foreach (var ch in vChunksAround())
             {
-                for (var yyy = -2; yyy <= 2; yyy++)
+                var chunk = World.W.chunks[ch.x, ch.y];
+                foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
                 {
-                    var x = ChunkX + xxx;
-                    var y = ChunkY + yyy;
-                    if (valid(x, y))
-                    {
-                        var ch = World.W.chunks[x, y];
-                        foreach (var id in ch.bots)
-                        {
-                            var player = DataBase.GetPlayer(id.Key);
-                            if (player != null)
-                            {
-                                player?.connection?.SendB(new HBPacket([new HBChatPacket(this.id, x, y, msg)]));
-                            }
-                        }
-                    }
+                    player?.connection?.SendB(new HBPacket([new HBChatPacket(this.id, x, y, msg)]));
                 }
             }
         }
@@ -1055,7 +1051,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             x = newpos.Item1; y = newpos.Item2;
             tp(x, y);
             ReSendBots();
-            SendMap();
+            CheckChunkChanged();
             this.SendHealth();
             if (programsData.ProgRunning)
             {

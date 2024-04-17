@@ -43,8 +43,6 @@ namespace MinesServer.GameShit.Programmator
                 y += p.programsData.flipstate ? -(p.programsData.shiftY + p.programsData.checkY) : p.programsData.shiftY + p.programsData.checkY;
             }
             p.programsData.checkX = 0;p.programsData.checkY = 0;p.programsData.shiftX = 0;p.programsData.shiftY = 0;
-            if (World.W.ValidCoord(x, y))
-            {
                 if (father.state == null)
                 {
                     father.state = func(x, y);
@@ -56,7 +54,6 @@ namespace MinesServer.GameShit.Programmator
                     ActionType.Or => (bool)father.state || func(x, y),
                     ActionType.And => (bool)father.state && func(x, y)
                 };
-            }
         }
         private bool IsAcid(CellType type) => type switch
         {
@@ -403,16 +400,12 @@ namespace MinesServer.GameShit.Programmator
                     return father.state;
                 case ActionType.RunIfTrue:
                     if (father.state.HasValue && !father.state.Value)
-                    {
-                        label = "";
-                    }
+                        return null;
                     father.state = null;
                     return label;
                 case ActionType.RunIfFalse:
                     if (father.state.HasValue && father.state.Value)
-                    {
-                        label = "";
-                    }
+                        return null;
                     father.state = null;
                     return label;
                 case ActionType.Or or ActionType.And:
