@@ -42,11 +42,8 @@ namespace MinesServer.Server
         public DbSet<Teleport> teleports { get; set; }
         public DbSet<Gate> gates { get; set; }
         #endregion
-        public static bool created = false;
-        public DataBase()
-        {
-            Database.EnsureCreated();
-        }
+        public DataBase() : base() => Database.EnsureCreated();
+        public void Delete() => Database.EnsureDeleted();
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer("Server=(localdb)\\MSSqlLocalDB;MultipleActiveResultSets=true;Database=M;Trusted_Connection=True;TrustServerCertificate=True;");
@@ -66,8 +63,9 @@ namespace MinesServer.Server
             modelBuilder.Entity<Program>()
                .Navigation(c => c.owner)
                .AutoInclude();
-            modelBuilder.Entity<Player>()
-                .Navigation(c => c.programs)
+            var b = modelBuilder.Entity<Player>();
+            b.HasOne(i => i.resp).WithMany().OnDelete(DeleteBehavior.SetNull);
+                b.Navigation(c => c.programs)
                 .AutoInclude();
             modelBuilder.Entity<Request>()
                 .Navigation(c => c.player)

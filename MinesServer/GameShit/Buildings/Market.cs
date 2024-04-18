@@ -20,7 +20,7 @@ namespace MinesServer.GameShit.Buildings
         public int maxhp { get; set; }
         public int hp { get; set; }
         public long moneyinside { get; set; }
-        public DateTimeOffset brokentimer { get; set; }
+        public DateTime brokentimer { get; set; }
         #endregion;
         private Market() {}
         public Market(int ownerid, int x, int y) : base(ownerid, x, y)

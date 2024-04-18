@@ -1,5 +1,6 @@
 ﻿using MinesServer.GameShit.Buildings;
 using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Server;
 
@@ -183,6 +184,47 @@ namespace MinesServer.GameShit.Consumables
                 ch.ClearPack(x, y);
             });
         }
+        public static bool Geopack(int type,int x,int y,Player p)
+        {
+            var cell = World.GetCell(x, y);
+            if (World.TrueEmpty(x,y) && type != 10)
+            {
+                World.SetCell(x, y, type switch
+                {
+                    11 => CellType.AliveCyan,
+                    12 => CellType.AliveRed,
+                    13 => CellType.AliveViol,
+                    14 => CellType.AliveNigger,
+                    15 => CellType.AliveWhite,
+                    16 => CellType.AliveBlue,
+                    34 => CellType.HypnoRock,
+                    42 => CellType.NiggerRock,
+                    43 => CellType.RedRock,
+                    46 => CellType.AliveRainbow
+                });
+                return true;
+            }
+            else if (World.isAlive(cell))
+            {
+                var id = (CellType)cell switch
+                {
+                    CellType.AliveCyan => 11,
+                    CellType.AliveRed => 12,
+                    CellType.AliveViol =>13,
+                    CellType.AliveNigger =>14,
+                    CellType.AliveWhite => 15,
+                    CellType.AliveBlue => 16,
+                    CellType.HypnoRock => 34,
+                    CellType.NiggerRock => 42,
+                    CellType.RedRock => 43,
+                    CellType.AliveRainbow => 46
+                };
+                World.Destroy(x, y);
+                p.inventory[id]++;
+                return true;
+            }
+            return false;
+        }
         public static void Raz(int x, int y, Player p)
         {
             var ch = World.W.GetChunk(x, y);
@@ -207,9 +249,7 @@ namespace MinesServer.GameShit.Consumables
                                     World.W.GetChunk(pack.x, pack.y).ResendPack(pack);
                             }
                             foreach (var player in World.W.GetPlayersFromPos(x + _x, y + _y))
-                            {
                                 player.Hurt(500);
-                            }
                         }
                     }
                 }

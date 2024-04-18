@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using MinesServer.GameShit.Entities;
 using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.Enums;
@@ -84,11 +85,21 @@ namespace MinesServer.GameShit.Programmator
              { 2, (0, -1) },
              { 3, (1, 0) }
         };
-        public object? Execute(BaseEntity p, ref bool? template)
+        public object? Execute(BaseEntity p, ref object? template)
         {
             switch (type)
             {
                 case ActionType.MacrosMine:
+                    if (template is int)
+                    {
+                        var dir = p.GetDirCord();
+                        if (World.isCry(World.GetCell(dir.x, dir.y)))
+                        {
+                            p.Bz();
+                            delay = 200;
+                            return true;
+                        }
+                    }
                     foreach(var i in dirz)
                     {
                         if (World.isCry(World.GetCell(p.x + i.Value.dx, p.y + i.Value.dy)))
@@ -96,6 +107,7 @@ namespace MinesServer.GameShit.Programmator
                         {
                             p.Bz();
                             delay = 200;
+                            template = i.Key;
                             return true;
                         }
                         else
@@ -105,6 +117,7 @@ namespace MinesServer.GameShit.Programmator
                                 return true;
                         }
                     }
+                    template = null;
                     break;
                 case ActionType.MacrosHeal:
                     if (p.crys is not null && p.crys[MinesServer.Enums.CrystalType.Red] > 0)

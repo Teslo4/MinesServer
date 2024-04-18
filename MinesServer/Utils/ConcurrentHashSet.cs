@@ -31,6 +31,22 @@ namespace MinesServer.Utils
             }
         }
 
+        public IEnumerator<T> GetEnumerator()
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                foreach (var i in _hashSet)
+                {
+                    yield return i;
+                }
+                yield break;
+            }
+            finally
+            {
+                if (_lock.IsReadLockHeld) _lock.ExitReadLock();
+            }
+        }
         public void Clear()
         {
             _lock.EnterWriteLock();

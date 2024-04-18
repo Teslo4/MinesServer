@@ -1,6 +1,9 @@
-﻿using MinesServer.GameShit.WorldSystem;
+﻿using Microsoft.EntityFrameworkCore;
+using MinesServer.GameShit.Entities.PlayerStaff;
+using MinesServer.GameShit.WorldSystem;
 using MinesServer.Server;
 using Newtonsoft.Json;
+using System.Data.Entity;
 using System.Drawing;
 using System.Numerics;
 using System.Reflection;
@@ -60,6 +63,36 @@ namespace MinesServer
                     Console.WriteLine($"id: {player.id}\n name :[{player.name}] online:{player.online}");
                 }
             });
+            commands.Add("fullnew", () =>
+            {
+                server.Stop();
+                MServer.Instance?.time.Dispose();
+                World.W.DeleteWorld();
+                var db = new DataBase();
+                db.Delete();
+                server.Start();
+            });
+            commands.Add("newworld", () =>
+            {
+                server.Stop();
+                MServer.Instance?.time.Dispose();
+                using var db = new DataBase();
+                DataBase.activeplayers = new List<Player>();
+                foreach (var i in db.players) i.resp = null;
+                db.boxes.RemoveAll();
+                db.teleports.RemoveAll();
+                db.resps.RemoveAll();
+                db.ups.RemoveAll();
+                db.storages.RemoveAll();
+                db.vulkans.RemoveAll();
+                db.markets.RemoveAll();
+                db.guns.RemoveAll();
+                db.gates.RemoveAll();
+                db.gates.RemoveAll();
+                db.SaveChanges();
+                World.W.DeleteWorld();
+                server.Start();
+            });
             for (; ; )
             {
                 var l = Console.ReadLine();
@@ -67,6 +100,7 @@ namespace MinesServer
                     commands[l]();
             }
         }
+        public static void RemoveAll<T>(this Microsoft.EntityFrameworkCore.DbSet<T> s) where T : class => s.RemoveRange(s);
         public static Bitmap ConvertMapPart(int fromx,int fromy,int tox,int toy)
         {
             var bitmap = new Bitmap(tox - fromx, toy - fromy);

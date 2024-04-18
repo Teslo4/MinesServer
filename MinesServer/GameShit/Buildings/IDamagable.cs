@@ -59,7 +59,7 @@ namespace MinesServer.GameShit.Buildings
         {
             World.W.GetChunk(x, y).SendFx(x, y, 12);
         }
-        public DateTimeOffset brokentimer { get; set; }
+        public DateTime brokentimer { get; set; }
         public int ownerid { get; set; }
         public int x { get; set; }
         public int y { get; set; }

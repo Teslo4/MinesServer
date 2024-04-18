@@ -60,9 +60,8 @@ namespace MinesServer.GameShit.WorldSystem
         /// </summary>
         public void Commit()
         {
-            for(int i = 0;i < _updatedChunks.Count;i++)
-            {
-                var pos = _updatedChunks[i];
+            foreach (var pos in _updatedChunks)
+            { 
                 var chunkindex = GetChunkIndex(pos.chunkx, pos.chunky);
                 if (_buffer[chunkindex] is not null)
                 {
@@ -71,7 +70,11 @@ namespace MinesServer.GameShit.WorldSystem
             }
             _updatedChunks.Clear();
         }
-        
+        public void Delete()
+        {
+            _stream.Close();
+            File.Delete(filename);
+        }
         private T[] Read(int index)
         {
             lock (streamlock)

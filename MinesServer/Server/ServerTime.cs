@@ -6,11 +6,11 @@ using System.Diagnostics;
 
 namespace MinesServer.Server
 {
-    public class ServerTime
+    public class ServerTime : IDisposable
     {
         public delegate void GameAction();
         public Queue<(GameAction action,Player initiator)> gameActions;
-        private List<TickAction> actions = new();
+        CancellationTokenSource s = new();
         public ServerTime()
         {
             Now = DateTime.Now;
@@ -23,7 +23,7 @@ namespace MinesServer.Server
                     var item = gameActions.Dequeue();
                     /*try
                     {*/
-                    if (item.action != null)
+                    if (item.action is not null)
                     {
                         item.action();
                     }
@@ -56,17 +56,14 @@ namespace MinesServer.Server
         }
         private void StupidUpdate(Action a,double delay)
         {
-            Stopwatch m = Stopwatch.StartNew();
             Task.Run(() =>
             {
                 while (true)
                 {
-                    m.Restart();
                     a();
-                    m.Stop();
                     Thread.Sleep(TimeSpan.FromMilliseconds(delay));
                 }
-            });
+            },s.Token);
         }
         public void AddAction(GameAction action,Player p)
         {
@@ -74,9 +71,9 @@ namespace MinesServer.Server
             gameActions.Enqueue((action,p));
             directactiondelay = Now + TimeSpan.FromMicroseconds(5);
         }
-        private static DateTimeOffset directactiondelay = ServerTime.Now;
+        private DateTime directactiondelay = ServerTime.Now;
         public static int offset;
-        public static DateTimeOffset Now { get; private set; }
+        public static DateTime Now { get; private set; }
         public void StartTimeUpdate()
         {
 
@@ -84,12 +81,12 @@ namespace MinesServer.Server
             {
                 while (true)
                 {
-                    var d = DateTimeOffset.Now;
+                    var d = DateTime.Now;
                     offset = (int)(Now-d).TotalMicroseconds;
                     Now = d;
                     Thread.Sleep(TimeSpan.FromMicroseconds(50));
                 }
-            });
+            }, s.Token);
         }
         public void programmatorUpdate()
         {
@@ -104,7 +101,7 @@ namespace MinesServer.Server
                     }
                     Thread.Sleep(1);
                 }
-            });
+            }, s.Token);
         }
         public void ChunksUpdateSlised()
         {
@@ -140,7 +137,7 @@ namespace MinesServer.Server
                     World.W.durability.Commit();
                     Thread.Sleep(1);
                 }
-            });
+            },s.Token);
         }
         public void Update()
         {
@@ -173,6 +170,12 @@ namespace MinesServer.Server
             }
             db.SaveChanges();
             Thread.Sleep(1);
+        }
+
+        public void Dispose()
+        {
+            s.CancelAsync().Wait();
+            s.Dispose();
         }
     }
 }

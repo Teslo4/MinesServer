@@ -33,9 +33,9 @@ namespace MinesServer.GameShit.WorldSystem
         {
             get => pos.y * 32;
         }
-        private DateTimeOffset lastupdalive = ServerTime.Now;
-        private DateTimeOffset sandandb = ServerTime.Now;
-        private DateTimeOffset notvisibleupd = ServerTime.Now;
+        private DateTime lastupdalive = ServerTime.Now;
+        private DateTime sandandb = ServerTime.Now;
+        private DateTime notvisibleupd = ServerTime.Now;
         bool shouldbeloaded => active && (ShouldBeLoadedBots() || ContainsAlive || updlasttick);
         public byte[] cells => Enumerable.Range(0, World.ChunkHeight).SelectMany(y => Enumerable.Range(0, World.ChunkWidth).Select(x => this[x, y])).ToArray();
         public void Update()

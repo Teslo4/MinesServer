@@ -11,6 +11,7 @@ namespace MinesServer.Server
         public ServerTime time { get; private set; }
         public static MServer? Instance;
         public static bool started = false;
+        CancellationTokenSource s = new();
 
         public int online
         {
@@ -21,11 +22,19 @@ namespace MinesServer.Server
             Instance = this;
             MConsole.InitCommands();
             GameShit.SysCraft.RDes.Init();
+            OptionKeepAlive = true;
+        }
+        public override bool Start()
+        {
             new World(Default.cfg.WorldName);
             time = new ServerTime();
             SessionsCheck();
-            Authmk2.Start();
-            OptionKeepAlive = true;
+            return base.Start();
+        }
+        public override bool Stop()
+        {
+            s.Cancel();
+            return base.Stop();
         }
         protected override TcpSession CreateSession()
         {
@@ -46,7 +55,7 @@ namespace MinesServer.Server
                     }
                     Thread.Sleep(5);
                 }
-            });
+            },s.Token);
         }
         protected override void OnError(SocketError error)
         {

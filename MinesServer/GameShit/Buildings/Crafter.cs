@@ -24,7 +24,7 @@ namespace MinesServer.GameShit.Buildings
         public override float charge { get; set; }
         public bool ready = false;
         public CraftEntry? currentcraft { get; set; }
-        public DateTimeOffset brokentimer { get; set; }
+        public DateTime brokentimer { get; set; }
         [NotMapped]
         public override int off
         {

@@ -66,9 +66,9 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             get => connection != null;
         }
         public Player() => Delay = ServerTime.Now;
-        private DateTimeOffset lBotsUpdate = ServerTime.Now;
-        public DateTimeOffset afkstarttime = ServerTime.Now;
-        private DateTimeOffset lastSync = ServerTime.Now;
+        private DateTime lBotsUpdate = ServerTime.Now;
+        public DateTime afkstarttime = ServerTime.Now;
+        private DateTime lastSync = ServerTime.Now;
         public int id { get; set; }
         public string name { get; set; }
         public Clan? clan { get; set; }
@@ -138,7 +138,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public bool autoDig { get; set; }
         public bool agression { get; set; }
         public int c190stacks = 1;
-        public DateTimeOffset lastc190hit = ServerTime.Now;
+        public DateTime lastc190hit = ServerTime.Now;
         public override Basket crys { get; set; }
         public Inventory inventory { get; set; }
         public Settings settings { get; set; }
@@ -148,7 +148,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public Window? win;
         [NotMapped]
         private float cb;
-        public DateTimeOffset Delay = ServerTime.Now;
+        public DateTime Delay = ServerTime.Now;
         public bool CanAct { get => !(Delay.AddMilliseconds(ServerTime.offset) > ServerTime.Now); }
         public bool OnRoad { get => World.isRoad(World.GetCell(x, y)); }
         public int ChunkX

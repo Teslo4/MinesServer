@@ -19,7 +19,7 @@ namespace MinesServer.GameShit.Buildings
         [NotMapped]
         public override float charge { get; set; }
         public override PackType type => PackType.Storage;
-        public DateTimeOffset brokentimer { get; set; }
+        public DateTime brokentimer { get; set; }
         public int hp { get; set; }
         #region crysshit
         public long[] crysinside = new long[6];

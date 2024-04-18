@@ -111,6 +111,27 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                 },
                 {
+                    10,(p) => ShitClass.Geopack(10,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    11,(p) => ShitClass.Geopack(11,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    12,(p) => ShitClass.Geopack(12,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    13,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    14,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    15,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    16,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
                     24,
                     (p) =>
                     {
@@ -163,12 +184,24 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                 },
                 {
+                    34,(p) => ShitClass.Geopack(34,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
                     40,
                     (p) =>
                     {
                         ShitClass.C190Shot(p.GetDirCord().x, p.GetDirCord().y, p);
                         return true;
                     }
+                },
+                {
+                    42,(p) => ShitClass.Geopack(42,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    43,(p) => ShitClass.Geopack(42,p.GetDirCord().x,p.GetDirCord().y,p)
+                },
+                {
+                    46,(p) => ShitClass.Geopack(46,p.GetDirCord().x,p.GetDirCord().y,p)
                 },
             };
         }
@@ -201,11 +234,14 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         {
             if (DateTime.Now - time >= TimeSpan.FromMilliseconds(400))
             {
-                if (typeditems.ContainsKey(selected) && !World.ContainsPack(p.GetDirCord().x, p.GetDirCord().y, out var pack) && (World.GetProp(p.GetDirCord().x, p.GetDirCord().y).can_place_over || selected == 40) && this[selected] > 0)
+                if (typeditems.ContainsKey(selected) && !World.ContainsPack(p.GetDirCord().x, p.GetDirCord().y, out var pack)
+                    && (World.GetProp(p.GetDirCord().x, p.GetDirCord().y).can_place_over
+                    || selected is 40 or (>=10and<17) or 34 or 42 or 43 or 46) && this[selected] > 0)
                 {
                     if (typeditems[selected](p))
                     {
                         this[selected]--;
+                        if (this[selected] == 0)miniq.Remove(selected);
                         p.SendInventory();
                     }
                 }
@@ -216,11 +252,11 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         {
             if (miniq.Contains(item) || item == -1)
                 return;
-            if (miniq.Count >= 4) miniq.Dequeue();
-            miniq.Enqueue(item);
+            if (miniq.Count >= 4) miniq.Remove(miniq.First());
+            miniq.Add(item);
         }
         public bool minv = true;
-        private Queue<int> miniq = new();
+        private List<int> miniq = new();
         public Dictionary<int, ItemUsage> typeditems;
         public delegate bool ItemUsage(Player p);
         public void Choose(int id, Player p)

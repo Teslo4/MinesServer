@@ -19,7 +19,7 @@ namespace MinesServer.GameShit.Buildings
     public class Teleport : Pack, IDamagable
     {
         public override PackType type => PackType.Teleport;
-        public DateTimeOffset brokentimer { get; set; }
+        public DateTime brokentimer { get; set; }
         public float maxcharge { get; set; }
         public int hp { get; set; }
         public int maxhp { get; set; }

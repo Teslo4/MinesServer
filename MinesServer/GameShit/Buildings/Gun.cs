@@ -22,7 +22,7 @@ namespace MinesServer.GameShit.Buildings
         public float maxcharge { get; set; }
         public override int cid { get; set; }
         public override int off { get { return charge > 0 ? 1 : 0; } }
-        public DateTimeOffset brokentimer { get; set; }
+        public DateTime brokentimer { get; set; }
         #endregion
         public Gun(int x, int y, int ownerid, int cid) : base(x, y, ownerid)
         {

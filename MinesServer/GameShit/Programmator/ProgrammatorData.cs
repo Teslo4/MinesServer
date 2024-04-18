@@ -39,7 +39,7 @@ namespace MinesServer.GameShit.Programmator
             set; 
         }
         public Dictionary<string, PFunction> currentprog { get; set; }
-        public DateTimeOffset delay;
+        public DateTime delay;
         private string cFunction;
         public Program? selected { get; set; }
         private PFunction current
@@ -57,7 +57,7 @@ namespace MinesServer.GameShit.Programmator
             }
             foreach (var i in currentprog.Values)
                 i.Close();
-            delay = DateTimeOffset.UtcNow;
+            delay = DateTime.UtcNow;
             Drop();
             ProgRunning = true;
         }
@@ -89,7 +89,7 @@ namespace MinesServer.GameShit.Programmator
                 cFunction = currentprog.First().Key;
         }
         public void IncreaseDelay(double ms) => delay = ServerTime.Now + TimeSpan.FromMilliseconds(ms);
-        private bool? temp = null;
+        private object? temp = null;
         public void Step()
         {
             if (current == null || ServerTime.Now < delay)

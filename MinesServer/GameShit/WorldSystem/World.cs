@@ -60,13 +60,16 @@ namespace MinesServer.GameShit.WorldSystem
                 }*/
                 Console.WriteLine("Generation End");
             }
-            if (cells == null)
-            {
+            else
+            { 
                 cells = new($"{name}.mapb", (ChunksW, ChunksH));
                 road = new($"{name}_road.mapb", (ChunksW, ChunksH));
                 durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
             }
-            CreateSpawns(4);
+            cells.Commit();
+            road.Commit();
+            durability.Commit();
+            CreateSpawns();
             using var db = new DataBase();
             if (db.chats.FirstOrDefault(i => i.Name == "FED") == default)
             {
@@ -83,39 +86,31 @@ namespace MinesServer.GameShit.WorldSystem
             durability.Commit();
             MServer.started = true;
         }
-        public void CreateSpawns(int c)
+        public void DeleteWorld()
+        {
+            cells.Delete();
+            road.Delete();
+            durability.Delete();
+        }
+        public void CreateSpawns()
         {
             var r = new Random();
             using (var db = new DataBase())
             {
                 var y = 10;
-                var x = 0;
-                while (db.resps.Where(i => i.ownerid == 0).Count() < c)
+                var x = 10;
+                if (db.reqs.Count() < 1)
                 {
-                    x = r.Next(x, CellsWidth + 1);
-                    if (x >= CellsWidth)
+                    for (int rx = -10; rx <= 10; rx++)
                     {
-                        y++;
-                        x = 0;
-                    }
-                    if (CanBuildPack(-5, 5, -5, 5, x, y, null, true))
-                    {
-                        for (int rx = -10; rx <= 10; rx++)
+                        for (int ry = -10; ry <= 10; ry++)
                         {
-                            for (int ry = -10; ry <= 10; ry++)
-                            {
-                                SetCell(x + rx, y + ry, 36);
-                            }
+                            SetCell(x + rx, y + ry, 36);
                         }
-                        new Market(x - 7, y - 4, 0).Build();
-                        new Resp(x - 8, y + 7, 0).Build();
-                        new Up(x, y - 4, 0).Build();
-
                     }
-                    if (y > CellsHeight)
-                    {
-                        y = 0;
-                    }
+                    new Market(x - 7, y - 4, 0).Build();
+                    new Resp(x - 8, y + 7, 0).Build();
+                    new Up(x, y - 4, 0).Build();
                 }
             }
 
@@ -356,13 +351,9 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 var p = DataBase.GetPlayer(id);
                 if (p == null)
-                {
                     continue;
-                }
                 if (p.x == x && p.y == y)
-                {
                     st.Push(p);
-                }
 
             }
             return st;
@@ -454,9 +445,9 @@ namespace MinesServer.GameShit.WorldSystem
             }
             return (ret,anygun);
         }
-        private static DateTimeOffset lastpackupd = ServerTime.Now;
-        private static DateTimeOffset lastpackeffect = ServerTime.Now;
-        private static DateTimeOffset lazyupd = ServerTime.Now;
+        private static DateTime lastpackupd = ServerTime.Now;
+        private static DateTime lastpackeffect = ServerTime.Now;
+        private static DateTime lazyupd = ServerTime.Now;
         public static void Update()
         {
             if (ServerTime.Now - lazyupd >= TimeSpan.FromMinutes(1))
@@ -548,7 +539,7 @@ namespace MinesServer.GameShit.WorldSystem
                 lastcryupdate = ServerTime.Now;
             }
         }
-        public static DateTimeOffset lastcryupdate = DateTimeOffset.MinValue;
+        public static DateTime lastcryupdate = DateTime.MinValue;
         public static int GetCrysCost(int i)
         {
             return W.cryscostbase[i] + W.cryscostmod[i];
