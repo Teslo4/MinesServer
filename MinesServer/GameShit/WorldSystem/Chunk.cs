@@ -16,7 +16,6 @@ namespace MinesServer.GameShit.WorldSystem
         public ConcurrentDictionary<int, Player> bots = new();
         public (int x, int y) pos;
         public bool[] packsprop;
-        public bool active = false;
         public Chunk((int, int) pos) => this.pos = pos;
         bool ContainsAlive = false;
         public Dictionary<int, Pack> packs = new();
@@ -36,7 +35,7 @@ namespace MinesServer.GameShit.WorldSystem
         private DateTime lastupdalive = ServerTime.Now;
         private DateTime sandandb = ServerTime.Now;
         private DateTime notvisibleupd = ServerTime.Now;
-        bool shouldbeloaded => active && (ShouldBeLoadedBots() || ContainsAlive || updlasttick);
+        bool shouldbeloaded => ShouldBeLoadedBots() || ContainsAlive || updlasttick;
         public byte[] cells => Enumerable.Range(0, World.ChunkHeight).SelectMany(y => Enumerable.Range(0, World.ChunkWidth).Select(x => this[x, y])).ToArray();
         public void Update()
         {
@@ -55,14 +54,11 @@ namespace MinesServer.GameShit.WorldSystem
             }
             Dispose();
         }
-        public void SetCell(int x, int y, byte cell, bool packmesh = false)
+        public void SetProp(int x, int y, bool packmesh = false)
         {
             LoadPackProps();
             packsprop[x + y * 32] = packmesh ? true : false;
-            if (active)
-            {
-                SendCellToBots(WorldX + x, WorldY + y, this[x, y]);
-            }
+            SendCellToBots(WorldX + x, WorldY + y, this[x, y]);
         }
         public void UpdateNotVisible()
         {
@@ -94,7 +90,6 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public void DestroyCell(int x, int y, World.destroytype t)
         {
-            if (active)
                 SendCellToBots(WorldX + x, WorldY + y, this[x, y]);
         }
         public void SendDirectedFx(int fx, int x, int y, int dir, int bid = 0, int color = 0)
@@ -144,9 +139,8 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public void SendPack(char type, int x, int y, int cid, int off)
         {
-            foreach (var i in vChunksAround())
-            {
-                var ch = World.W.chunks[i.x, i.y];
+
+                foreach (var ch in vChunksAround()) 
                 foreach (var id in ch.bots)
                 {
                     ClearPack(x, y);
@@ -156,34 +150,28 @@ namespace MinesServer.GameShit.WorldSystem
                         player?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [new HBPack(type, x, y, (byte)cid, (byte)off)])]));
                     }
                 }
-            }
         }
         public void ClearDelay(int x, int y)
         {
-            foreach (var i in vChunksAround())
-            {
-                var ch = World.W.chunks[i.x, i.y];
+                foreach (var ch in vChunksAround())
                 foreach (var id in ch.bots)
                 {
                     var player = DataBase.GetPlayer(id.Key);
                     player?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS( x, y), [])]));
                 }
-            }
+            
         }
         public void ClearPack(int x,int y)
         {
-            foreach (var i in vChunksAround())
-            {
-                var ch = World.W.chunks[i.x, i.y];
+            foreach (var ch in vChunksAround())
                 foreach (var id in ch.bots)
                 {
                     var player = DataBase.GetPlayer(id.Key);
                     player?.connection?.SendB(new HBPacket([new HBPacksPacket(PACKPOS(x, y), [])]));
                 }
-            }
         }
-        public int PACKPOS(int x, int y) => x + y * 32;
-        IEnumerable<(int x,int y)> vChunksAround()
+        public int PACKPOS(int x, int y) => x + y * World.ChunksW;
+        IEnumerable<Chunk> vChunksAround()
         {
             for (var xxx = -2; xxx <= 2; xxx++)
             {
@@ -191,7 +179,7 @@ namespace MinesServer.GameShit.WorldSystem
                 {
                     var cx = pos.x + xxx;
                     var cy = pos.y + yyy;
-                    if (valid(cx, cy)) yield return (cx, cy);
+                    if (valid(cx, cy)) yield return World.W.chunks[cx,cy];
                 }
             }
             yield break;
@@ -229,7 +217,8 @@ namespace MinesServer.GameShit.WorldSystem
         {
             foreach (var i in bots)
             {
-                if (i.Value.ChunkX != pos.x || i.Value.ChunkY != pos.y || !DataBase.activeplayers.Contains(i.Value))
+                if (i.Value.ChunkX != pos.x || i.Value.ChunkY != pos.y || 
+                    !DataBase.activeplayers.Contains(i.Value))
                 {
                     bots.Remove(i.Value.id, out var p);
                 }
@@ -244,43 +233,27 @@ namespace MinesServer.GameShit.WorldSystem
                 {
                     var prop = World.GetProp(this[x, y]);
                     if (prop.isSand || prop.isBoulder)
-                    {
                         cellstoupd.Add((WorldX + x, WorldY + y, this[x, y]));
-                    }
                 }
             }
             foreach (var c in cellstoupd)
             {
                 if (World.GetProp(c.Item3).isSand && Physics.Sand(c.Item1, c.Item2))
-                {
                     updlasttick = true;
-                }
                 else if (World.GetProp(c.Item3).isBoulder && Physics.Boulder(c.Item1, c.Item2))
-                {
                     updlasttick = true;
-                }
             }
         }
         private void UpdateAlive()
         {
             List<(int, int, byte)> cellstoupd = new();
             for (int y = 0; y < 32; y++)
-            {
                 for (int x = 0; x < 32; x++)
-                {
-                    var prop = World.GetProp(this[x, y]);
-                    if (World.isAlive(this[x, y]))
-                    {
-                        cellstoupd.Add((WorldX + x, WorldY + y, this[x, y]));
-                    }
-                }
-            }
+                    if (World.isAlive(this[x, y])) cellstoupd.Add((WorldX + x, WorldY + y, this[x, y]));
             foreach (var c in cellstoupd)
             {
-                if (World.isAlive(c.Item3) && Physics.Alive(c.Item1, c.Item2))
-                {
+                if (World.isAlive(c.Item3) && Physics.Alive(c.Item1, c.Item2)) 
                     updlasttick = true;
-                }
             }
         }
         private void UpdateCells()
@@ -297,13 +270,11 @@ namespace MinesServer.GameShit.WorldSystem
                 sandandb = now;
             }
         }
-        private bool updlasttick = false;
+        public bool updlasttick = false;
         public void AddBot(Player player)
         {
-            if (this != null && !bots.ContainsKey(player.id))
-            {
+            if (this != null && !bots.ContainsKey(player.id)) 
                 bots[player.id] = player;
-            }
         }
         public void Dispose()
         {
@@ -311,43 +282,17 @@ namespace MinesServer.GameShit.WorldSystem
         }
         private bool ShouldBeLoadedBots()
         {
-            for (var xxx = -2; xxx <= 2; xxx++)
-            {
-                for (var yyy = -2; yyy <= 2; yyy++)
-                {
-                    var cx = pos.Item1 + xxx;
-                    var cy = pos.Item2 + yyy;
-                    if (valid(cx, cy))
-                    {
-                        var ch = World.W.chunks[cx, cy];
-                        if (ch.bots.Count > 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
+            foreach (var ch in vChunksAround()) 
+                if (ch.bots.Count > 0)
+                        return true;
             return false;
         }
         public static bool valid(int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
         private void SendCellToBots(int x, int y, byte cell)
         {
-            for (var xxx = -2; xxx <= 2; xxx++)
-            {
-                for (var yyy = -2; yyy <= 2; yyy++)
-                {
-                    var cx = pos.Item1 + xxx;
-                    var cy = pos.Item2 + yyy;
-                    if (valid(cx, cy))
-                    {
-                        var ch = World.W.chunks[cx, cy];
-                        foreach (var id in ch.bots)
-                        {
-                            DataBase.GetPlayer(id.Key)?.connection?.SendCell(x, y, cell);
-                        }
-                    }
-                }
-            }
+            foreach (var ch in vChunksAround())
+                foreach (var id in ch.bots) 
+                    DataBase.GetPlayer(id.Key)?.connection?.SendCell(x, y, cell);
         }
     }
 }

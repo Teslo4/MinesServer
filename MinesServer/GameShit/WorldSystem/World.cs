@@ -17,8 +17,8 @@ namespace MinesServer.GameShit.WorldSystem
 {
     public class World
     {
-        public const int ChunksW = 30;
-        public const int ChunksH = 30;
+        public const int ChunksW = 5;
+        public const int ChunksH = 5;
         public const int CellsWidth = ChunksW * ChunkWidth;
         public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;
@@ -50,14 +50,14 @@ namespace MinesServer.GameShit.WorldSystem
                 durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
                 Console.WriteLine($"Creating World Preset {CellsWidth} x {CellsHeight}({ChunksW} x {ChunksH} chunks)");
                 Console.WriteLine("EmptyMapGeneration");
-                gen.StartGeneration();
-                /*for(int x = 0;x < CellsWidth;x++)
+                //gen.StartGeneration();
+                for(int x = 0;x < CellsWidth;x++)
                 {
                     for (int y = 0; y < CellsHeight; y++)
                     {
                         SetCell(x, y, 32);
                     }
-                }*/
+                }
                 Console.WriteLine("Generation End");
             }
             else
@@ -246,22 +246,20 @@ namespace MinesServer.GameShit.WorldSystem
         {
             return GetProp(x, y).isEmpty && !PackPart(x, y);
         }
-        public static bool TrueEmpty(int x, int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x, y) is not (36 or 37 or 0);
+        public static bool TrueEmpty(int x, int y) => GetProp(x, y).isEmpty && !PackPart(x, y) && GetCell(x, y) is not (36 or 37 or 0 or 39);
         public static Cell GetProp(int x, int y)
         {
             return W.ValidCoord(x,y) ? GetProp(GetCell(x, y)) : GetProp(0);
          }
         public static void MoveCell(int x, int y, int plusx, int plusy)
         {
-            if (!W.ValidCoord(x + plusx, y + plusy))
-            {
-                return;
-            }
+            if (!W.ValidCoord(x + plusx, y + plusy)) return;
             var cell = GetCell(x, y);
             var durability = GetDurability(x, y);
             Destroy(x, y, destroytype.Cell);
             SetCell(x + plusx, y + plusy, cell);
             SetDurability(x + plusx, y + plusy, durability);
+            W.GetChunk(x + plusx, y + plusy).updlasttick = true;
         }
         public static void SetCell(int x, int y, CellType type) => SetCell(x, y, (byte)type);
         public static void SetCell(int x, int y, byte cell, bool packmesh = false)
@@ -283,7 +281,7 @@ namespace MinesServer.GameShit.WorldSystem
             }
             if (W.shit.ContainsKey((x, y)))
                 W.shit[(x, y)]?.Cancel();
-            ch.SetCell(x - ch.WorldX, y - ch.WorldY, cell, packmesh);
+            ch.SetProp(x - ch.WorldX, y - ch.WorldY, packmesh);
         }
         public static bool PackPart(int x, int y)
         {

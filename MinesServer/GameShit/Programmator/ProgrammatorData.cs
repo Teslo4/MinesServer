@@ -9,12 +9,12 @@ namespace MinesServer.GameShit.Programmator
 {
     public class ProgrammatorData
     {
-        public ProgrammatorData(BaseEntity e)
+        public ProgrammatorData(PEntity e)
         {
             ProgRunning = false;
             entity = e;
         }
-        BaseEntity entity;
+        PEntity entity;
         public int checkX;
         public int checkY;
         public int shiftX;

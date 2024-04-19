@@ -176,17 +176,17 @@ namespace MinesServer.Server
         private void Res(TYPacket f, RESPPacket p) => player?.Death();
         private void ADMN(TYPacket f, ADMNPacket p)
         {
-            if (player.win != null)
+            if (player.win is not null)
             {
                 player.win.AdminButton();
-                player.win.ShowTabs = false;
+                player.SendWindow();
+                player.win.ShowTabs = true;
             }
-            player.SendWindow();
         }
         private void Sett(TYPacket f, SettPacket p) => player?.settings.SendSettingsGUI(player);
         private void Dpbx(TYPacket f, DPBXPacket p)
         {
-            player.win = player.crys.OpenBoxGui();
+            player.win = player.crys.OpenBoxGui(player);
             player.SendWindow();
         }
         private DateTime lastpong = ServerTime.Now;
@@ -289,6 +289,7 @@ namespace MinesServer.Server
         public void SendJ(ITopLevelPacket data) => Send(new("J", data));
         public void Send(Packet p)
         {
+            if (p == default) return;
             Span<byte> span = stackalloc byte[p.Length];
             p.Encode(span);
             //Console.WriteLine(Encoding.UTF8.GetString(span));

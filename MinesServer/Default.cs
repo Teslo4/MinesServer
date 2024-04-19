@@ -72,6 +72,7 @@ namespace MinesServer
                 db.Delete();
                 server.Start();
             });
+            //buggy
             commands.Add("newworld", () =>
             {
                 server.Stop();

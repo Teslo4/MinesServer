@@ -161,11 +161,11 @@ namespace MinesServer.Server
             db.SaveChanges();
             initiator.SendU(new AHPacket(temp.id, temp.hash));
             initiator.player = DataBase.GetPlayer(temp.name);
-            initiator.player.connection = initiator;
             initiator.player.Death();
-            initiator.player.Init();
             db.SaveChanges();
-            initiator.auth = null;
+            initiator.player = DataBase.GetPlayer(initiator.player.id);
+            initiator.player.connection = initiator;
+            initiator.player.Init();
         }
         public void TryToFindByNick(string name)
         {

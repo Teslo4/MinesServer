@@ -1,4 +1,5 @@
-﻿using MinesServer.Enums;
+﻿using Microsoft.IdentityModel.Tokens;
+using MinesServer.Enums;
 using MinesServer.GameShit.GUI.UP;
 using MinesServer.GameShit.Skills;
 using MinesServer.Server;
@@ -10,15 +11,23 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
 {
     public class PlayerSkills
     {
-        [Key]
         public int id { get; set; }
+        private PlayerSkills() {
+        }
+        public PlayerSkills(Player p)
+        {//base skills
+            InstallSkill(SkillType.MineGeneral.GetCode(), 0, p);
+            InstallSkill(SkillType.Digging.GetCode(), 1, p);
+            InstallSkill(SkillType.Movement.GetCode(), 2, p);
+            InstallSkill(SkillType.Health.GetCode(), 3, p);
+            slots = 20;
+            Save();
+        }
         public string ser { get; set; } = "";
         public void LoadSkills()
         {
             if (skills.Count < 1)
-            {
                 skills = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<int, Skill?>>(ser);
-            }
         }
         [NotMapped]
         public int selectedslot = -1;
@@ -28,7 +37,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             {
                 return;
             }
-            skills[selectedslot] = null;
+            skills.Remove(selectedslot);
             p.SendLvl();
             Save();
         }
@@ -67,16 +76,14 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         {
             List<UpSkill> ski = new();
             LoadSkills();
-            foreach (var i in skills)
+            for(int i = 0;i < slots;i++)
             {
-                if (i.Value != null)
-                {
-                    ski.Add(new UpSkill(i.Key, i.Value.lvl, i.Value.isUpReady(), i.Value.type));
-                }
+                if (skills.ContainsKey(i) && skills[i] is not null)
+                ski.Add(new UpSkill(i, skills[i].lvl, skills[i].isUpReady(), skills[i].type));
             }
             return ski.ToArray();
         }
-        public int slots { get; set; } = 20;
+        public int slots { get; set; }
         [NotMapped]
         public Dictionary<int, Skill?> skills = new();
         [NotMapped]

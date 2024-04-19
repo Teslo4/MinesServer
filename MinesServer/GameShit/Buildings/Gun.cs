@@ -18,6 +18,7 @@ namespace MinesServer.GameShit.Buildings
         #region fields
         public override PackType type => PackType.Gun;
         public int hp { get; set; }
+        public int maxhp { get; set; }
         public override float charge { get => base.charge; set => base.charge = value; }
         public float maxcharge { get; set; }
         public override int cid { get; set; }
@@ -28,6 +29,7 @@ namespace MinesServer.GameShit.Buildings
         {
             this.cid = cid;
             hp = 1000;
+            maxhp = 1000;
             charge = 1000;
             maxcharge = 10000;
         }
@@ -88,6 +90,7 @@ namespace MinesServer.GameShit.Buildings
             {
                 charge += (int)val;
                 World.W.GetChunk(x, y).ResendPack(this);
+                p.SendCrys();
             }
             db.SaveChanges();
             p.win = GUIWin(p);
@@ -138,7 +141,7 @@ namespace MinesServer.GameShit.Buildings
                                     continue;
                                 }
                                 player.Hurt(60, DamageType.Gun);
-                                player.SendDFToBots(7, x, y, player.id, 1);
+                                player.SendDFToBots(player.id,7, x, y, player.id, 1);
                                 var basecrys = 0.5f;
                                 foreach (var c in player.skillslist.skills.Values)
                                 {

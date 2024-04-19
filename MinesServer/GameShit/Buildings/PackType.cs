@@ -10,6 +10,7 @@
         Up = 'U',
         Storage = 'L',
         Craft = 'F',
-        Vulkan = 'Q'
+        Vulkan = 'Q',
+        Spot = 'z'
     }
 }

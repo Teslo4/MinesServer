@@ -29,7 +29,7 @@ namespace MinesServer.GameShit.Programmator
         public string label;
         public int num;
         public ActionType type;
-        private void Check(BaseEntity p,Func<int,int,bool> func)
+        private void Check(PEntity p,Func<int,int,bool> func)
         {
             var x = p.x;
             var y = p.y;
@@ -61,7 +61,7 @@ namespace MinesServer.GameShit.Programmator
             CellType.AcidRock or CellType.CorrosiveActiveAcid or CellType.GrayAcid or CellType.GrayAcid or CellType.LivingActiveAcid or CellType.PassiveAcid or CellType.PurpleAcid => true,
             _ => false
         };
-        private bool? CallWSAction(BaseEntity p)
+        private bool? CallWSAction(PEntity p)
         {
             switch(label.ToLower())
             {
@@ -85,7 +85,7 @@ namespace MinesServer.GameShit.Programmator
              { 2, (0, -1) },
              { 3, (1, 0) }
         };
-        public object? Execute(BaseEntity p, ref object? template)
+        public object? Execute(PEntity p, ref object? template)
         {
             switch (type)
             {

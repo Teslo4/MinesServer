@@ -80,7 +80,7 @@ namespace MinesServer.GameShit.Sys_Craft
                 foreach (var i in r.costres)
                     p.inventory[i.id] -= i.num * num;
             p.SendInventory();
-            p.crys.SendBasket();
+            p.SendCrys();
         }
         public static IPage? FilledPage(Player p, Crafter c)
         {

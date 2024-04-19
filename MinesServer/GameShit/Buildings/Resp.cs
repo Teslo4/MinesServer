@@ -83,6 +83,7 @@ namespace MinesServer.GameShit.Buildings
             if (p.crys.RemoveCrys((int)CrystalType.Blue, num))
             {
                 charge += (int)num;
+                p.SendCrys();
             }
             p.win?.CurrentTab.Replace(AdmnPage(p));
             p.SendWindow();

@@ -21,6 +21,7 @@ namespace MinesServer.GameShit.Buildings
         public override PackType type => PackType.Storage;
         public DateTime brokentimer { get; set; }
         public int hp { get; set; }
+        public int maxhp { get; set; }
         #region crysshit
         public long[] crysinside = new long[6];
         public long ze
@@ -63,6 +64,7 @@ namespace MinesServer.GameShit.Buildings
         public Storage(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             hp = 1000;
+            maxhp = 1000;
             using var db = new DataBase();
             db.storages.Add(this);
             db.SaveChanges();
@@ -121,28 +123,29 @@ namespace MinesServer.GameShit.Buildings
                     crysinside[i] = sliders[i];
                 }
             }
-            p.crys.SendBasket();
+            p.SendCrys();
             p.win = GUIWin(p);
         }
-        public override Window? GUIWin(Player p)
-        {
-            var ok = new MButton("transfer", $"transfer:{ActionMacros.CrystalSliders}", (args) => StockTransfer(args.CrystalSliders, p));
-            var cryslines = crysinside.Select((cry, id) => new CrysLine("", 0, 0, p.crys.cry[id] + cry, (int)(cry))).ToArray();
-            var page = new Page()
-            {
+        private IPage MainPage(Player p) => new Page(){
                 Title = "Склад",
-                CrystalConfig = new CrystalConfig(" ", " ", cryslines),
-                Buttons = [ok]
+                CrystalConfig = new CrystalConfig(
+                    " ",
+                    " ",
+                    crysinside.Select((cry, id) => new CrysLine("", 0, 0, p.crys.cry[id] + cry, (int)(cry))).ToArray()
+                    ),
+                Buttons = [
+                    new MButton("transfer", $"transfer:{ActionMacros.CrystalSliders}", 
+                    (args) =>
+                    StockTransfer(args.CrystalSliders, p))]
             };
-            return new Window()
-            {
-                Tabs = [new Tab()
+        
+        public override Window? GUIWin(Player p) => new Window(){
+            Tabs = [new Tab()
                 {
                     Action = "хй",
                     Label = "хуху",
-                    InitialPage = page
+                    InitialPage = MainPage(p)
                 }]
-            };
-        }
+        };
     }
 }

@@ -37,7 +37,7 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace MinesServer.GameShit.Entities.PlayerStaff
 {
-    public class Player : BaseEntity
+    public class Player : PEntity
     {
         #region forprogs
         public void RunProgramm(Program p = null)
@@ -69,7 +69,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         private DateTime lBotsUpdate = ServerTime.Now;
         public DateTime afkstarttime = ServerTime.Now;
         private DateTime lastSync = ServerTime.Now;
-        public int id { get; set; }
         public string name { get; set; }
         public Clan? clan { get; set; }
         public Rank? clanrank { get; set; }
@@ -151,14 +150,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         public DateTime Delay = ServerTime.Now;
         public bool CanAct { get => !(Delay.AddMilliseconds(ServerTime.offset) > ServerTime.Now); }
         public bool OnRoad { get => World.isRoad(World.GetCell(x, y)); }
-        public int ChunkX
-        {
-            get => (int)Math.Floor((float)x / 32);
-        }
-        public int ChunkY
-        {
-            get => (int)Math.Floor((float)y / 32);
-        }
         public override double ServerPause
         {
             get => (OnRoad ? (pause * 5) * 0.80 : pause * 5) * 1.4 / 1000;
@@ -286,23 +277,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public override void Geo()
         {
-            int x = (int)GetDirCord().x, y = (int)GetDirCord().y;
-            if (!World.W.ValidCoord(x, y) || !World.AccessGun(x, y, cid).access)
-            {
-                return;
-            }
-            var cell = World.GetCell(x, y);
-            if (World.GetProp(cell).isPickable && !World.GetProp(cell).isEmpty)
-            {
-                geo.Push(cell);
-                World.Destroy(x, y);
-            }
-            else if (World.GetProp(cell).isEmpty && World.GetProp(cell).can_place_over && geo.Count > 0 && !World.PackPart(x, y))
-            {
-                var cplaceable = geo.Pop();
-                World.SetCell(x, y, cplaceable);
-                World.SetDurability(x, y, World.isCry(cplaceable) ? 0 : Physics.r.Next(1, 101) > 99 ? 0 : World.GetProp(cplaceable).durability);
-            }
+            base.Geo();
             this.SendGeo();
         }
         public void BBox(long[]? c)
@@ -344,22 +319,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             var type = ParseCryType((CellType)cell);
             cb += dob - odob;
             crys.AddCrys(type, odob);
+            this.SendCrys();
             World.AddDob(type, odob);
             SendDFToBots(2, x, y, id, (int)(odob < 255 ? odob : 255), type == 1 ? 3 : type == 2 ? 1 : type == 3 ? 2 : type);
         }
         public void GetBox(int x, int y)
         {
-            var b = Box.GetBox(x, y);
-            if (b == null)
-            {
-                return;
-            }
-            crys.Boxcrys(b.bxcrys);
-            crys.SendBasket();
-            using var db = new DataBase();
-            db.Remove(b);
-            db.SaveChanges();
-            connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "+ " + b.AllCrys)]));
+            var result = base.GetBox(x, y);
+            this.SendCrys();
+            connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "+ " + result)]));
         }
         private void OnDestroy(byte type)
         {
@@ -379,7 +347,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             {
                 return;
             }
-            SendDFToBots(0, this.x, this.y, id, dir);
+            SendDFToBots(id,0, this.x, this.y, id, dir);
             var cell = World.GetCell(x, y);
             if (World.GetProp(cell).damage > 0)
             {
@@ -598,6 +566,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                     break;
             }
+            this.SendCrys();
         }
         #endregion
         #region creating
@@ -612,21 +581,12 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             MaxHealth = 100;
             inventory = new Inventory();
             settings = new Settings(true);
-            crys = new Basket(this);
-            skillslist = new PlayerSkills();
-            AddBasicSkills();
+            crys = new Basket(true);
+            skillslist = new PlayerSkills(this);
             x = 0;y = 0;
             dir = 0;
             clan = null;
             skin = 0;
-        }
-        private void AddBasicSkills()
-        {
-            //базовые скиллы
-            skillslist.InstallSkill(SkillType.MineGeneral.GetCode(), 0, this);
-            skillslist.InstallSkill(SkillType.Digging.GetCode(), 1, this);
-            skillslist.InstallSkill(SkillType.Movement.GetCode(), 2, this);
-            skillslist.InstallSkill(SkillType.Health.GetCode(), 3, this);
         }
         public void dOnDisconnect()
         {
@@ -639,6 +599,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         public void Init()
         {
+            connection.auth = null;
             if (DataBase.activeplayers.FirstOrDefault(p => p.id == id) == default)
             {
                 DataBase.activeplayers.Add(this);
@@ -655,10 +616,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                 }
             }
+            MoveToChunk(ChunkX, ChunkY);
             Health = Health <= 0 ? MaxHealth : Health;
-            connection.auth = null;
-            crys.player = this;
-            connection?.SendWorldInfo();
             this.SendAutoDigg();
             this.SendGeo();
             this.SendHealth();
@@ -761,32 +720,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             return result.ToArray();
         }
         private IHubPacket[] fChunkInfo(int chunkx, int chunky) => ChunkInfo(chunkx, chunky).Concat(GetBotsInChunk(chunkx, chunky)).ToArray();
-        private IEnumerable<(int x,int y)> vChunksAround()
-        {
-            var valid = bool (int x, int y) => x >= 0 && y >= 0 && x < World.ChunksW && y < World.ChunksH;
-            for (int y = -2; y <= 2; y++)
-            {
-                for (int x = -2; x <= 2; x++)
-                {
-                    var lchunkx = ChunkX + x;
-                    var lchunky = ChunkY + y;
-                    if (valid(lchunkx, lchunky))
-                    {
-                        yield return (lchunkx, lchunky);
-                    }
-                }
-            }
-            yield break;
-        }
         private void StupidVisabilityUpdate()
         {
             List<IHubPacket> packets = new();
-            List<(int x,int y)> rofl = new List<(int x, int y)>(alreadyvisible);
+            List<(int x,int y)> old = new List<(int x, int y)>(alreadyvisible);
             foreach (var chunk in vChunksAround())
             {
                 var pos = chunk.x + chunk.y * World.ChunksH;
                 var turple = (chunk.x, chunk.y);
-                if (rofl.Contains(turple)) rofl.Remove(turple);
+                if (old.Contains(turple)) old.Remove(turple);
                 else
                 {
                     packets = packets.Concat(fChunkInfo(chunk.x,chunk.y)).ToList();
@@ -794,10 +736,10 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 if (!alreadyvisible.Contains(turple))
                     alreadyvisible.Add(turple);
             }
-            foreach(var i in rofl)
+            foreach(var abandoned in old)
             {
-                alreadyvisible.Remove(i);
-                var chunk = World.W.chunks[i.x, i.y];
+                alreadyvisible.Remove(abandoned);
+                var chunk = World.W.chunks[abandoned.x, abandoned.y];
                 foreach (var pack in chunk.packs.Values)
                 {
                     packets.Add(new HBPacksPacket(chunk.PACKPOS(pack.x,pack.y), []));
@@ -812,7 +754,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             foreach (var ch in vChunksAround())
             {
                 var chunk = World.W.chunks[ch.x,ch.y];
-                chunk.active = true;
                 foreach (var id in chunk.bots)
                     DataBase.GetPlayer(id.Key)?.connection?.SendB(new HBPacket([new HBBotPacket(this.id, x, y, dir, skin, cid, tail)]));
             }
@@ -842,28 +783,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 if (!chtoadd.bots.ContainsKey(id))
                 {
                     chtoadd.AddBot(this);
-                }
-            }
-        }
-        public void SendDFToBots(int fx, int fxx, int fxy, int bid, int dir, int col = 0)
-        {
-            foreach (var ch in vChunksAround())
-            {
-                var chunk = World.W.chunks[ch.x, ch.y];
-                foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
-                {
-                    player?.connection?.SendB(new HBPacket([new HBDirectedFXPacket(id, fxx, fxy, fx, dir, col)]));
-                }
-            }
-        }
-        public void SendFXoBots(int fx, int fxx, int fxy)
-        {
-            foreach (var ch in vChunksAround())
-            {
-                var chunk = World.W.chunks[ch.x, ch.y];
-                foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
-                {
-                    player?.connection?.SendB(new HBPacket([new HBFXPacket(fxx, fxy, fx)]));
                 }
             }
         }
@@ -910,7 +829,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 Health += num;
                 if (Health > MaxHealth)
                     Health = MaxHealth;
-                SendDFToBots(5, 0, 0, id, 0);
+                SendDFToBots(id,5, 0, 0, id, 0);
                 this.SendHealth();
                 return true;
             }
@@ -952,7 +871,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (Health - num > 0)
             {
                 Health -= num;
-                SendDFToBots(6, 0, 0, id, 0);
+                SendDFToBots(id,6, 0, 0, id, 0);
             }
             else
             {
@@ -962,28 +881,31 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         private async Task<(int x, int y)> FindEmptyForBox(int x, int y)
         {
-            var dirs = new (int, int)[] { (0, 1), (1, 0), (-1, 0), (0, -1) };
-            var q = new Queue<(int, int)>();
-            var valid = bool (int x, int y) => World.GetProp(x, y).isEmpty && !World.PackPart(x, y) && World.W.ValidCoord(x, y);
-            var a = World.PackPart(x, y);
-            if (!valid(x, y))
+            return await Task.Run(() =>
             {
-                q.Enqueue((x, y));
-            }
-            while (q.Count > 0)
-            {
-                var b = q.Dequeue();
-                foreach (var dir in dirs)
+                var dirs = new (int, int)[] { (0, 1), (1, 0), (-1, 0), (0, -1) };
+                var q = new Queue<(int, int)>();
+                var valid = bool (int x, int y) => World.GetProp(x, y).isEmpty && !World.PackPart(x, y) && World.W.ValidCoord(x, y);
+                var a = World.PackPart(x, y);
+                if (!valid(x, y))
                 {
-                    if (!valid(b.Item1 + dir.Item1, b.Item2 + dir.Item2))
-                    {
-                        q.Enqueue((b.Item1 + dir.Item1, b.Item2 + dir.Item2));
-                        continue;
-                    }
-                    return (b.Item1 + dir.Item1, b.Item2 + dir.Item2);
+                    q.Enqueue((x, y));
                 }
-            }
-            return (x, y);
+                while (q.Count > 0)
+                {
+                    var b = q.Dequeue();
+                    foreach (var dir in dirs)
+                    {
+                        if (!valid(b.Item1 + dir.Item1, b.Item2 + dir.Item2))
+                        {
+                            q.Enqueue((b.Item1 + dir.Item1, b.Item2 + dir.Item2));
+                            continue;
+                        }
+                        return (b.Item1 + dir.Item1, b.Item2 + dir.Item2);
+                    }
+                }
+                return (x, y);
+            });
         }
 
         public override void Death()
@@ -995,6 +917,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 {
                     Box.BuildBox(f.Result.x, f.Result.y, crys.cry, this, true);
                     crys.ClearCrys();
+                    this.SendCrys();
                 });
             }
             win = null;

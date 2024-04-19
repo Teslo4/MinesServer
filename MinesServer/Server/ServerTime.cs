@@ -115,7 +115,10 @@ namespace MinesServer.Server
                         {
                             for (int x = 0; x < World.ChunksW; x++)
                             {
-                               if (x % 2 == 0) World.W.chunks[x, y].Update(); 
+                               if (x % 2 == 0) World.W.chunks[x, y].Update();
+                                World.W.cells.Commit();
+                                World.W.road.Commit();
+                                World.W.durability.Commit();
                             }
                         }
                     });
@@ -126,6 +129,9 @@ namespace MinesServer.Server
                             for (int x = 0; x < World.ChunksW; x++)
                             {
                                 if (x % 2 == 1) World.W.chunks[x, y].Update();
+                                World.W.cells.Commit();
+                                World.W.road.Commit();
+                                World.W.durability.Commit();
                             }
                         }
                     });

@@ -1,6 +1,8 @@
 ﻿using MinesServer.Enums;
 using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.GUI;
+using MinesServer.GameShit.GUI.Horb;
+using MinesServer.GameShit.GUI.Horb.List.Rich;
 using MinesServer.GameShit.GUI.UP;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Network.HubEvents;
@@ -17,24 +19,37 @@ namespace MinesServer.GameShit.Buildings
         public override float charge { get; set; }
         public override PackType type => PackType.Up;
         public int hp { get; set; }
+        public int maxhp { get; set; }
         public DateTime brokentimer { get; set; }
         public long moneyinside { get; set; }
         #endregion
         public Up(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             using var db = new DataBase();
-            hp = 100;
+            hp = 1000;
+            maxhp = 1000;
             db.ups.Add(this);
             db.SaveChanges();
         }
         private Up() {  }
+        private IPage AdminPage => new Page()
+        {
+            Title ="UP",
+            RichList = new RichListConfig() {
+                Entries = [RichListEntry.Text($"hp {hp}/{maxhp}"), RichListEntry.Text("динаху")]
+            },
+            Buttons = []
+        };
         public override Window? GUIWin(Player p)
         {
+            Action? admn = p.id == ownerid ? () => { p.win?.CurrentTab.Open(AdminPage); p.SendWindow(); }
+            : null;
             var onskill = (int arg) => { p.skillslist.selectedslot = arg; p.win = GUIWin(p); p.SendWindow(); };
             var oninstall = (int slot, SkillType skilltype) =>
             {
                 p.win?.CurrentTab.Replace(new UpPage()
                 {
+                    OnAdmin = admn,
                     Skills = p.skillslist.GetSkills(),
                     OnSkill = onskill,
                     SlotAmount = p.skillslist.slots,
@@ -48,16 +63,23 @@ namespace MinesServer.GameShit.Buildings
             var skillfromslot = p.skillslist.selectedslot > -1 ? (p.skillslist.skills.ContainsKey(p.skillslist.selectedslot) ? p.skillslist.skills[p.skillslist.selectedslot] : null) : null;
             var uppage = p.skillslist.selectedslot == -1 ? new UpPage()
             {
+                OnAdmin = admn,
                 Skills = p.skillslist.GetSkills(),
                 SkillsToInstall = null,
                 SlotAmount = p.skillslist.slots,
                 OnSkill = onskill,
                 Title = "xxx",
                 Text = "Выберите скилл или пустой слот",
-                Button = new MButton("buyslotcost", "buyslot", (args) => { if (p.creds > 1000) { p.skillslist.slots++; } p.win = GUIWin(p); p.SendWindow(); }),
+                Button = p.skillslist.slots < 34 ? new MButton("buyslotcost", "buyslot", (args) => { if (p.creds > 1000 && p.skillslist.slots < 34) { 
+                        using var db = new DataBase();
+                        db.Attach(p.skillslist);
+                        p.skillslist.slots++;
+                        db.SaveChanges();
+                    } p.win = GUIWin(p); p.SendWindow(); }) : null,
                 SkillIcon = SkillType.Unknown
             } : new UpPage()
             {
+                OnAdmin = admn,
                 SelectedSlot = p.skillslist.selectedslot,
                 Skills = p.skillslist.GetSkills(),
                 SkillsToInstall = skillfromslot == null ? p.skillslist.SkillToInstall(p) : null,

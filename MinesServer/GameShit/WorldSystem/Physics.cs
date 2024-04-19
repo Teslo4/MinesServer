@@ -7,23 +7,24 @@ namespace MinesServer.GameShit.WorldSystem
         public static Random r = new Random();
         public static bool Boulder(int x, int y)
         {
-            if (World.GetCell(x, y + 1) == (byte)CellType.Gate && World.GetProp(x, y + 2).isEmpty)
+            var v = World.TrueEmpty;
+            if (World.GetCell(x, y + 1) == (byte)CellType.Gate && v(x, y + 2))
             {
                 World.MoveCell(x, y, 0, 2);
             }
-            else if (World.GetProp(World.GetCell(x, y + 1)).isEmpty)
+            else if (v(x, y + 1))
             {
                 World.MoveCell(x, y, 0, 1);
                 return true;
             }
             if (World.GetProp(World.GetCell(x, y + 1)).isBoulder || World.GetProp(World.GetCell(x, y + 1)).isSand)
             {
-                if (r.Next(1, 101) > 50 && World.GetProp(World.GetCell(x + 1, y + 1)).isEmpty && World.GetProp(World.GetCell(x + 1, y)).isEmpty)
+                if (r.Next(1, 101) > 50 && v(x + 1, y + 1) && v(x + 1, y))
                 {
                     World.MoveCell(x, y, 1, 1);
                     return true;
                 }
-                else if (World.GetProp(World.GetCell(x - 1, y + 1)).isEmpty && World.GetProp(World.GetCell(x - 1, y)).isEmpty)
+                else if (v(x - 1, y + 1) && v(x - 1, y))
                 {
                     World.MoveCell(x, y, -1, 1);
                     return true;
@@ -33,30 +34,31 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public static bool Sand(int x, int y)
         {
-            if (World.GetCell(x,y+1) == (byte)CellType.Gate && World.GetProp(x, y + 2).isEmpty)
+            var v = World.TrueEmpty;
+            if (World.GetCell(x,y+1) == (byte)CellType.Gate && v(x, y + 2))
             {
                 World.MoveCell(x, y, 0, 2);
             }
-            else if (World.IsEmpty(x, y + 1))
+            else if (v(x, y + 1))
             {
                 World.MoveCell(x, y, 0, 1);
                 return true;
             }
             else if (World.GetProp(World.GetCell(x, y + 1)).isSand || World.GetProp(World.GetCell(x, y + 1)).isBoulder)
             {
-                if (World.IsEmpty(x + 1, y + 1) && World.IsEmpty(x - 1, y + 1))
+                if (v(x + 1, y + 1) && v(x - 1, y + 1))
                 {
                     if (r.Next(1, 101) > 50)
                         World.MoveCell(x, y, 1, 1);
                     else
                         World.MoveCell(x, y, -1, 1);
                 }
-                else if (World.IsEmpty(x + 1, y + 1))
+                else if (v(x + 1, y + 1))
                 {
                     World.MoveCell(x, y, 1, 1);
                     return true;
                 }
-                else if (World.IsEmpty(x - 1, y + 1))
+                else if (v(x - 1, y + 1))
                 {
                     World.MoveCell(x, y, -1, 1);
                     return true;

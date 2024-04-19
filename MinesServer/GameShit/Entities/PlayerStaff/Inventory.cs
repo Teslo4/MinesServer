@@ -70,66 +70,37 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                 },
                 {
-                    4,
-                    (p) =>
-                    {
-                        return true;
-                    }
+                    4,(p) => true
                 },
                 {
-                    5,
-                    (p) =>
-                    {
-                        var coord = p.GetDirCord(true);
-                        if (World.AccessGun(coord.x,coord.y,p.cid).access)
-                        {
-                            ShitClass.Boom(p.GetDirCord().x, p.GetDirCord().y, p);
-                            return true;
-                        }
-                        return false;
-                    }
+                    5,ShitClass.Boom
                 },
                 {
-                    6,
-                    (p) =>
-                    {
-                        var coord = p.GetDirCord(true);
-                        if (World.AccessGun(coord.x,coord.y,p.cid).access)
-                        {
-                            ShitClass.Prot(p.GetDirCord().x, p.GetDirCord().y, p);
-                            return true;
-                        }
-                        return false;
-                    }
+                    6,ShitClass.Prot
                 },
                 {
-                    7,
-                    (p) =>
-                    {
-                        ShitClass.Raz(p.GetDirCord().x, p.GetDirCord().y, p);
-                        return true;
-                    }
+                    7,(p) => ShitClass.Raz(p)
                 },
                 {
-                    10,(p) => ShitClass.Geopack(10,p.GetDirCord().x,p.GetDirCord().y,p)
+                    10,(p) => ShitClass.Geopack(10,p)
                 },
                 {
-                    11,(p) => ShitClass.Geopack(11,p.GetDirCord().x,p.GetDirCord().y,p)
+                    11,(p) => ShitClass.Geopack(11,p)
                 },
                 {
-                    12,(p) => ShitClass.Geopack(12,p.GetDirCord().x,p.GetDirCord().y,p)
+                    12,(p) => ShitClass.Geopack(12,p)
                 },
                 {
-                    13,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                    13,(p) => ShitClass.Geopack(13,p)
                 },
                 {
-                    14,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                    14,(p) => ShitClass.Geopack(14,p)
                 },
                 {
-                    15,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                    15,(p) => ShitClass.Geopack(15,p)
                 },
                 {
-                    16,(p) => ShitClass.Geopack(13,p.GetDirCord().x,p.GetDirCord().y,p)
+                    16,(p) => ShitClass.Geopack(16,p)
                 },
                 {
                     24,
@@ -184,24 +155,22 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                 },
                 {
-                    34,(p) => ShitClass.Geopack(34,p.GetDirCord().x,p.GetDirCord().y,p)
+                    34,(p) => ShitClass.Geopack(34,p)
                 },
                 {
-                    40,
-                    (p) =>
-                    {
-                        ShitClass.C190Shot(p.GetDirCord().x, p.GetDirCord().y, p);
-                        return true;
-                    }
+                    35,ShitClass.Poli
                 },
                 {
-                    42,(p) => ShitClass.Geopack(42,p.GetDirCord().x,p.GetDirCord().y,p)
+                    40,ShitClass.C190Shot
                 },
                 {
-                    43,(p) => ShitClass.Geopack(42,p.GetDirCord().x,p.GetDirCord().y,p)
+                    42,(p) => ShitClass.Geopack(42,p)
                 },
                 {
-                    46,(p) => ShitClass.Geopack(46,p.GetDirCord().x,p.GetDirCord().y,p)
+                    43,(p) => ShitClass.Geopack(42,p)
+                },
+                {
+                    46,(p) => ShitClass.Geopack(46,p)
                 },
             };
         }

@@ -3,13 +3,17 @@ using MinesServer.GameShit.Entities.PlayerStaff;
 using MinesServer.GameShit.Enums;
 using MinesServer.GameShit.WorldSystem;
 using MinesServer.Server;
+using System.Numerics;
+using System.Reflection.Metadata.Ecma335;
 
 namespace MinesServer.GameShit.Consumables
 {
     public static class ShitClass
     {
-        public static void C190Shot(int x, int y, Player p)
+        public static bool C190Shot(Player p)
         {
+            var d = p.GetDirCord();
+            int x = d.x, y = d.y;
             var valid = (byte cell) => !World.isAlive(cell) && World.GetProp(cell).is_diggable && World.GetProp(cell).is_destructible && !World.isBuildingBlock(cell);
             int shotx = 0;
             int shoty = 0;
@@ -17,11 +21,8 @@ namespace MinesServer.GameShit.Consumables
             {
                 case 0:
                     shoty = y + 9;
-                    if (!World.W.ValidCoord(0, shoty))
-                    {
-                        break;
-                    }
-                    p.SendDFToBots(7, x, shoty, 0, 1);
+                    if (!World.W.ValidCoord(0, shoty)) return false;
+                    p.SendDFToBots(p.id,7, x, shoty, 0, 1);
                     for (; y <= shoty; y++)
                     {
                         var c = World.GetCell(x, y);
@@ -36,14 +37,11 @@ namespace MinesServer.GameShit.Consumables
                             World.DamageCell(x, y, 50);
                         }
                     }
-                    break;
+                    return true;
                 case 1:
                     shotx = x - 9;
-                    if (!World.W.ValidCoord(shotx, 0))
-                    {
-                        break;
-                    }
-                    p.SendDFToBots(7, shotx, y, 0, 1);
+                    if (!World.W.ValidCoord(shotx, 0)) return false;
+                    p.SendDFToBots(p.id,7, shotx, y, 0, 1);
                     for (; x >= shotx; x--)
                     {
                         var c = World.GetCell(x, y);
@@ -58,14 +56,11 @@ namespace MinesServer.GameShit.Consumables
                             World.DamageCell(x, y, 50);
                         }
                     }
-                    break;
+                    return true;
                 case 2:
                     shoty = y - 9;
-                    if (!World.W.ValidCoord(0, shoty))
-                    {
-                        break;
-                    }
-                    p.SendDFToBots(7, x, shoty, 0, 1);
+                    if (!World.W.ValidCoord(0, shoty)) return false;
+                    p.SendDFToBots(p.id,7, x, shoty, 0, 1);
                     for (; y >= shoty; y--)
                     {
                         var c = World.GetCell(x, y);
@@ -80,14 +75,11 @@ namespace MinesServer.GameShit.Consumables
                             World.DamageCell(x, y, 50);
                         }
                     }
-                    break;
+                    return true;
                 case 3:
                     shotx = x + 9;
-                    if (!World.W.ValidCoord(shotx, 0))
-                    {
-                        break;
-                    }
-                    p.SendDFToBots(7, shotx, y, 0, 1);
+                    if (!World.W.ValidCoord(shotx, 0)) return false;
+                    p.SendDFToBots(p.id,7, shotx, y, 0, 1);
                     for (; x <= shotx; x++)
                     {
                         var c = World.GetCell(x, y);
@@ -102,9 +94,10 @@ namespace MinesServer.GameShit.Consumables
                             World.DamageCell(x, y, 50);
                         }
                     }
-                    break;
+                    return true;
 
             }
+            return false;
         }
         public static void Gate(int x,int y,Player p)
         {
@@ -112,13 +105,21 @@ namespace MinesServer.GameShit.Consumables
             db.gates.Add(new Gate(x, y, p.cid));
             db.SaveChanges();
         }
-        public static void Poli(int x,int y,Player p)
+        public static bool Poli(Player p)
         {
-
+            var d = p.GetDirCord();
+            int x = d.x, y = d.y;
+            if (!World.AccessGun(x, y, p.cid).access) return false;
+            if (World.TrueEmpty(x, y))
+                World.SetCell(x, y, CellType.PolymerRoad);
+            return false;
         }
-        public static void Boom(int x, int y, Player player)
+        public static bool Boom(Player player)
         {
-           var ch = World.W.GetChunk(x, y);
+            var d = player.GetDirCord();
+            int x = d.x, y = d.y;
+            if (!World.AccessGun(x, y, player.cid).access) return false;
+            var ch = World.W.GetChunk(x, y);
             ch.SendPack('B', x, y, 0, 0);
             World.W.AsyncAction(1, () =>
             {
@@ -154,9 +155,13 @@ namespace MinesServer.GameShit.Consumables
                 ch.SendDirectedFx(1, x, y, 3, 0, 0);
                 ch.ClearPack(x, y);
             });
+            return true;
         }
-        public static void Prot(int x, int y, Player player)
+        public static bool Prot(Player player)
         {
+            var d = player.GetDirCord();
+            int x = d.x, y = d.y;
+            if (!World.AccessGun(x, y, player.cid).access) return false;
             var ch = World.W.GetChunk(x, y);
             ch.SendPack('B', x, y, 0, 1);
             World.W.AsyncAction(2, () =>
@@ -183,9 +188,12 @@ namespace MinesServer.GameShit.Consumables
                 ch.SendDirectedFx(1, x, y, 1, 0, 1);
                 ch.ClearPack(x, y);
             });
+            return true;
         }
-        public static bool Geopack(int type,int x,int y,Player p)
+        public static bool Geopack(int type,Player p)
         {
+            var d = p.GetDirCord();
+            int x = d.x, y = d.y;
             var cell = World.GetCell(x, y);
             if (World.TrueEmpty(x,y) && type != 10)
             {
@@ -225,8 +233,10 @@ namespace MinesServer.GameShit.Consumables
             }
             return false;
         }
-        public static void Raz(int x, int y, Player p)
+        public static bool Raz(Player p)
         {
+            var d = p.GetDirCord();
+            int x = d.x, y = d.y;
             var ch = World.W.GetChunk(x, y);
             ch.SendPack('B', x, y, 0, 2);
             World.W.AsyncAction(5, () =>
@@ -257,6 +267,7 @@ namespace MinesServer.GameShit.Consumables
                 ch.SendDirectedFx(1, x, y, 9, 0, 2);
                 ch.ClearPack(x, y);
             });
+            return true;
         }
     }
 }

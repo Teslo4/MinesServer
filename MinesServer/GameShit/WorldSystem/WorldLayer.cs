@@ -22,7 +22,7 @@ namespace MinesServer.GameShit.WorldSystem
         private BinaryStream _stream = new BinaryStream(new FileStream(filename, FileMode.OpenOrCreate));
         private readonly int amount = chunks.width * chunks.height;
         private T[]?[] _buffer = new T[chunks.width * chunks.height][];
-        private readonly object streamlock = new();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         protected readonly ConcurrentHashSet<(int chunkx, int chunky)> _updatedChunks = new();
         /// <summary>
         /// <see cref='this[int, int]'/> writes and reades Cells by original pos in world
@@ -77,7 +77,8 @@ namespace MinesServer.GameShit.WorldSystem
         }
         private T[] Read(int index)
         {
-            lock (streamlock)
+            _lock.EnterReadLock();
+            try
             {
                 var chunk = new T[Count];
                 Span<byte> temp = stackalloc byte[Count * typesize];
@@ -87,17 +88,20 @@ namespace MinesServer.GameShit.WorldSystem
                     chunk[j] = MemoryMarshal.Read<T>(temp[i..(i + typesize)]);
                 return chunk;
             }
+            finally { if (_lock.IsReadLockHeld) _lock.ExitReadLock(); }
         }
         private void Write(int index, T[] data)
         {
-            lock (streamlock)
+            _lock.EnterReadLock();
+            try
             {
-                    Span<byte> temp = stackalloc byte[data.Length * typesize];
-                    for (int i = 0, j = 0; i < temp.Length; i += typesize, j++)
-                        MemoryMarshal.Write(temp[i..(i + typesize)], in data[j]);
-                    _stream.Position = index * Count * typesize;
-                    _stream.Write(temp);
+                Span<byte> temp = stackalloc byte[data.Length * typesize];
+                for (int i = 0, j = 0; i < temp.Length; i += typesize, j++)
+                    MemoryMarshal.Write(temp[i..(i + typesize)], in data[j]);
+                _stream.Position = index * Count * typesize;
+                _stream.Write(temp);
             }
+            finally { if (_lock.IsWriteLockHeld) _lock.ExitWriteLock(); }
         }
         public T[] Read(int chunkx, int chunky)
         {

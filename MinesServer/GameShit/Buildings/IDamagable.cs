@@ -65,5 +65,6 @@ namespace MinesServer.GameShit.Buildings
         public int y { get; set; }
         public float charge { get; set; }
         public int hp { get; set; }
+        public int maxhp { get; set; }
     }
 }

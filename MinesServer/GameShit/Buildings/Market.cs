@@ -88,11 +88,12 @@ namespace MinesServer.GameShit.Buildings
             base.Build();
         }
         #endregion
-        public Action<Player, Market> onadmn = (p, m) =>
+        public Action<Player, Market> onadmn => (p, m) =>
         {
             if (p.id == m.ownerid)
             {
-                p.win.CurrentTab.Open(new Page()
+                p.win.ShowTabs = false;
+                p.win?.CurrentTab.Open(new Page()
                 {
                     Text = " ",
                     RichList = new RichListConfig()
@@ -104,6 +105,7 @@ namespace MinesServer.GameShit.Buildings
                     Buttons = []
 
                 });
+                p.SendWindow();
             }
         };
         private Tab BuildSelltab(Player p)

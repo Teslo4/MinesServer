@@ -16,6 +16,7 @@ namespace MinesServer.GameShit.Buildings
         public Crafter(int x, int y, int ownerid) : base(x, y, ownerid)
         {
             hp = 1000;
+            maxhp = 1000;
             using var db = new DataBase();
             db.crafts.Add(this);
             db.SaveChanges();
@@ -44,6 +45,7 @@ namespace MinesServer.GameShit.Buildings
         }
         public override PackType type => PackType.Craft;
         public int hp { get; set; }
+        public int maxhp { get; set; }
         #region affectworld
         public override void Build()
         {
