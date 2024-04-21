@@ -87,6 +87,7 @@ namespace MinesServer.GameShit.Generator
                                 World.SetCell(c.pos.Item1, c.pos.Item2, 32);
                             }
                         }
+                        World.CommitWorld();
                         ce = new List<SectorCell>();
                     }
                 }
@@ -166,7 +167,7 @@ namespace MinesServer.GameShit.Generator
             {
                 for (int y = 0; y < size.Item2; y++)
                 {
-                    var v = (float)fr.Get((float)(x / (float)size.Item1), (float)(y / (float)size.Item1));
+                    var v = (float)fr.Get((float)(x / (float)size.Item1), (float)(y / (float)size.Item2));
                     max = max < v ? v : max;
                     min = min < v ? min : v;
                     map[x * size.Item2 + y] = new SectorCell() { value = v, pos = (x, y), sector = -1 };

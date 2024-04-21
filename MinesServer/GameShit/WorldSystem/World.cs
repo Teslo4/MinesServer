@@ -17,8 +17,8 @@ namespace MinesServer.GameShit.WorldSystem
 {
     public class World
     {
-        public const int ChunksW = 5;
-        public const int ChunksH = 5;
+        public const int ChunksW = 260;
+        public const int ChunksH = 420;
         public const int CellsWidth = ChunksW * ChunkWidth;
         public const int CellsHeight = ChunksH * ChunkHeight;
         public const int ChunkWidth = 32;
@@ -50,14 +50,14 @@ namespace MinesServer.GameShit.WorldSystem
                 durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
                 Console.WriteLine($"Creating World Preset {CellsWidth} x {CellsHeight}({ChunksW} x {ChunksH} chunks)");
                 Console.WriteLine("EmptyMapGeneration");
-                //gen.StartGeneration();
-                for(int x = 0;x < CellsWidth;x++)
+                gen.StartGeneration();
+                /*for(int x = 0;x < CellsWidth;x++)
                 {
                     for (int y = 0; y < CellsHeight; y++)
                     {
                         SetCell(x, y, 32);
                     }
-                }
+                }*/
                 Console.WriteLine("Generation End");
             }
             else
@@ -66,9 +66,7 @@ namespace MinesServer.GameShit.WorldSystem
                 road = new($"{name}_road.mapb", (ChunksW, ChunksH));
                 durability = new($"{name}_durability.mapb", (ChunksW, ChunksH));
             }
-            cells.Commit();
-            road.Commit();
-            durability.Commit();
+            CommitWorld();
             CreateSpawns();
             using var db = new DataBase();
             if (db.chats.FirstOrDefault(i => i.Name == "FED") == default)
@@ -81,10 +79,14 @@ namespace MinesServer.GameShit.WorldSystem
             Console.WriteLine("Creating chunkmesh");
             Console.WriteLine("LoadConfirmed");
             Console.WriteLine("Started");
-            cells.Commit();
-            road.Commit();
-            durability.Commit();
+            CommitWorld();
             MServer.started = true;
+        }
+        public static void CommitWorld()
+        {
+            W.cells.Commit();
+            W.road.Commit();
+            W.durability.Commit();
         }
         public void DeleteWorld()
         {
@@ -313,6 +315,7 @@ namespace MinesServer.GameShit.WorldSystem
         }
         public static byte GetCell(int x, int y)
         {
+            if (!W.ValidCoord(x, y)) return 0;
             var cell = W.cells[x, y] ?? 0;
             if (cell == 0)
             {

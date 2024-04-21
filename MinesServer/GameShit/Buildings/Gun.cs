@@ -90,7 +90,6 @@ namespace MinesServer.GameShit.Buildings
             {
                 charge += (int)val;
                 World.W.GetChunk(x, y).ResendPack(this);
-                p.SendCrys();
             }
             db.SaveChanges();
             p.win = GUIWin(p);
@@ -141,7 +140,7 @@ namespace MinesServer.GameShit.Buildings
                                     continue;
                                 }
                                 player.Hurt(60, DamageType.Gun);
-                                player.SendDFToBots(player.id,7, x, y, player.id, 1);
+                                player.SendDFToBots(7, x, y, player.id, 1);
                                 var basecrys = 0.5f;
                                 foreach (var c in player.skillslist.skills.Values)
                                 {

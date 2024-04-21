@@ -75,12 +75,11 @@ namespace MinesServer.GameShit.Sys_Craft
         {
             if (r.costcrys != null)
                 foreach (var i in r.costcrys)
-                    p.crys.cry[i.id] -= i.num * num;
+                    p.crys.RemoveCrys(i.id, i.num * num);
             if (r.costres != null)
                 foreach (var i in r.costres)
                     p.inventory[i.id] -= i.num * num;
             p.SendInventory();
-            p.SendCrys();
         }
         public static IPage? FilledPage(Player p, Crafter c)
         {

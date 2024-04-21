@@ -46,7 +46,6 @@ namespace MinesServer.GameShit.SysMarket
                     continue;
                 money -= sliders[i] * (World.GetCrysCost(i) * 10);
                 p.crys.AddCrys(i, sliders[i]);
-                p.SendCrys();
             }
             p.money += money;
             db.SaveChanges();
@@ -81,7 +80,6 @@ namespace MinesServer.GameShit.SysMarket
                     var value = sliders[i];
                     if (p.crys.RemoveCrys(i, sliders[i]))
                         money += value * World.GetCrysCost(i);
-                    p.SendCrys();
                 }
                 m.moneyinside += (long)(money * 0.1);
                 p.money += money;

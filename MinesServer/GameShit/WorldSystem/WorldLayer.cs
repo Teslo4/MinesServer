@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using Microsoft.IdentityModel.Tokens;
+using Microsoft.Win32.SafeHandles;
 using MinesServer.Utils;
 using Newtonsoft.Json.Linq;
 using Syroot.BinaryData;
@@ -24,6 +25,7 @@ namespace MinesServer.GameShit.WorldSystem
         private T[]?[] _buffer = new T[chunks.width * chunks.height][];
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         protected readonly ConcurrentHashSet<(int chunkx, int chunky)> _updatedChunks = new();
+        Mutex mut = new();
         /// <summary>
         /// <see cref='this[int, int]'/> writes and reades Cells by original pos in world
         /// </summary>
@@ -33,9 +35,10 @@ namespace MinesServer.GameShit.WorldSystem
             {
                 if (x < 0 || x >= chunks.width * chunksize || y < 0 || y >= chunks.height * chunksize) return null;
                 var pos = GetChunkPos(x, y);
-                T[] lol = null;
-                while (lol is null) lol = Read(pos.x, pos.y);
-                return lol[GetCellIndex(x, y)];
+                T[] temp = null;
+                do temp = Read(pos.x, pos.y);
+                while (temp is null);
+                return temp[GetCellIndex(x, y)];
             }
             set
             {
@@ -77,6 +80,7 @@ namespace MinesServer.GameShit.WorldSystem
         }
         private T[] Read(int index)
         {
+            mut.WaitOne();
             _lock.EnterReadLock();
             try
             {
@@ -88,10 +92,11 @@ namespace MinesServer.GameShit.WorldSystem
                     chunk[j] = MemoryMarshal.Read<T>(temp[i..(i + typesize)]);
                 return chunk;
             }
-            finally { if (_lock.IsReadLockHeld) _lock.ExitReadLock(); }
+            finally { if (_lock.IsReadLockHeld) _lock.ExitReadLock();mut.ReleaseMutex(); }
         }
         private void Write(int index, T[] data)
         {
+            mut.WaitOne();
             _lock.EnterReadLock();
             try
             {
@@ -101,7 +106,7 @@ namespace MinesServer.GameShit.WorldSystem
                 _stream.Position = index * Count * typesize;
                 _stream.Write(temp);
             }
-            finally { if (_lock.IsWriteLockHeld) _lock.ExitWriteLock(); }
+            finally { if (_lock.IsWriteLockHeld) _lock.ExitWriteLock();mut.ReleaseMutex(); }
         }
         public T[] Read(int chunkx, int chunky)
         {

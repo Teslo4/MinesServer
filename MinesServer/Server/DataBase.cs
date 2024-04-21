@@ -32,6 +32,7 @@ namespace MinesServer.Server
         public DbSet<CraftEntry> craftentries { get; set; }
         #endregion
         #region packs
+        public DbSet<Spot> spots { get; set; }
         public DbSet<Vulkan> vulkans { get; set; }
         public DbSet<Resp> resps { get; set; }
         public DbSet<Market> markets { get; set; }

@@ -22,7 +22,7 @@ namespace MinesServer.GameShit.Consumables
                 case 0:
                     shoty = y + 9;
                     if (!World.W.ValidCoord(0, shoty)) return false;
-                    p.SendDFToBots(p.id,7, x, shoty, 0, 1);
+                    p.SendDFToBots(7, x, shoty, p.id, 1);
                     for (; y <= shoty; y++)
                     {
                         var c = World.GetCell(x, y);
@@ -41,7 +41,7 @@ namespace MinesServer.GameShit.Consumables
                 case 1:
                     shotx = x - 9;
                     if (!World.W.ValidCoord(shotx, 0)) return false;
-                    p.SendDFToBots(p.id,7, shotx, y, 0, 1);
+                    p.SendDFToBots(7, shotx, y, p.id, 1);
                     for (; x >= shotx; x--)
                     {
                         var c = World.GetCell(x, y);
@@ -60,7 +60,7 @@ namespace MinesServer.GameShit.Consumables
                 case 2:
                     shoty = y - 9;
                     if (!World.W.ValidCoord(0, shoty)) return false;
-                    p.SendDFToBots(p.id,7, x, shoty, 0, 1);
+                    p.SendDFToBots(7, x, shoty, p.id, 1);
                     for (; y >= shoty; y--)
                     {
                         var c = World.GetCell(x, y);
@@ -79,7 +79,7 @@ namespace MinesServer.GameShit.Consumables
                 case 3:
                     shotx = x + 9;
                     if (!World.W.ValidCoord(shotx, 0)) return false;
-                    p.SendDFToBots(p.id,7, shotx, y, 0, 1);
+                    p.SendDFToBots(7, shotx, y, p.id, 1);
                     for (; x <= shotx; x++)
                     {
                         var c = World.GetCell(x, y);

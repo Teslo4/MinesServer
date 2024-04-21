@@ -1,4 +1,5 @@
-﻿using MinesServer.Enums;
+﻿using Microsoft.IdentityModel.Tokens;
+using MinesServer.Enums;
 using MinesServer.GameShit.GUI;
 using MinesServer.GameShit.GUI.Horb;
 using MinesServer.Network.GUI;
@@ -6,6 +7,7 @@ using MinesServer.Server;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
 
 
 namespace MinesServer.GameShit.Entities.PlayerStaff
@@ -19,12 +21,15 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             _cry = [0, 0, 0, 0, 0, 0];
             serialazed = JsonConvert.SerializeObject(_cry);
         }
+        public event Action Changed;
+        public bool shouldsubscribe => Changed is null;
         private Basket()
         {
         }
         public long this[CrystalType type]
         {
             set => cry[(int)type] = value;
+
             get => cry[(int)type];
         }
         private long[] _cry = null;
@@ -46,17 +51,20 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             cry[index] += val;
             if (cry[index] < 0)
                 cry[index] = long.MaxValue;
+            if (Changed is not null)Changed();
         }
         public void Boxcrys(long[] crys)
         {
             for (var i = 0; i < cry.Length; i++)
                 cry[i] += crys[i];
+            if (Changed is not null) Changed();
 
         }
         public void ClearCrys()
         {
             for (var i = 0; i < cry.Length; i++)
                 cry[i] = 0;
+            Changed();
         }
         public bool RemoveCrys(int index, long val)
         {
@@ -65,6 +73,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (cry[index] - val >= 0)
             {
                 cry[index] -= val;
+                if (Changed is not null) Changed();
                 return true;
             }
             return false;

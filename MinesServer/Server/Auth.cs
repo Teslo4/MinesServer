@@ -80,9 +80,9 @@ namespace MinesServer.Server
             {
                 player = DataBase.GetPlayer(p.user_id.Value)!;
             }
+            initiator.SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 0, "COCK", "http://pi.door/", "ok"));
             if (player == null)
             {
-                initiator.SendU(new WorldInfoPacket(World.W.name, World.CellsWidth, World.CellsHeight, 0, "COCK", "http://pi.door/", "ok"));
                 initiator.SendU(new BotInfoPacket("pidor", 0, 0, -1));
                 initiator.SendU(new HBPacket([new HBMapPacket(0, 0, 32, 32, World.W.GetChunk(0,0).cells)]));
                 authwin = def;

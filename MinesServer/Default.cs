@@ -30,12 +30,11 @@ namespace MinesServer
             new ImgSpace();
             var configPath = "config.json";
             if (File.Exists(configPath))
-            {
                 cfg = JsonConvert.DeserializeObject<Config>(File.ReadAllText(configPath));
-            }
             else
             {
                 cfg = new Config();
+                cfg.WorldName = "ff";
                 File.WriteAllText(configPath, JsonConvert.SerializeObject(cfg, Formatting.Indented));
             }
             server = new MServer(System.Net.IPAddress.Any, port);
@@ -49,9 +48,7 @@ namespace MinesServer
             {
                 using var db = new DataBase();
                 db.SaveChanges();
-                World.W.cells.Commit();
-                World.W.road.Commit();
-                World.W.durability.Commit();
+                World.CommitWorld();
             });
             commands.Add("restart", () => { server.Stop(); Console.WriteLine("kinda restart"); server.Start(); });
             commands.Add("players", () =>

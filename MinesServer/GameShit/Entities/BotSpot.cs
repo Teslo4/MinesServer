@@ -14,22 +14,26 @@ namespace MinesServer.GameShit.Entities
 {
     public class BotSpot : PEntity
     {
-        public ProgrammatorData pd;
         public BotSpot(int x,int y,Player owner)  {
             id = -owner.id;
-            pd = new(this);
+            _pdata = new(this);
             this.x = x;this.y = y;this.owner = owner;
             crys = new(true);
+            crys.Changed += Translate;
         }
         public int tail => 1;
         public int skin => 3;
         public override int cid => owner.cid;
         public Player? owner { get; set; }
         public override Basket crys { get; set; }
+        private void Translate()
+        {
+            Console.WriteLine("should save basket and pos");
+        }
 
         public override void Build(string type)
         {
-
+           
         }
         private float cb;
         private void Mine(byte cell, int x, int y)
@@ -61,7 +65,7 @@ namespace MinesServer.GameShit.Entities
             cb += dob - odob;
             crys.AddCrys(type, odob);
             World.AddDob(type, odob);
-            SendDFToBots(id,2, x, y, id, (int)(odob < 255 ? odob : 255), type == 1 ? 3 : type == 2 ? 1 : type == 3 ? 2 : type);
+            SendDFToBots(2, x, y, id, (int)(odob < 255 ? odob : 255), type == 1 ? 3 : type == 2 ? 1 : type == 3 ? 2 : type);
         }
         private int ParseCryType(CellType cell)
         {
@@ -84,7 +88,7 @@ namespace MinesServer.GameShit.Entities
             {
                 return;
             }
-            SendDFToBots(id,0, this.x, this.y, id, dir);
+            SendDFToBots(0, this.x, this.y, id, dir);
             var cell = World.GetCell(x, y);
             if (World.GetProp(cell).damage > 0)
             {
@@ -176,6 +180,6 @@ namespace MinesServer.GameShit.Entities
             return false;
         }
 
-        public override void Update() => pd.Step();
+        public override void Update() => _pdata.Step();
     }
 }

@@ -41,7 +41,6 @@ namespace MinesServer.GameShit.WorldSystem
                 else if (p.crys.RemoveCrys(i, remcry))
                 {
                     box.bxcrys[i] = remcry;
-                    p.SendCrys();
                 }
             }
             if (box.bxcrys.Sum() <= 0)

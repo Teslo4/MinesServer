@@ -116,7 +116,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
         }
         private Resp? _resp;
         [NotMapped]
-        public int cid { get => clan == null ? 0 : clan.id; }
+        public override int cid { get => clan == null ? 0 : clan.id; }
         public long money { get; set; }
         public long creds { get; set; }
         public string hash { get; set; }
@@ -319,14 +319,12 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             var type = ParseCryType((CellType)cell);
             cb += dob - odob;
             crys.AddCrys(type, odob);
-            this.SendCrys();
             World.AddDob(type, odob);
             SendDFToBots(2, x, y, id, (int)(odob < 255 ? odob : 255), type == 1 ? 3 : type == 2 ? 1 : type == 3 ? 2 : type);
         }
         public void GetBox(int x, int y)
         {
             var result = base.GetBox(x, y);
-            this.SendCrys();
             connection?.SendB(new HBPacket([new HBChatPacket(0, x, y, "+ " + result)]));
         }
         private void OnDestroy(byte type)
@@ -347,7 +345,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             {
                 return;
             }
-            SendDFToBots(id,0, this.x, this.y, id, dir);
+            SendDFToBots(0, this.x, this.y, id, dir);
             var cell = World.GetCell(x, y);
             if (World.GetProp(cell).damage > 0)
             {
@@ -566,7 +564,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                     }
                     break;
             }
-            this.SendCrys();
         }
         #endregion
         #region creating
@@ -623,6 +620,8 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             this.SendHealth();
             this.SendBotInfo();
             this.SendSpeed();
+            if (crys.shouldsubscribe)
+            crys.Changed += this.SendCrys;
             this.SendCrys();
             this.SendMoney();
             this.SendLvl();
@@ -786,17 +785,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 }
             }
         }
-        public void SendLocalMsg(string msg)
-        {
-            foreach (var ch in vChunksAround())
-            {
-                var chunk = World.W.chunks[ch.x, ch.y];
-                foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
-                {
-                    player?.connection?.SendB(new HBPacket([new HBChatPacket(this.id, x, y, msg)]));
-                }
-            }
-        }
         #endregion
         public string GenerateHash()
         {
@@ -829,7 +817,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 Health += num;
                 if (Health > MaxHealth)
                     Health = MaxHealth;
-                SendDFToBots(id,5, 0, 0, id, 0);
+                SendDFToBots(5, 0, 0, id, 0);
                 this.SendHealth();
                 return true;
             }
@@ -871,7 +859,7 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
             if (Health - num > 0)
             {
                 Health -= num;
-                SendDFToBots(id,6, 0, 0, id, 0);
+                SendDFToBots(6, 0, 0, id, 0);
             }
             else
             {
@@ -917,7 +905,6 @@ namespace MinesServer.GameShit.Entities.PlayerStaff
                 {
                     Box.BuildBox(f.Result.x, f.Result.y, crys.cry, this, true);
                     crys.ClearCrys();
-                    this.SendCrys();
                 });
             }
             win = null;

@@ -17,9 +17,11 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace MinesServer.GameShit.Entities
 {
+    /// <summary>
+    /// Base class for Player-like Entities
+    /// </summary>
     public abstract class PEntity : Entity
     {
-        public int id { get; set; }
         public ProgrammatorData programsData
         {
             get
@@ -86,38 +88,37 @@ namespace MinesServer.GameShit.Entities
             }
             return (x, y);
         }
+        #region Renders
         public void SendFXoBots(int fx, int fxx, int fxy)
         {
-            foreach (var ch in vChunksAround())
+            foreach (var chunk in vChunksAroundEx())
             {
-                var chunk = World.W.chunks[ch.x, ch.y];
                 foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
                 {
                     player?.connection?.SendB(new HBPacket([new HBFXPacket(fxx, fxy, fx)]));
                 }
             }
         }
-        public void SendLocalMsg(int from,string msg)
+        public void SendLocalMsg(string msg)
         {
-            foreach (var ch in vChunksAround())
+            foreach (var chunk in vChunksAroundEx())
             {
-                var chunk = World.W.chunks[ch.x, ch.y];
                 foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
                 {
-                    player?.connection?.SendB(new HBPacket([new HBChatPacket(from, x, y, msg)]));
+                    player?.connection?.SendB(new HBPacket([new HBChatPacket(id, x, y, msg)]));
                 }
             }
         }
-        public void SendDFToBots(int from,int fx, int fxx, int fxy, int bid, int dir, int col = 0)
+        public void SendDFToBots(int fx, int fxx, int fxy, int bid, int dir, int col = 0)
         {
-            foreach (var ch in vChunksAround())
+            foreach (var chunk in vChunksAroundEx())
             {
-                var chunk = World.W.chunks[ch.x, ch.y];
                 foreach (var player in chunk.bots.Select(id => DataBase.GetPlayer(id.Key)))
                 {
-                    player?.connection?.SendB(new HBPacket([new HBDirectedFXPacket(from, fxx, fxy, fx, dir, col)]));
+                    player?.connection?.SendB(new HBPacket([new HBDirectedFXPacket(bid, fxx, fxy, fx, dir, col)]));
                 }
             }
         }
+        #endregion
     }
 }

@@ -123,7 +123,6 @@ namespace MinesServer.GameShit.Buildings
                     crysinside[i] = sliders[i];
                 }
             }
-            p.SendCrys();
             p.win = GUIWin(p);
         }
         private IPage MainPage(Player p) => new Page(){
