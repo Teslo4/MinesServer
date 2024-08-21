@@ -19,10 +19,8 @@
         {
             Console.WriteLine("Generating sectors");
             var sec = new Sectors((width, height));
-            sec.GenerateENoise(55, 1, RcherNZ.AccidentalNoise.InterpolationType.Cubic);
-            sec.AddW(15, 1, RcherNZ.AccidentalNoise.InterpolationType.Linear);
-            sec.AddW(25, 5, RcherNZ.AccidentalNoise.InterpolationType.Linear);
-            sec.AddW(35, 20, RcherNZ.AccidentalNoise.InterpolationType.Quintic);
+            sec.GenerateENoise(15, 1, RcherNZ.AccidentalNoise.InterpolationType.Cubic);
+            sec.AddW(25, 1, RcherNZ.AccidentalNoise.InterpolationType.Linear, .55f);
             sec.End();
             var map = sec.map;
             var rc = 0;
@@ -61,11 +59,11 @@
                 var inside = new SectorFiller();
                 if (s[i].seccells.Count > 40000)
                 {
-                    inside.CreateFillForCells(s[i], false, s[i].GenerateInsides());
+                    inside.CreateFillForCells(s[i], true, s[i].GenerateInsides());
                 }
                 else if (s[i].seccells.Count <= 40000)
                 {
-                    inside.CreateFillForCells(s[i], true, s[i].GenerateInsides());
+                    inside.CreateFillForCells(s[i], false, s[i].GenerateInsides());
                 }
                 Console.WriteLine("saving sector " + s[i].seccells.Count);
                 foreach (var c in s[i].seccells)

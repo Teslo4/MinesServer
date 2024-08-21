@@ -10,8 +10,8 @@ namespace MinesServer.GameShit.Skills
     {
         public static float Digcoast(float x)
         {
-            float coast = 1000;
-            if (x > 1 && x <= 5) { coast = coast + (x * 150); }
+            float coast = 50;
+            if (x > 1 && x <= 5) { coast = coast + x * 150; }
             if (x > 5 && x <= 10) { coast = coast + (x * 250) - 50; }
             if (x > 10 && x <= 25) { coast = coast + (x * 1250) - 50; }
             if (x > 25 && x <= 50) { coast = coast + (x * 3000) - 50; }
@@ -24,13 +24,11 @@ namespace MinesServer.GameShit.Skills
         }
         public static float Digeffect(float x)
         {
-            float eff = 100f;
-            if (x > 1) eff += x * 10;
-            return eff;
+            return 10 * x;
         }
         public static float Digexp(float x)
         {
-            float exp = 40;
+            float exp = 20;
             if (x > 1 && x <= 5) { exp = exp + x * 5; }
             if (x > 5 && x <= 10) { exp = exp + (x * 8) - 20; }
             if (x > 10 && x <= 25) { exp = exp + (x * 13) - 20; }
@@ -81,21 +79,21 @@ namespace MinesServer.GameShit.Skills
         }
         public static float Minecoast(float x)
         {
-            float coast = 500;
-            if (x > 1 && x <= 10) { coast = coast + x * 50; }
-            if (x > 10 && x <= 20) { coast = coast + (x * 250) - 250; }
-            if (x > 20 && x <= 30) { coast = coast + (x * 300) - 250; }
-            if (x > 30 && x <= 50) { coast = coast + (x * 450) - 250; }
-            if (x > 50 && x <= 100) { coast = coast + (x * 500) - 250; }
-            if (x > 100 && x <= 250) { coast = coast + (x * 750) - 250; }
-            if (x > 250 && x <= 500) { coast = coast + (x * 1000) - 250; }
-            if (x > 500 && x <= 1000) { coast = coast + (x * 1500) - 250; }
-            if (x > 1000) { coast = coast + (x * 200); }
+            float coast = 250;
+            if (x > 1 && x <= 5) { coast = coast + x * 50; }
+            if (x > 5 && x <= 10) { coast = coast + (x * 250) - 250; }
+            if (x > 10 && x <= 20) { coast = coast + (x * 1000) - 250; }
+            if (x > 20 && x <= 50) { coast = coast + (x * 4500) - 250; }
+            if (x > 50 && x <= 100) { coast = coast + (x * 12500) - 250; }
+            if (x > 100 && x <= 250) { coast = coast + (x * 17500) - 250; }
+            if (x > 250 && x <= 500) { coast = coast + 2375000 + (x * 10000) - 250; }
+            if (x > 500 && x <= 1000) { coast = coast + 5575000 + (x * 7750) - 250; }
+            if (x > 1000) { coast = 14000000; }
             return coast;
         }
         public static float Mineeffect(float x)
         {
-            float eff = 0.2f;
+            float eff = 0;
             if (x > 1 && x <= 5) { eff = eff + (x * 0.15f); }
             if (x > 5 && x <= 10) { eff = eff + 0.25f + (x * 0.075f); }
             if (x > 10 && x <= 100) { eff = eff + 0.395f + (x * 0.055f); }
@@ -107,7 +105,7 @@ namespace MinesServer.GameShit.Skills
         }
         public static float Mineexp(float x)
         {
-            float exp = 45;
+            float exp = 50;
             if (x > 1 && x <= 5) { exp = exp + (x * 10); }
             if (x > 5 && x <= 10) { exp = exp + (x * 15); }
             if (x > 10 && x <= 25) { exp = exp + (x * 20); }
