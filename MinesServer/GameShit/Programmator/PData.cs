@@ -1,5 +1,4 @@
-﻿
-using MoreLinq;
+﻿using MoreLinq;
 using System.ComponentModel.Design;
 
 namespace MinesServer.GameShit.Programmator
